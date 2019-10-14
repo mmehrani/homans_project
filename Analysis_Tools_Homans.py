@@ -81,13 +81,13 @@ class Analysis:
                     if self.a_matrix[i].neighbour[j] > 5:
                         G.add_edge(i,j)
                         
-        node_attr_dict = { i:{'similar_situation':0,'money':0,'expectation':0,'others_feeling':0} for i in G.nodes() }
-#        attr_dict = { i:{'similarity':float(self.a_matrix[i].similar_situation)} for i in G.nodes() }
+        node_attr_dict = { i:{'situation':0,'money':0,'worth_ratio':0,'others_feeling':0} for i in G.nodes() }
+#        attr_dict = { i:{'similarity':float(self.a_matrix[i].situation)} for i in G.nodes() }
         for i in G.nodes():
-            node_attr_dict[i]['similar_situation'] = float(self.a_matrix[i].similar_situation)
+            node_attr_dict[i]['situation'] = float(self.a_matrix[i].situation)
             node_attr_dict[i]['money'] = float(self.a_matrix[i].money)
-            node_attr_dict[i]['expectation'] = float(self.a_matrix[i].expectation)
-            node_attr_dict[i]['expectation'] = float(self.array('approval')[i])
+            node_attr_dict[i]['worth_ratio'] = float(self.a_matrix[i].worth_ratio)
+            node_attr_dict[i]['worth_ratio'] = float(self.array('approval')[i])
             node_attr_dict[i]['others_feeling'] = float(self.array('others_feeling_for_agent')[i])
         
         nx.set_node_attributes(G,node_attr_dict)
@@ -98,7 +98,7 @@ class Analysis:
         plt.figure()
         print("Size of G is:", self.G.number_of_nodes())
 #        edgewidth = [ d['weight'] for (u,v,d) in self.G.edges(data=True)]
-        sim_color = [ self.a_matrix[u].similar_situation for u in self.G.nodes()]
+        sim_color = [ self.a_matrix[u].situation for u in self.G.nodes()]
         
         pos = nx.spring_layout(self.G)
 #        pos = nx.kamada_kawai_layout(self.G)
@@ -123,7 +123,7 @@ class Analysis:
         pos_attrs = {}
         for node, coords in pos_nodes.items():
             pos_attrs[node] = (coords[0], coords[1] + 0.04)
-        node_attrs = { node:float("{0:.2f}".format(self.a_matrix[node].similar_situation)) for node in node_list}
+        node_attrs = { node:float("{0:.2f}".format(self.a_matrix[node].situation)) for node in node_list}
         custom_node_attrs = {}
         for node, attr in node_attrs.items():
             custom_node_attrs[node] = attr
@@ -151,11 +151,11 @@ class Analysis:
                 ref[what_array][i] = self.a_matrix[i].approval
             return ref[what_array]
 
-        if what_array == 'expectation':
+        if what_array == 'worth_ratio':
             ref[what_array] = np.zeros(self.N)
             for i in np.arange(self.N):
 #                ref[what_array][i] = self.a_matrix[i].neighbour_average()['approval'] / self.a_matrix[i].neighbour_average()['money']
-                ref[what_array][i] = self.a_matrix[i].expectation
+                ref[what_array][i] = self.a_matrix[i].worth_ratio
             return ref[what_array]
         
         if what_array == 'neighbour':
@@ -287,7 +287,7 @@ class Analysis:
 
     def degree_vs_attr(self):
         G_deg = dict(self.G.degree)
-        deg_attr = [ [self.a_matrix[x].similar_situation,G_deg[x]] for x in G_deg.keys() ]
+        deg_attr = [ [self.a_matrix[x].situation,G_deg[x]] for x in G_deg.keys() ]
         deg_attr = sorted(deg_attr, key=lambda a_entry: a_entry[0])
         deg_attr = np.transpose(deg_attr)
         plt.figure()
@@ -300,7 +300,7 @@ class Analysis:
     def segregation(self):
         seg_point = np.arange(0,1,0.1)
         H = np.zeros(np.size(seg_point))
-        s_arr = np.array([self.a_matrix[i].similar_situation for i in np.arange(self.N)])
+        s_arr = np.array([self.a_matrix[i].situation for i in np.arange(self.N)])
         group1 = s_arr[s_arr<seg_point]
         group2 = s_arr[s_arr>seg_point]
         E_tot = self.G.number_of_edges()
@@ -337,10 +337,10 @@ class Tracker:
 #        memory_size = size
         
         """Trackers"""
-        global self_value,valuable_to_others,expectation,exploration,exploration_avg
+        global self_value,valuable_to_others,worth_ratio,exploration,exploration_avg
         self_value = np.zeros((self.total_time,self.N))
         valuable_to_others = np.zeros((self.total_time,self.N))
-        expectation = np.zeros((self.total_time-2,self.N))
+        worth_ratio = np.zeros((self.total_time-2,self.N))
         self.trans_time = np.ones((self.total_time,self.N,self.N))
         
     def update_A(self,a_matrix):
@@ -353,8 +353,8 @@ class Tracker:
             self_value[t] = np.sum(self._array('value'),axis = 1)
         if get_list == 'valuable_to_others':
             valuable_to_others[t] = np.sum(self._array('value'),axis = 0)
-        if get_list == 'expectation':
-            expectation[t] = self._array('expectation')
+        if get_list == 'worth_ratio':
+            worth_ratio[t] = self._array('worth_ratio')
         if get_list == 'trans_time':
             for i in np.arange(self.N):
 #                for j in np.arange(self.N):
@@ -398,7 +398,7 @@ class Tracker:
                         ref[what_array][i,j] = 0
             return ref[what_array]
                     
-        if what_array == 'expectation':
+        if what_array == 'worth_ratio':
             ref[what_array] = np.zeros(self.N)
             for i in np.arange(self.N):
                 ref[what_array][i] = self.a_matrix[i].neighbour_average()['approval'] / self.a_matrix[i].neighbour_average()['money']
@@ -408,7 +408,7 @@ class Tracker:
     def plot(self,what_array,**kwargs):
         ref = {'self_value': self_value,
                'valuable_to_others': valuable_to_others,
-               'expectation': expectation}
+               'worth_ratio': worth_ratio}
         plt.figure()
         plt.title(kwargs.get('title',what_array))
         plt.plot(ref[what_array])
