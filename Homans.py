@@ -40,14 +40,14 @@ class Agent():
     def neighbour_average(self):
         
 #        self.n_avg = {'money':0, 'approval':0}
-        self.n_avg = {'money':0, 'approval':1}
+        self.n_avg = {'money':1, 'approval':0}
         for j in self.active_neighbour.keys():
-            self.n_avg['money'] += A[j].money / A[j].approval
+#            self.n_avg['money'] += A[j].money / A[j].approval
 #            self.n_avg['money'] += A[j].money
-#            self.n_avg['approval'] += A[j].approval
+            self.n_avg['approval'] += A[j].approval / A[j].money
         
-        self.n_avg['money'] = self.n_avg['money']/len(self.active_neighbour)
-#        self.n_avg['approval'] = self.n_avg['approval']/len(self.active_neighbour)
+#        self.n_avg['money'] = self.n_avg['money']/len(self.active_neighbour)
+        self.n_avg['approval'] = self.n_avg['approval']/len(self.active_neighbour)
 
         return self.n_avg
     
@@ -391,11 +391,11 @@ situation_arr = np.random.random(N) #randomly distributed
 #money = np.full(N,2)        #may have distribution
 #money = np.random.normal(loc=4,scale=1,size=N)
 #money = 1 + situation_arr * 2
-money = situation_arr[:] * 4
+money = situation_arr[:] * 4 + 1
 #money = np.random.random(N) * 2
 #approval = np.full(N,2)     #may have distribution
 #approval = 1 + situation_arr * 2
-approval = situation_arr[:] * 4
+approval = situation_arr[:] * 4 + 1
 #risk_receptibility = np.full(N,similarity)
 risk_receptibility = np.random.random(N)*4*similarity
 
