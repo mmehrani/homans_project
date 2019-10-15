@@ -87,7 +87,7 @@ class Analysis:
             node_attr_dict[i]['situation'] = float(self.a_matrix[i].situation)
             node_attr_dict[i]['money'] = float(self.a_matrix[i].money)
             node_attr_dict[i]['worth_ratio'] = float(self.a_matrix[i].worth_ratio)
-            node_attr_dict[i]['worth_ratio'] = float(self.array('approval')[i])
+            node_attr_dict[i]['approval'] = float(self.array('approval')[i])
             node_attr_dict[i]['others_feeling'] = float(self.array('others_feeling_for_agent')[i])
         
         nx.set_node_attributes(G,node_attr_dict)
