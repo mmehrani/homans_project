@@ -447,14 +447,13 @@ for t in np.arange(T)+1:#t goes from 1 to T
 #    if t>2:
 #        tracker.get_list('worth_ratio',t-3)
     explore_prob_array[t-1] /= N
-    """reset"""
-    for agent in A: agent.reset_neighbour()
+
 
 
 print(datetime.now() - start_time)
 # =============================================================================
 """Write File"""
-version = '\\tracker_issue'
+version = '\\master'
 save_it(version)
 # =============================================================================
 """Analysis and Measurements"""
