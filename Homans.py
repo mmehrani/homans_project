@@ -39,12 +39,15 @@ class Agent():
     
     def neighbour_average(self):
         
-        self.n_avg = {'money':0, 'approval':0}
+#        self.n_avg = {'money':0, 'approval':0}
+        self.n_avg = {'money':0, 'approval':1}
         for j in self.active_neighbour.keys():
-            self.n_avg['money'] += A[j].money
-            self.n_avg['approval'] += A[j].approval
+            self.n_avg['money'] += A[j].money / A[j].approval
+#            self.n_avg['money'] += A[j].money
+#            self.n_avg['approval'] += A[j].approval
+        
         self.n_avg['money'] = self.n_avg['money']/len(self.active_neighbour)
-        self.n_avg['approval'] = self.n_avg['approval']/len(self.active_neighbour)
+#        self.n_avg['approval'] = self.n_avg['approval']/len(self.active_neighbour)
 
         return self.n_avg
     
@@ -448,13 +451,13 @@ for t in np.arange(T)+1:#t goes from 1 to T
 #        tracker.get_list('worth_ratio',t-3)
     explore_prob_array[t-1] /= N
     """reset"""
-    for agent in A: agent.reset_neighbour()
+#    for agent in A: agent.reset_neighbour()
 
 
 print(datetime.now() - start_time)
 # =============================================================================
 """Write File"""
-version = '\\tracker_issue'
+version = '\\worth_ratio_issue'
 save_it(version)
 # =============================================================================
 """Analysis and Measurements"""
