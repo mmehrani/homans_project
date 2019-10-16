@@ -184,9 +184,9 @@ def transaction(index1,index2,t):
     if worth_ratio2 >= worth_ratio1:
         acceptance_exp = 1
     else:
-        acceptance_exp = 0
-#        p = np.exp( -(worth_ratio1 - worth_ratio2)/normalization_factor )
-#        acceptance_exp = np.random.choice([0,1],p=[1-p,p])
+#        acceptance_exp = 0
+        p = np.exp( -(worth_ratio1 - worth_ratio2)/normalization_factor )
+        acceptance_exp = np.random.choice([0,1],p=[1-p,p])
         
     amount = transaction_percentage * agent1.property()[transaction_property]
     agreement_point = (worth_ratio2 - worth_ratio1)/(worth_ratio2 + worth_ratio1) * amount * worth_ratio1 #x=(E2-E1/E2+E1)*AE1
@@ -453,7 +453,7 @@ for t in np.arange(T)+1:#t goes from 1 to T
 print(datetime.now() - start_time)
 # =============================================================================
 """Write File"""
-version = '\\master'
+version = '\\graph_defini'
 save_it(version)
 # =============================================================================
 """Analysis and Measurements"""
