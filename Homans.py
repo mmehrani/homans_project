@@ -509,7 +509,7 @@ for t in np.arange(T)+1:#t goes from 1 to T
 print(datetime.now() - start_time)
 # =============================================================================
 """Write File"""
-version = '\\master'
+version = '\\graph_defini'
 save_it(version)
 # =============================================================================
 """Analysis and Measurements"""
