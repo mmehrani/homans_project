@@ -51,6 +51,15 @@ class Agent():
 
         return self.n_avg
     
+    def neighbour_average_new(self,transaction_property):
+        
+        if transaction_property == 'money':    
+            self.n_avg = 0
+            for j in self.active_neighbour.keys():
+                self.n_avg += A[j].approval / A[j].money
+            self.n_avg = self.n_avg /len(self.active_neighbour)
+        
+        return self.n_avg
     def probability(self,neighbour,t):
         '''calculates probability for choosing each neighbour
         utility = value * acceptance_probability
@@ -156,9 +165,10 @@ def transaction(index1,index2,t):
     number_of_transaction2 = agent2.neighbour[index1]
     assign = {'money':1, 'approval':-1, 1:'money', -1:'approval'}
 
-    if len(agent1.active_neighbour) != 0:
-        worth_ratio1 = agent1.neighbour_average()['approval'] / agent1.neighbour_average()['money']  # avg(approval)/avg(money)
-        agent1.worth_ratio = worth_ratio1
+#    if len(agent1.active_neighbour) != 0:
+#        worth_ratio1 = agent1.neighbour_average()['approval'] / agent1.neighbour_average()['money']  # avg(approval)/avg(money)
+#        agent1.worth_ratio = worth_ratio1
+    
 #        self_fraction = agent1.approval / agent1.money
         
 #        if worth_ratio1 > self_fraction:
@@ -170,26 +180,41 @@ def transaction(index1,index2,t):
     transaction_property = 'money'
     
     #redefinition of worth_ratios
+#    if len(agent1.active_neighbour) != 0:
+#        worth_ratio1 = agent1.neighbour_average()[assign[-assign[transaction_property]]] / agent1.neighbour_average()[transaction_property]
+#        agent1.worth_ratio = worth_ratio1
+#    else:
+#        worth_ratio1 = agent1.property()[assign[-assign[transaction_property]]] / agent1.property()[transaction_property]
+#        agent1.worth_ratio = worth_ratio1
+#
+#    if len(agent2.active_neighbour) != 0:
+#        worth_ratio2 = agent2.neighbour_average()[assign[-assign[transaction_property]]] / agent2.neighbour_average()[transaction_property]
+#        agent2.worth_ratio = worth_ratio2
+#    else:
+#        worth_ratio2 = agent2.property()[assign[-assign[transaction_property]]] / agent2.property()[transaction_property]
+#        agent2.worth_ratio = worth_ratio2
     if len(agent1.active_neighbour) != 0:
-        worth_ratio1 = agent1.neighbour_average()[assign[-assign[transaction_property]]] / agent1.neighbour_average()[transaction_property]
+        worth_ratio1 = agent1.neighbour_average_new(transaction_property)
         agent1.worth_ratio = worth_ratio1
     else:
         worth_ratio1 = agent1.property()[assign[-assign[transaction_property]]] / agent1.property()[transaction_property]
         agent1.worth_ratio = worth_ratio1
 
     if len(agent2.active_neighbour) != 0:
-        worth_ratio2 = agent2.neighbour_average()[assign[-assign[transaction_property]]] / agent2.neighbour_average()[transaction_property]
+        worth_ratio2 = agent2.neighbour_average_new(transaction_property)
         agent2.worth_ratio = worth_ratio2
     else:
         worth_ratio2 = agent2.property()[assign[-assign[transaction_property]]] / agent2.property()[transaction_property]
         agent2.worth_ratio = worth_ratio2
     
+    
+    
     if worth_ratio2 >= worth_ratio1:
         acceptance_exp = 1
     else:
-        acceptance_exp = 0
-#        p = np.exp( -(worth_ratio1 - worth_ratio2)/normalization_factor )
-#        acceptance_exp = np.random.choice([0,1],p=[1-p,p])
+#        acceptance_exp = 0
+        p = np.exp( -(worth_ratio1 - worth_ratio2)/normalization_factor )
+        acceptance_exp = np.random.choice([0,1],p=[1-p,p])
         
     amount = transaction_percentage * agent1.property()[transaction_property]
     agreement_point = (worth_ratio2 - worth_ratio1)/(worth_ratio2 + worth_ratio1) * amount * worth_ratio1 #x=(E2-E1/E2+E1)*AE1
