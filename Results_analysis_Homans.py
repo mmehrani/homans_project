@@ -14,7 +14,7 @@ import os
 N,T,memory_size = [100,1000,10]
 
 current_path = os.getcwd()
-version = '\\master'
+version = '\\graph_defini'
 path = '\\runned_files'+version+'\\N%d_T%d_memory_size%d\\'%(N,T,memory_size)
 
 with open(current_path+path+'Tracker.pkl','rb') as tracker_file:
@@ -29,9 +29,10 @@ analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,a_matrix)
 #analyse.draw_graph()
 
 graph_type = 'trans_number'
-constructed_graph = analyse._graph_construction(graph_type)
-nx.write_gexf(constructed_graph,current_path+path+'%s_graph.gexf'%(graph_type))
+mid_constructed_graph = analyse._graph_construction(graph_type,tracker_obj = tracker,sampling_time = int(T/2))
+nx.write_gexf(mid_constructed_graph,current_path+path+'%s_graph.gexf'%(graph_type))
 
+constructed_graph = analyse._graph_construction(graph_type)
 dynamic_graph = tracker.make_dynamic_trans_time_graph(constructed_graph)
 nx.write_gexf(dynamic_graph,current_path+path+'dynamic_%s_graph.gexf'%(graph_type))
 
