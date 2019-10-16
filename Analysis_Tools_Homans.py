@@ -42,7 +42,7 @@ class Analysis:
 #        G = self._graph_construction('utility')
         return
     
-    def _graph_construction(self,graph_type):
+    def _graph_construction(self,graph_type,**kwargs):
         G = nx.Graph()
         if graph_type == 'last_time':
             for i in np.arange(self.N):
@@ -76,10 +76,20 @@ class Analysis:
                         G.add_edge(i,j,weight=utility)
         
         if graph_type == 'trans_number':
-            for i in np.arange(self.N):
-                for j in self.a_matrix[i].active_neighbour.keys():
-                    if self.a_matrix[i].neighbour[j] > 5:
-                        G.add_edge(i,j)
+            sampling_time = kwargs.get('sampling_time',0)
+            tracker = kwargs.get('tracker_obj',None)
+            
+            if tracker != None:
+                for i in np.arange(self.N):
+                    for j in self.a_matrix[i].active_neighbour.keys():
+                        trans_last_value = tracker.trans_time[sampling_time,i,j]
+                        if True in (tracker.trans_time[sampling_time:,i,j] > (trans_last_value + 5) ):
+                            G.add_edge(i,j)
+            else:                
+                for i in np.arange(self.N):
+                    for j in self.a_matrix[i].active_neighbour.keys():
+                        if self.a_matrix[i].neighbour[j] > 5:
+                            G.add_edge(i,j)
                         
         node_attr_dict = { i:{'situation':0,'money':0,'worth_ratio':0,'others_feeling':0} for i in G.nodes() }
 #        attr_dict = { i:{'similarity':float(self.a_matrix[i].situation)} for i in G.nodes() }
@@ -314,10 +324,6 @@ class Analysis:
             H[i] = E_ij / (np.size(group1) * np.size(group2) * p)
         return H
     
-
-
-
-
 
 
 class Tracker:
