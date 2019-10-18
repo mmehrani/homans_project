@@ -28,6 +28,7 @@ class Agent():
         self.active_neighbour = {} #dictianary; keys are active neighbour indexes; values are probabilities
         self.sigma = 0 #sum of probabilities. used in normalization
         self.feeling = np.zeros(N)
+        self.last_worth = approval/money
         return
     
     def property(self,**kwargs):
@@ -37,16 +38,24 @@ class Agent():
             self.approval += kwargs.get('approval')
         return {'money':self.money, 'approval':self.approval}
     
+#    def neighbour_average(self):
+#        
+#        self.n_avg = {'money':0, 'approval':0}
+#        for j in self.active_neighbour.keys():
+#            self.n_avg['money'] += A[j].money
+#            self.n_avg['approval'] += A[j].approval
+#        self.n_avg['money'] = self.n_avg['money']/len(self.active_neighbour)
+#        self.n_avg['approval'] = self.n_avg['approval']/len(self.active_neighbour)
+#
+#        return self.n_avg
+
     def neighbour_average(self):
         
-        self.n_avg = {'money':0, 'approval':0}
-        for j in self.active_neighbour.keys():
-            self.n_avg['money'] += A[j].money
-            self.n_avg['approval'] += A[j].approval
-        self.n_avg['money'] = self.n_avg['money']/len(self.active_neighbour)
-        self.n_avg['approval'] = self.n_avg['approval']/len(self.active_neighbour)
-
-        return self.n_avg
+        worth = 0
+        for k in self.active_neighbour.keys():
+            worth += A[k].last_worth
+        worth /= len(self.active_neighbour)
+        return worth
     
     def probability(self,neighbour,t):
         '''calculates probability for choosing each neighbour
@@ -160,33 +169,47 @@ def transaction(index1,index2,t):
     else:
         acceptance_util = 1
 
-    if len(agent1.active_neighbour) != 0:
-        worth_ratio1 = agent1.neighbour_average()['approval'] / agent1.neighbour_average()['money']  # avg(approval)/avg(money)
-        agent1.worth_ratio = worth_ratio1
-#        self_fraction = agent1.approval / agent1.money
-        
-#        if worth_ratio1 > self_fraction:
-#            transaction_property = 'money'
-#        else:
-#            transaction_property = 'approval'
-#    else:#if no neighbours available, use your own fraction of approval to money
-#        transaction_property = np.random.choice(['money','approval']) #if no one in memory, choose randomly
-    transaction_property = 'money'
-    
-    #redefinition of worth_ratios
-    if len(agent1.active_neighbour) != 0:
-        worth_ratio1 = agent1.neighbour_average()[assign[-assign[transaction_property]]] / agent1.neighbour_average()[transaction_property]
-        agent1.worth_ratio = worth_ratio1
-    else:
-        worth_ratio1 = agent1.property()[assign[-assign[transaction_property]]] / agent1.property()[transaction_property]
-        agent1.worth_ratio = worth_ratio1
+#    if len(agent1.active_neighbour) != 0:
+#        worth_ratio1 = agent1.neighbour_average()['approval'] / agent1.neighbour_average()['money']  # avg(approval)/avg(money)
+#        agent1.worth_ratio = worth_ratio1
+##        self_fraction = agent1.approval / agent1.money
+#        
+##        if worth_ratio1 > self_fraction:
+##            transaction_property = 'money'
+##        else:
+##            transaction_property = 'approval'
+##    else:#if no neighbours available, use your own fraction of approval to money
+##        transaction_property = np.random.choice(['money','approval']) #if no one in memory, choose randomly
+#    transaction_property = 'money'
+#    
+#    #redefinition of worth_ratios
+#    if len(agent1.active_neighbour) != 0:
+#        worth_ratio1 = agent1.neighbour_average()[assign[-assign[transaction_property]]] / agent1.neighbour_average()[transaction_property]
+#        agent1.worth_ratio = worth_ratio1
+#    else:
+#        worth_ratio1 = agent1.property()[assign[-assign[transaction_property]]] / agent1.property()[transaction_property]
+#        agent1.worth_ratio = worth_ratio1
+#
+#    if len(agent2.active_neighbour) != 0:
+#        worth_ratio2 = agent2.neighbour_average()[assign[-assign[transaction_property]]] / agent2.neighbour_average()[transaction_property]
+#        agent2.worth_ratio = worth_ratio2
+#    else:
+#        worth_ratio2 = agent2.property()[assign[-assign[transaction_property]]] / agent2.property()[transaction_property]
+#        agent2.worth_ratio = worth_ratio2
 
-    if len(agent2.active_neighbour) != 0:
-        worth_ratio2 = agent2.neighbour_average()[assign[-assign[transaction_property]]] / agent2.neighbour_average()[transaction_property]
-        agent2.worth_ratio = worth_ratio2
+    transaction_property = 'money'
+    if len(agent1.active_neighbour) != 0:
+        worth_ratio1 = agent1.neighbour_average()
     else:
-        worth_ratio2 = agent2.property()[assign[-assign[transaction_property]]] / agent2.property()[transaction_property]
-        agent2.worth_ratio = worth_ratio2
+        worth_ratio1 = agent1.last_worth
+    if len(agent2.active_neighbour) != 0:
+        worth_ratio2 = agent2.neighbour_average()
+    else:
+        worth_ratio2 = agent2.last_worth
+    
+#    print('1:',worth_ratio1)
+#    print('2:',worth_ratio2)
+#    print('\n')
     
     if worth_ratio2 >= worth_ratio1:
         acceptance_worth = 1
@@ -232,6 +255,9 @@ def transaction(index1,index2,t):
         kwargs2 = {transaction_property: +amount, assign[-assign[transaction_property]]: - (amount*worth_ratio1 + agreement_point) }
         agent1.property(**kwargs1)
         agent2.property(**kwargs2)
+        
+        agent1.last_worth = (amount*worth_ratio1 + agreement_point) / amount
+        agent2.last_worth = (amount*worth_ratio1 + agreement_point) / amount
 
         #changing the memory        
         if number_of_transaction1 < memory_size:#memory is not full
@@ -410,7 +436,7 @@ T = 5*N
 similarity = 0.05                   #how much this should be?
 memory_size = 10                    #contains the last memory_size number of transaction times
 transaction_percentage = 0.3        #percent of amount of money the first agent proposes from his asset 
-num_of_tries = 5                    #in function explore()
+num_of_tries = 20                   #in function explore()
 threshold_percentage = np.full(N,1) #the maximum amount which the agent is willing to give
 normalization_factor = 1            #used in transaction(). what should be?
 prob0_magnify_factor = 0.35         #this is in probability() for changing value so that it can take advantage of arctan
@@ -418,7 +444,7 @@ prob1_magnify_factor = 1
 prob2_magnify_factor = 1
 alpha = 1                           #in short-term effect of the frequency of transaction
 beta = 0.3                          #in long-term effect of the frequency of transaction
-param = 1                           #a normalizing factor in assigning the acceptance probability. It normalizes difference of money of both sides
+param = 5                           #a normalizing factor in assigning the acceptance probability. It normalizes difference of money of both sides
 
 """Initial Condition"""
 
@@ -426,12 +452,15 @@ situation_arr = np.random.random(N) #randomly distributed
 #money = np.full(N,2)        #may have distribution
 #money = np.random.normal(loc=4,scale=1,size=N)
 #money = 1 + situation_arr * 2
-money = situation_arr[:] * 4
+#money = np.zeros(N)
+#for i in np.arange(N):
+#    money[i] = float('{0:.3f}'.format(situation_arr[i] * 9 + 1))
 #money = np.random.random(N) * 2
-#approval = np.full(N,2)     #may have distribution
+money = np.round(situation_arr[:] * 9 + 1 ,decimals=3)
+approval = np.full(N,5.5)     #may have distribution
 #approval = 1 + situation_arr * 2
-approval = situation_arr[:] * 4
-risk_receptibility = np.full(N,similarity)
+#approval = np.round(situation_arr[:] * 9 + 1 ,decimals=3)
+#risk_receptibility = np.full(N,similarity)
 #risk_receptibility = np.random.random(N)*4*similarity
 
 A = np.zeros(N,dtype=object)
@@ -509,7 +538,7 @@ for t in np.arange(T)+1:#t goes from 1 to T
 print(datetime.now() - start_time)
 # =============================================================================
 """Write File"""
-version = '\\graph_defini'
+version = '\\Rounded_Money_More_Tries_Param' #XXX
 save_it(version)
 # =============================================================================
 """Analysis and Measurements"""

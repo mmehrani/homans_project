@@ -11,10 +11,10 @@ import Analysis_Tools_Homans
 import networkx as nx
 import os
 
-N,T,memory_size = [100,1000,10]
+N,T,memory_size = [100,500,10]
 
 current_path = os.getcwd()
-version = '\\graph_defini'
+version = '\\Rounded_Money_More_Tries_Param'
 path = '\\runned_files'+version+'\\N%d_T%d_memory_size%d\\'%(N,T,memory_size)
 
 with open(current_path+path+'Tracker.pkl','rb') as tracker_file:
@@ -45,31 +45,24 @@ a_value       = analyse.array('value')
 a_probability = analyse.array('probability')
 #a_utility = analyse.array('utility')
 
-analyse.hist('money')
-analyse.hist_log_log('money')
-analyse.hist('approval')
-analyse.hist_log_log('approval')
-analyse.hist('degree')
-analyse.hist_log_log('degree')
-analyse.hist('value')
-analyse.hist_log_log('value')
-analyse.hist('probability')
-analyse.hist_log_log('probability')
-analyse.hist('utility')
-analyse.hist_log_log('utility')
+#analyse.hist('money')
+#analyse.hist_log_log('money')
+#analyse.hist('approval')
+#analyse.hist_log_log('approval')
+#analyse.hist('degree')
+#analyse.hist_log_log('degree')
+#analyse.hist('value')
+#analyse.hist_log_log('value')
+#analyse.hist('probability')
+#analyse.hist_log_log('probability')
+#analyse.hist('utility')
+#analyse.hist_log_log('utility')
 
 
 analyse.topology_chars()
 
 analyse.agents_prob_sum()
 
-a_money       = analyse.array('money')
-#a_approval    = analyse.array('approval')
-#a_worth_ratio = analyse.array('worth_ratio')
-#a_neighbour   = analyse.array('neighbour')
-a_value       = analyse.array('value')
-#a_time        = analyse.array('time')
-a_probability = analyse.array('probability')
 #a_utility = analyse.array('utility')
 #tracker.plot('self_value',title='Self Value')
 #tracker.plot('valuable_to_others',title='How Much Valuable to Others')
@@ -108,14 +101,14 @@ analyse.degree_vs_attr()
 
 #print(analyse.segregation())
 
-tracker.hist_general(a_probability[a_probability>0.1])
-tracker.hist_log_log_general(a_probability[a_probability>0.1])
-array = a_value[a_value>0.8]
-plt.figure()
-plt.xscale('log')
-plt.yscale('log')
-bins=np.logspace(np.log10(np.amin(array)),np.log10(np.amax(array)),12)
-plt.hist(array,bins=bins)
-plt.title('Probability log-log Historgram bigger than 0.1')
+#tracker.hist_general(a_probability[a_probability>0.1])
+#tracker.hist_log_log_general(a_probability[a_probability>0.1])
+#array = a_value[a_value>0.1]
+#plt.figure()
+#plt.xscale('log')
+#plt.yscale('log')
+#bins=np.logspace(np.log10(np.amin(array)),np.log10(np.amax(array)),12)
+#plt.hist(array,bins=bins)
+#plt.title('Probability log-log Historgram bigger than 0.1')
 
 
