@@ -11,11 +11,11 @@ import Analysis_Tools_Homans
 import networkx as nx
 import os
 
-N,T,memory_size = [100,500,10]
+N,T,memory_size = [100,10000,10]
 
 current_path = os.getcwd()
-version = '\\Rounded_Money_More_Tries_Param'
-path = '\\runned_files'+version+'\\N%d_T%d_memory_size%d\\'%(N,T,memory_size)
+version = '\\4_param_2'
+path = '\\runned_files'+version+'\\N%d_T%d\\'%(N,T)
 
 with open(current_path+path+'Tracker.pkl','rb') as tracker_file:
     tracker = pickle.load(tracker_file)
@@ -67,7 +67,7 @@ analyse.agents_prob_sum()
 #tracker.plot('self_value',title='Self Value')
 #tracker.plot('valuable_to_others',title='How Much Valuable to Others')
 #tracker.plot('worth_ratio',title='worth_ratio Evolution by Time')
-tracker.trans_time_visualizer(3,'Transaction Time Tracker')
+tracker.trans_time_visualizer(0,'Transaction Time Tracker')
 
 #tracker.plot_general(num_transaction_tot, title='Number of Transaction Vs. Time')
 #tracker.plot_general(num_explore, title='Number of Explorations Vs. Time')

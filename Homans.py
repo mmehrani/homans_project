@@ -20,7 +20,6 @@ class Agent():
     def __init__(self,money,approval,situation):
         self.money = money
         self.approval = approval
-        self.worth_ratio = 0
         self.neighbour = np.zeros(N,dtype=int) #number of interactions
         self.value = np.full((N,memory_size),-1,dtype=float)
         self.time = np.full((N,memory_size),-1)
@@ -28,34 +27,40 @@ class Agent():
         self.active_neighbour = {} #dictianary; keys are active neighbour indexes; values are probabilities
         self.sigma = 0 #sum of probabilities. used in normalization
         self.feeling = np.zeros(N)
-        self.last_worth = approval/money
+        self.worth_ratio = self.approval/self.money
+#        self.worth_ratio = 0
         return
     
-    def property(self,**kwargs):
-        if 'money' in kwargs:
-            self.money += kwargs.get('money')
-        if 'approval' in kwargs:
-            self.approval += kwargs.get('approval')
+    def property(self):
         return {'money':self.money, 'approval':self.approval}
     
-#    def neighbour_average(self):
-#        
-#        self.n_avg = {'money':0, 'approval':0}
-#        for j in self.active_neighbour.keys():
-#            self.n_avg['money'] += A[j].money
-#            self.n_avg['approval'] += A[j].approval
-#        self.n_avg['money'] = self.n_avg['money']/len(self.active_neighbour)
-#        self.n_avg['approval'] = self.n_avg['approval']/len(self.active_neighbour)
-#
-#        return self.n_avg
-
     def neighbour_average(self):
         
-        worth = 0
-        for k in self.active_neighbour.keys():
-            worth += A[k].last_worth
-        worth /= len(self.active_neighbour)
-        return worth
+        self.n_avg = {'money':0, 'approval':0}
+        for j in self.active_neighbour.keys():
+            self.n_avg['money'] += A[j].money
+            self.n_avg['approval'] += A[j].approval
+        self.n_avg['money'] = self.n_avg['money']/len(self.active_neighbour)
+        self.n_avg['approval'] = self.n_avg['approval']/len(self.active_neighbour)
+        self.n_average = self.n_avg['approval'] / self.n_avg['money']
+        return self.n_average
+
+#    def neighbour_average(self):
+#        
+#        self.n_avg = 0
+#        for j in self.active_neighbour.keys():
+#            self.n_avg += A[j].approval / A[j].money
+#        self.n_avg /= len(self.active_neighbour)
+#        return self.n_avg
+
+
+#    def neighbour_average(self):
+#        
+#        self.worth = 0
+#        for k in self.active_neighbour.keys():
+#            self.worth += A[k].worth_ratio
+#        self.worth /= len(self.active_neighbour)
+#        return self.worth
     
     def probability(self,neighbour,t):
         '''calculates probability for choosing each neighbour
@@ -75,7 +80,7 @@ class Agent():
 #        p0 = np.exp(value * prob0_magnify_factor)
 #        p0 = value * prob0_magnify_factor 
         p0 = value * prob0_magnify_factor + 1
-        p1 = self.frequency_to_probability(neighbour,t) * prob1_magnify_factor
+        p1 = self.frequency_to_probability(neighbour,t) * prob1_magnify_factor - (prob1_magnify_factor -1)
         p2 = np.exp(self.feeling[neighbour] * prob2_magnify_factor)
 #        p1 = 1.0
         
@@ -95,17 +100,6 @@ class Agent():
         prob = short_term * long_term
         return prob
     
-    def initial_probability(self):
-        prob = np.zeros(len(self.active_neighbour))
-        i = 0
-        for neighbour in self.active_neighbour.keys():
-            if self.neighbour[neighbour] < memory_size:
-                where = self.neighbour[neighbour]-1 #last value in memory
-            else:
-                where = memory_size-1
-            prob[i] = np.abs(self.value[neighbour,where]) #wrong. should not have "abs". problem is from transaction function.
-            i += 1
-        return prob / np.sum(prob)
     
     def neighbour_concatenation(self,self_index,new_neighbour,t):
 
@@ -148,10 +142,6 @@ class Agent():
             i += 1
         return chosen_agent , chosen_agent_index
     
-    def reset_neighbour(self):
-        self.neighbour = np.zeros(N,dtype = int)
-        return
-    
 # =============================================================================
 
 """Functions"""
@@ -161,55 +151,22 @@ def transaction(index1,index2,t):
     agent2 = A[index2]
     number_of_transaction1 = agent1.neighbour[index2]
     number_of_transaction2 = agent2.neighbour[index1]
-    assign = {'money':1, 'approval':-1, 1:'money', -1:'approval'}
-    
+
     if index1 in agent2.active_neighbour:
         p = agent2.active_neighbour[index1]
         acceptance_util = np.random.choice([0,1],p=[1-p,p])
     else:
         acceptance_util = 1
 
-#    if len(agent1.active_neighbour) != 0:
-#        worth_ratio1 = agent1.neighbour_average()['approval'] / agent1.neighbour_average()['money']  # avg(approval)/avg(money)
-#        agent1.worth_ratio = worth_ratio1
-##        self_fraction = agent1.approval / agent1.money
-#        
-##        if worth_ratio1 > self_fraction:
-##            transaction_property = 'money'
-##        else:
-##            transaction_property = 'approval'
-##    else:#if no neighbours available, use your own fraction of approval to money
-##        transaction_property = np.random.choice(['money','approval']) #if no one in memory, choose randomly
-#    transaction_property = 'money'
-#    
-#    #redefinition of worth_ratios
-#    if len(agent1.active_neighbour) != 0:
-#        worth_ratio1 = agent1.neighbour_average()[assign[-assign[transaction_property]]] / agent1.neighbour_average()[transaction_property]
-#        agent1.worth_ratio = worth_ratio1
-#    else:
-#        worth_ratio1 = agent1.property()[assign[-assign[transaction_property]]] / agent1.property()[transaction_property]
-#        agent1.worth_ratio = worth_ratio1
-#
-#    if len(agent2.active_neighbour) != 0:
-#        worth_ratio2 = agent2.neighbour_average()[assign[-assign[transaction_property]]] / agent2.neighbour_average()[transaction_property]
-#        agent2.worth_ratio = worth_ratio2
-#    else:
-#        worth_ratio2 = agent2.property()[assign[-assign[transaction_property]]] / agent2.property()[transaction_property]
-#        agent2.worth_ratio = worth_ratio2
-
-    transaction_property = 'money'
     if len(agent1.active_neighbour) != 0:
         worth_ratio1 = agent1.neighbour_average()
     else:
-        worth_ratio1 = agent1.last_worth
+        worth_ratio1 = agent1.worth_ratio
     if len(agent2.active_neighbour) != 0:
         worth_ratio2 = agent2.neighbour_average()
     else:
-        worth_ratio2 = agent2.last_worth
-    
-#    print('1:',worth_ratio1)
-#    print('2:',worth_ratio2)
-#    print('\n')
+        worth_ratio2 = agent2.worth_ratio
+
     
     if worth_ratio2 >= worth_ratio1:
         acceptance_worth = 1
@@ -219,11 +176,11 @@ def transaction(index1,index2,t):
         acceptance_worth = np.random.choice([0,1],p=[1-p,p])
     
     p = np.exp( -np.abs(agent1.money - agent2.money)/param )
-    acceptance_prob = np.random.choice([0,1],p=[1-p,p])
+    acceptance_mon = np.random.choice([0,1],p=[1-p,p])
     
-    amount = transaction_percentage * agent1.property()[transaction_property]
+    amount = transaction_percentage * agent1.money
     agreement_point = (worth_ratio2 - worth_ratio1)/(worth_ratio2 + worth_ratio1) * amount * worth_ratio1 #x=(E2-E1/E2+E1)*AE1
-    threshold = threshold_percentage[index2] * agent2.property()[assign[-assign[transaction_property]]]
+    threshold = threshold_percentage[index2] * agent2.approval
 
     if threshold > (amount * worth_ratio1 + agreement_point):
         acceptance_thr = 1
@@ -231,15 +188,15 @@ def transaction(index1,index2,t):
     
     acceptance_tracker[t-1] += acceptance_thr
     
-    acceptance = acceptance_worth * acceptance_thr * acceptance_prob * acceptance_util
-    if acceptance: #transaction accepts
+    acceptance = acceptance_worth * acceptance_thr * acceptance_mon * acceptance_util
+    if acceptance:   #transaction accepts
         num_transaction_tot[t-1] += 1
         agreement_tracker.append(agreement_point)
         
         feeling = agreement_point / worth_ratio1 #is equal for both (from definition)
 
-#        value1 = (agreement_point / worth_ratio1) / agent1.property()[transaction_property] #normalized to property: does not depend on wealth
-#        value2 = (agreement_point / worth_ratio1) / agent2.property()[transaction_property] #practically it is: (E2-E1/E2+E1)*percentage
+#        value1 = (agreement_point / worth_ratio1) / agent1.money #normalized to property: does not depend on wealth
+#        value2 = (agreement_point / worth_ratio1) / agent2.money #practically it is: (E2-E1/E2+E1)*percentage
         #not good. same worth_ratios lead to value=0 which is like when value is negative (in probability function it is interpreted as zero probability)
         value1 = + amount + agreement_point/worth_ratio1
         value2 = + amount
@@ -251,13 +208,18 @@ def transaction(index1,index2,t):
         agent2.feeling[index1] = feeling
 
         #doing the transaction
-        kwargs1 = {transaction_property: -amount, assign[-assign[transaction_property]]: + (amount*worth_ratio1 + agreement_point) }
-        kwargs2 = {transaction_property: +amount, assign[-assign[transaction_property]]: - (amount*worth_ratio1 + agreement_point) }
-        agent1.property(**kwargs1)
-        agent2.property(**kwargs2)
+        agent1.money -= np.round(amount,3)
+        agent2.money += np.round(amount,3)
+        agent1.approval += np.round(amount*worth_ratio1 + agreement_point,3)
+        agent2.approval -= np.round(amount*worth_ratio1 + agreement_point,3)
         
-        agent1.last_worth = (amount*worth_ratio1 + agreement_point) / amount
-        agent2.last_worth = (amount*worth_ratio1 + agreement_point) / amount
+        if agent1.approval < 0.001:
+            agent1.approval = 0
+        if agent2.approval < 0.001:
+            agent2.approval = 0
+        
+        agent1.worth_ratio = (amount*worth_ratio1 + agreement_point) / amount # = approval/money
+        agent2.worth_ratio = (amount*worth_ratio1 + agreement_point) / amount # eqaul for both.
 
         #changing the memory        
         if number_of_transaction1 < memory_size:#memory is not full
@@ -317,21 +279,14 @@ def explore(index,t):
 #                if acceptance == 1:
                 if other_situation > (situation-similarity) and other_situation < (situation+similarity):
                     
-                    
                     other_agent = A[other_index]
                     if len(other_agent.active_neighbour) != 0:
-#                        other_choice = np.random.choice(list(other_agent.active_neighbour.keys()),p=list(other_agent.active_neighbour.values()))
-#                        other_attr_choice = A[other_choice].situation
-##                        other_choice = list(other_agent.active_neighbour.keys()) #alternatively
-##                        other_attr_choice = np.array([A[k].situation for k in other_choice])
-#                        p = np.exp(-np.abs(self_similarity - other_attr_choice)/risk_receptibility[other_index])
-#                        acceptance = np.random.choice([0,1],p=[1-p,p])
                         
                         nearest_choice = 1 #maximum possible situation difference
                         for k in other_agent.active_neighbour.keys():
-                            temp = np.abs(A[k].situation - self_similarity)
-                            if temp < nearest_choice:
-                                nearest_choice = temp
+                            diff_abs = np.abs(A[k].situation - self_similarity)
+                            if diff_abs < nearest_choice:
+                                nearest_choice = diff_abs
                                 nearest_choice_index = k
                             
                         p = other_agent.active_neighbour[nearest_choice_index]
@@ -339,36 +294,24 @@ def explore(index,t):
                         
 #                        acceptance = 1
                         if acceptance == 1:
-#                        if risk_receptibility[other_index] >= np.abs(self_similarity - other_attr_choice):
-#                        if np.any(risk_receptibility[other_index] >= np.abs(self_similarity - other_attr_choice)): #alternatively
                             transaction(index,other_index,t)
                     else:
-                        transaction(index,other_index,t) #like when risk is Kean Lam Yakon!
-
-#                    transaction(index,other_index,t)
-                    #is it right for agents to have mutual knowledge of eachother even if one of them is proposing?
-                    if other_index in agent.active_neighbour:
+                        transaction(index,other_index,t)
+                            
+                    if other_index in agent.active_neighbour:  #which means transaction has been accepted
                         similarity_tracker[index].append(other_situation)
-                    break
+                        break
         else:
             other_index = np.random.choice(np.arange(N)[mask])
-            
-            
             other_agent = A[other_index]
             other_situation = other_agent.situation
             if len(other_agent.active_neighbour) != 0:
-#                other_choice = np.random.choice(list(other_agent.active_neighbour.keys()),p=list(other_agent.active_neighbour.values()))
-#                other_attr_choice = A[other_choice].situation
-##                other_choice = list(other_agent.active_neighbour.keys()) #alternatively
-##                other_attr_choice = np.array([A[k].situation for k in other_choice])
-#                p = np.exp(-np.abs(self_similarity - other_attr_choice)/risk_receptibility[other_index])
-#                acceptance = np.random.choice([0,1],p=[1-p,p])
-                
+
                 nearest_choice = 1 #maximum possible situation difference
                 for k in other_agent.active_neighbour.keys():
-                    temp = np.abs(A[k].situation - self_similarity)
-                    if temp < nearest_choice:
-                        nearest_choice = temp
+                    diff_abs = np.abs(A[k].situation - self_similarity)
+                    if diff_abs < nearest_choice:
+                        nearest_choice = diff_abs
                         nearest_choice_index = k
                     
                 p = other_agent.active_neighbour[nearest_choice_index]
@@ -376,12 +319,9 @@ def explore(index,t):
                 
 #                acceptance = 1
                 if acceptance == 1:
-#                if risk_receptibility[other_index] >= np.abs(self_similarity - other_attr_choice):
-#                if np.any(risk_receptibility[other_index] >= np.abs(self_similarity - other_attr_choice)): #alternatively
                     transaction(index,other_index,t)
             else:
-                transaction(index,other_index,t) #like when risk is Kean Lam Yakon!
-            
+                transaction(index,other_index,t)
             
             if other_index in agent.active_neighbour:
                 similarity_tracker[index].append(A[other_index].situation)
@@ -394,11 +334,6 @@ def shift_memory(agent,index):
     temp = np.delete(agent.time[index],0)
     agent.time[index] = np.concatenate((temp,[-1]))
     return
-# =============================================================================
-def seed(integer):
-    seed_arr = np.random.randint(100,size=20)
-    return np.random.seed(seed_arr[integer])
-#    return 0
 # =============================================================================
 def save_it(version):
     current_path = os.getcwd()
@@ -414,11 +349,11 @@ def save_it(version):
         print ("version already exists")
         
     try:
-        os.mkdir(current_path+'\\runned_files'+version+'\\N%d_T%d_memory_size%d'%(N,T,memory_size))
+        os.mkdir(current_path+'\\runned_files'+version+'\\N%d_T%d'%(N,T))
     except OSError:
         print ("Creation of the directory failed")
     
-    path = 'runned_files'+version+'\\N%d_T%d_memory_size%d\\'%(N,T,memory_size)
+    path = 'runned_files'+version+'\\N%d_T%d\\'%(N,T)
 #    np.save(path+'Agents.npy',A)
 #    np.save(path+'Tracker.npy',tracker)
     with open(path + 'Agents.pkl','wb') as agent_file:
@@ -426,13 +361,13 @@ def save_it(version):
 
     with open(path + 'Tracker.pkl','wb') as tracker_file:
         pickle.dump(tracker,tracker_file,pickle.HIGHEST_PROTOCOL)
-#        
+        
     return
 # =============================================================================
 """Parameters"""#XXX
 
 N = 100
-T = 5*N
+T = 100*N
 similarity = 0.05                   #how much this should be?
 memory_size = 10                    #contains the last memory_size number of transaction times
 transaction_percentage = 0.3        #percent of amount of money the first agent proposes from his asset 
@@ -440,11 +375,11 @@ num_of_tries = 20                   #in function explore()
 threshold_percentage = np.full(N,1) #the maximum amount which the agent is willing to give
 normalization_factor = 1            #used in transaction(). what should be?
 prob0_magnify_factor = 0.35         #this is in probability() for changing value so that it can take advantage of arctan
-prob1_magnify_factor = 1
+prob1_magnify_factor = 3
 prob2_magnify_factor = 1
 alpha = 1                           #in short-term effect of the frequency of transaction
 beta = 0.3                          #in long-term effect of the frequency of transaction
-param = 5                           #a normalizing factor in assigning the acceptance probability. It normalizes difference of money of both sides
+param = 2                           #a normalizing factor in assigning the acceptance probability. It normalizes difference of money of both sides
 
 """Initial Condition"""
 
@@ -453,19 +388,15 @@ situation_arr = np.random.random(N) #randomly distributed
 #money = np.random.normal(loc=4,scale=1,size=N)
 #money = 1 + situation_arr * 2
 #money = np.zeros(N)
-#for i in np.arange(N):
-#    money[i] = float('{0:.3f}'.format(situation_arr[i] * 9 + 1))
 #money = np.random.random(N) * 2
 money = np.round(situation_arr[:] * 9 + 1 ,decimals=3)
 approval = np.full(N,5.5)     #may have distribution
 #approval = 1 + situation_arr * 2
 #approval = np.round(situation_arr[:] * 9 + 1 ,decimals=3)
-#risk_receptibility = np.full(N,similarity)
-#risk_receptibility = np.random.random(N)*4*similarity
 
 A = np.zeros(N,dtype=object)
 explore_prob_array = np.zeros(T)
-for i in np.arange(N):      #why it doesn't show s.th. when I press tab?
+for i in np.arange(N):
     A[i]=Agent( money[i], approval[i], situation_arr[i]) 
 
 """trackers"""
@@ -500,7 +431,6 @@ for t in np.arange(T)+1:#t goes from 1 to T
             rand = np.random.choice([1,0],size=1,p=[1-exploration_probability,exploration_probability])
             if rand==1:
                 
-#                mask = np.ones(person_active_neighbour_size,dtype=bool)
                 person_active_neighbour = np.array(list(person.active_neighbour.keys()))
                 if person_active_neighbour_size < num_of_tries:
                     num_of_choice = person_active_neighbour_size
@@ -510,11 +440,6 @@ for t in np.arange(T)+1:#t goes from 1 to T
                 for k in np.arange(num_of_choice):
                     choice_arr[k] , chosen_index = person.second_agent(i,person_active_neighbour)
                     person_active_neighbour = np.delete(person_active_neighbour, chosen_index)
-#                    mask[chosen_index] = False
-#                    print('index',chosen_index)
-#                    print('chosen',choice_arr)
-#                    print(mask)
-#                    print(person_active_neighbour)
                 
                 for j in choice_arr:
                     if transaction(i,j,t):
@@ -529,16 +454,15 @@ for t in np.arange(T)+1:#t goes from 1 to T
     tracker.get_list('self_value',t-1)
     tracker.get_list('valuable_to_others',t-1)
     tracker.get_list('trans_time',t-1)
-#    if t>2:
-#        tracker.get_list('worth_ratio',t-3)
+    if t>2:
+        tracker.get_list('worth_ratio',t-3)
     explore_prob_array[t-1] /= N
-
 
 
 print(datetime.now() - start_time)
 # =============================================================================
 """Write File"""
-version = '\\Rounded_Money_More_Tries_Param' #XXX
+version = '\\4_param_2' #XXX
 save_it(version)
 # =============================================================================
 """Analysis and Measurements"""
@@ -548,9 +472,35 @@ def plot_general(self,array,title=''):
     plt.title(title)
     return
 
+
+analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,A)
+analyse.draw_graph_weighted_colored()
+
+a_money       = analyse.array('money')
+a_approval    = analyse.array('approval')
+a_worth_ratio = analyse.array('worth_ratio')
+a_neighbour   = analyse.array('neighbour')
+a_value       = analyse.array('value')
+a_time        = analyse.array('time')
+a_probability = analyse.array('probability')
+a_utility = analyse.array('utility')
+
+analyse.hist('money')
+analyse.hist_log_log('money')
+analyse.hist('approval')
+#analyse.hist_log_log('approval')
+#analyse.hist('degree')
+#analyse.hist_log_log('degree')
+#analyse.hist('value')
+#analyse.hist_log_log('value')
+#analyse.hist('probability')
+#analyse.hist_log_log('probability')
+#analyse.hist('utility')
+#analyse.hist_log_log('utility')
+
 #tracker.plot('self_value',title='Self Value')
-#tracker.plot('valuable_to_others',title='How Much Valuable to Others')
-#tracker.plot('worth_ratio',title='worth_ratio Evolution by Time')
+tracker.plot('valuable_to_others',title='How Much Valuable to Others')
+tracker.plot('worth_ratio',title='worth_ratio Evolution by Time')
 #tracker.trans_time_visualizer(3,'Transaction Time Tracker')
 #
 tracker.plot_general(num_transaction_tot, title='Number of Transaction Vs. Time')
@@ -558,33 +508,37 @@ tracker.plot_general(num_explore, title='Number of Explorations Vs. Time')
 #tracker.plot_general(agreement_tracker, title='agreement Point')
 #tracker.plot_general(acceptance_tracker, title='Threshold Acceptance Over Time')
 #
-#plt.figure()
-#plt.plot(p0_tracker[::2])
-#plt.plot(p1_tracker[::2])
-#plt.plot(p2_tracker[::2])
-#plt.title('P0 & P1 & P2')
+plt.figure()
+plt.plot(p0_tracker[::2])
+plt.plot(p1_tracker[::2])
+plt.plot(p2_tracker[::2])
+plt.title('P0 & P1 & P2')
 #tracker.hist_general(p0_tracker,title='p0')
 #tracker.hist_general(p1_tracker,title='p1')
 #tracker.hist_general(p2_tracker,title='p2')
 #tracker.hist_log_log_general(p0_tracker,title='P0')
 #tracker.hist_log_log_general(p1_tracker,title='P1')
 #tracker.hist_log_log_general(p2_tracker,title='P2')
-#
+
+plt.figure()
+for i in np.arange(N):
+    plt.plot(A[i].neighbour)
+plt.title('A[i]s number of transaction with others')
+
+#analyse.degree_vs_attr()
+
 #plt.figure()
 #for i in np.arange(N):
-#    plt.plot(A[i].neighbour)
-#plt.title('A[i]s number of transaction with others')
-#
-#analyse.degree_vs_attr()
-#
-##plt.figure()
-##for i in np.arange(N):
-##    plt.plot(similarity_tracker[i])
-##plt.ylim([0,1.1])
-##plt.title('Similarity Tracker')
-#
-##print(analyse.segregation())
-#
+#    plt.plot(similarity_tracker[i])
+#plt.ylim([0,1.1])
+#plt.title('Similarity Tracker')
+
+analyse.assortativity('money')
+analyse.assortativity('approval')
+analyse.assortativity('degree')
+analyse.assortativity('situation')
+analyse.assortativity('worth_ratio')
+
 #tracker.hist_general(a_probability[a_probability>0.1])
 #tracker.hist_log_log_general(a_probability[a_probability>0.1])
 #array = a_value[a_value>0.8]

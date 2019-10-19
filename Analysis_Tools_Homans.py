@@ -15,11 +15,8 @@ class Analysis:
         
         self.memory_size = size
         self.a_matrix = a_matrix
-        
-#        self.a_matrix = np.array(self.a_matrix)
         self.N = number_agent
         self.total_time = total_time
-        
         
 #        if string =='from_file': #load from file
 #            current_path = os.getcwd()
@@ -32,14 +29,7 @@ class Analysis:
 #        if string =='in_memory': #file already ran and A[i]s are available
 #            self.a_matrix = args[0]
         
-        self.G = self._graph_construction('utility')
-        
-#        global A,N,T,memory_size,G
-        
-#        N = number_agent
-#        T = total_time
-#        memory_size = self.memory_size
-#        G = self._graph_construction('utility')
+        self.G = self._graph_construction('trans_number_after_some_time')
         return
     
     def _graph_construction(self,graph_type,**kwargs):
@@ -74,6 +64,18 @@ class Analysis:
                     if self.a_matrix[i].time[j,where] > 0.95 * self.total_time:
                         utility = self.a_matrix[i].active_neighbour[j] * self.a_matrix[j].active_neighbour[i] * self.N * .4
                         G.add_edge(i,j,weight=utility)
+                        
+        if graph_type == 'trans_number_after_some_time':
+            #it is different from 'trans_number'. 'trans_number' is more complete
+            for i in np.arange(self.N):
+                for j in self.a_matrix[i].active_neighbour.keys():
+                    if self.a_matrix[i].neighbour[j] < self.memory_size:
+                        where = self.a_matrix[i].neighbour[j]-1 #last value in memory
+                    else:
+                        where = self.memory_size-1
+                        
+                    if self.a_matrix[i].time[j,where] > 0.5 * self.total_time and self.a_matrix[i].neighbour[j] > 20:
+                        G.add_edge(i,j)
         
         if graph_type == 'trans_number':
             sampling_time = kwargs.get('sampling_time',0)
@@ -248,12 +250,24 @@ class Analysis:
     
     def topology_chars(self):
 
-        for C in nx.connected_component_subgraphs(self.G):
-            print("Size of C is:", C.number_of_nodes())    
-            print("Shortert Path Lenght")
-            print(nx.average_shortest_path_length(C)) #calculates SPL for all subgraphs
+#        for C in nx.connected_component_subgraphs(self.G):
+#            print("Size of C is:", C.number_of_nodes())
+#            print('Number of Edges is:',C.number_of_edges())
+#            print("Shortert Path Length")
+#            print(nx.average_shortest_path_length(C)) #calculates SPL for all subgraphs
+        Gcc = sorted(nx.connected_components(self.G), key=len, reverse=True)
+        G0 = self.G.subgraph(Gcc[0])
+        print('Size of Giant Component is:',G0.number_of_nodes())
+        print("Average Shortert Path Length")
+        print(nx.average_shortest_path_length(G0))
         print("Clustering Coeficient")
         print(nx.average_clustering(self.G))
+        print('The Corresponding Random Graph Has:')
+        H = nx.gnp_random_graph(self.N,self.G.number_of_edges())
+        Hcc = sorted(nx.connected_components(H), key=len, reverse=True)
+        H0 = self.G.subgraph(Hcc[0])
+        print('Clustering Coeficient:',nx.average_clustering(H))
+        print('Shortert Path Length',nx.average_shortest_path_length(H0))
         return
 
 #    def agents_value_sum(self):
@@ -307,22 +321,14 @@ class Analysis:
         plt.scatter(deg_attr[0],deg_attr[1])
         return
 
-    def segregation(self):
-        seg_point = np.arange(0,1,0.1)
-        H = np.zeros(np.size(seg_point))
-        s_arr = np.array([self.a_matrix[i].situation for i in np.arange(self.N)])
-        group1 = s_arr[s_arr<seg_point]
-        group2 = s_arr[s_arr>seg_point]
-        E_tot = self.G.number_of_edges()
-        E_ij = 0
-        for i in np.arange(self.N):
-            for j in self.a_matrix[i].active_neighbour.keys():
-                if (s_arr[i]<seg_point) and (s_arr[j]>seg_point) and self.G.has_edge(i,j):
-                    E_ij += 1
-        p = E_tot / (self.N*(self.N-1)/2)
-        for i in np.arange(np.size(seg_point)):
-            H[i] = E_ij / (np.size(group1) * np.size(group2) * p)
-        return H
+    def assortativity(self,attribute='degree'):
+        if attribute != 'degree':
+            print('assortativity according to '+attribute+' is:')
+            print(nx.attribute_assortativity_coefficient(self.G,attribute))
+        else:
+            print('assortativity according to '+attribute+' is:')
+            print(nx.degree_assortativity_coefficient(self.G))
+        return 
     
 
 
@@ -407,7 +413,7 @@ class Tracker:
         if what_array == 'worth_ratio':
             ref[what_array] = np.zeros(self.N)
             for i in np.arange(self.N):
-                ref[what_array][i] = self.a_matrix[i].neighbour_average()['approval'] / self.a_matrix[i].neighbour_average()['money']
+                ref[what_array][i] = self.a_matrix[i].worth_ratio
             return ref[what_array]
         
     
