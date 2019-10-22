@@ -167,13 +167,13 @@ def transaction(index1,index2,t):
     else:
         worth_ratio2 = agent2.worth_ratio
 
-    
-    if worth_ratio2 >= worth_ratio1:
-        acceptance_worth = 1
-    else:
-#        acceptance_worth = 0
-        p = np.exp( -(worth_ratio1 - worth_ratio2)/normalization_factor )
-        acceptance_worth = np.random.choice([0,1],p=[1-p,p])
+    if agent2.approval > 0.001:
+        if worth_ratio2 >= worth_ratio1:
+            acceptance_worth = 1
+        else:
+    #        acceptance_worth = 0
+            p = np.exp( -(worth_ratio1 - worth_ratio2)/normalization_factor )
+            acceptance_worth = np.random.choice([0,1],p=[1-p,p])
     
     p = np.exp( -np.abs(agent1.money - agent2.money)/param )
     acceptance_mon = np.random.choice([0,1],p=[1-p,p])
