@@ -367,7 +367,7 @@ def save_it(version):
 """Parameters"""#XXX
 
 N = 100
-T = 100*N
+T = 10*N
 similarity = 0.05                   #how much this should be?
 memory_size = 10                    #contains the last memory_size number of transaction times
 transaction_percentage = 0.3        #percent of amount of money the first agent proposes from his asset 
@@ -403,6 +403,7 @@ for i in np.arange(N):
 tracker = Analysis_Tools_Homans.Tracker(N,T,memory_size,A)
 num_transaction_tot = np.zeros(T)
 num_explore = np.zeros(T)
+total_money_tracher = np.zeros(T)
 agreement_tracker = []
 acceptance_tracker = np.zeros(T)
 p0_tracker = []
@@ -418,7 +419,7 @@ explores for new agent (expands his memory)"""
 
 for t in np.arange(T)+1:#t goes from 1 to T
     """computations"""
-#    situation_arr = np.copy(money)
+
     print(t)
     shuffled_agents=np.arange(N)
     np.random.shuffle(shuffled_agents)
@@ -454,6 +455,7 @@ for t in np.arange(T)+1:#t goes from 1 to T
     tracker.get_list('self_value',t-1)
     tracker.get_list('valuable_to_others',t-1)
     tracker.get_list('trans_time',t-1)
+    tracker.get_list('total_properties',t-1)
     if t>2:
         tracker.get_list('worth_ratio',t-3)
     explore_prob_array[t-1] /= N
@@ -462,16 +464,19 @@ for t in np.arange(T)+1:#t goes from 1 to T
 print(datetime.now() - start_time)
 # =============================================================================
 """Write File"""
-version = '\\4_param_2' #XXX
-save_it(version)
+version = '\\conservation_issue' #XXX
+#save_it(version)
 # =============================================================================
 """Analysis and Measurements"""
-def plot_general(self,array,title=''):
+def plot_general(array,title=''):
     plt.figure()
     plt.plot(array)
     plt.title(title)
     return
 
+
+plot_general(tracker.total_money,title='total money')
+plot_general(tracker.total_approval,title='total approval')
 
 analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,A)
 analyse.draw_graph_weighted_colored()
