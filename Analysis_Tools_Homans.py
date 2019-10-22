@@ -341,6 +341,8 @@ class Tracker:
         self.memory_size = size
         self.N = number_agent
         
+        self.total_money = []
+        self.total_approval = []
 #        global A,N,T,memory_size
 #        A = a_matrix
 #        T = total_time
@@ -372,6 +374,10 @@ class Tracker:
 #                for j in np.arange(self.N):
                 self.trans_time[t,i,:] = np.copy(self.a_matrix[i].neighbour)
 #                print(self.a_matrix[i].neighbour)
+        
+        if get_list == 'total_properties':
+            self.total_money.append( np.sum([self.a_matrix[i].money for i in np.arange(self.N)]) )
+            self.total_approval.append( np.sum([self.a_matrix[i].approval for i in np.arange(self.N)]) )
         
     def make_dynamic_trans_time_graph(self,graph):
         """
