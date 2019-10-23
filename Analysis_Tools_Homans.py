@@ -416,6 +416,12 @@ class Tracker:
                 ref[what_array][i] = self.a_matrix[i].worth_ratio
             return ref[what_array]
         
+        if what_array == 'situation':
+            ref[what_array] = np.zeros(self.N)
+            for i in np.arange(self.N):
+                ref[what_array][i] = self.a_matrix[i].situation
+            return ref[what_array]
+        
     
     def plot(self,what_array,**kwargs):
         ref = {'self_value': self_value,
@@ -455,10 +461,16 @@ class Tracker:
         it will show each node transaction transcript.
         """
         fig, ax = plt.subplots(nrows=1,ncols=1)
-        im = ax.imshow(self.trans_time[:,agent_to_watch,:].astype(float),aspect='auto')
+        situ_arr = self._array('situation')
+        situ_arr_sorted = np.sort(situ_arr)
+        x_label_list = ['%.2f'%(situ_arr_sorted[i]) for i in range(self.N) ]
+        ax.set_xticklabels(x_label_list)
+#        self.trans_time[:,agent_to_watch,:] = self.trans_time[:,agent_to_watch,np.argsort(situ_arr)]
+        
+        im = ax.imshow(self.trans_time[:,agent_to_watch,np.argsort(situ_arr)].astype(float),aspect='auto')
         cbar = ax.figure.colorbar(im, ax=ax)
-        cbar.ax.set_ylabel('1=transacted   0=not transacted', rotation=-90, va="bottom")
-        plt.title(title)
+        cbar.ax.set_ylabel('', rotation=-90, va="bottom")
+        plt.title(title+'of agent %d with %f situation'%(agent_to_watch,self.a_matrix[agent_to_watch].situation))
         return
     
     def return_arr(self):
