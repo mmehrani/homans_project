@@ -28,11 +28,12 @@ class Agent():
         self.sigma = 0 #sum of probabilities. used in normalization
         self.feeling = np.zeros(N)
         self.worth_ratio = self.approval/self.money
-#        self.worth_ratio = 0
+        self.asset = self.money + self.approval / self.worth_ratio
         return
     
-    def property(self):
-        return {'money':self.money, 'approval':self.approval}
+    def asset_updater(self):
+        self.asset = self.money + self.approval / self.worth_ratio
+        return 
     
     def neighbour_average(self):
         
@@ -40,8 +41,11 @@ class Agent():
         for j in self.active_neighbour.keys():
             self.n_avg['money'] += A[j].money
             self.n_avg['approval'] += A[j].approval
-        self.n_avg['money'] = self.n_avg['money']/len(self.active_neighbour)
-        self.n_avg['approval'] = self.n_avg['approval']/len(self.active_neighbour)
+#        self.n_avg['money'] += self.money
+#        self.n_avg['approval'] += self.approval
+        
+        self.n_avg['money'] = self.n_avg['money'] / len(self.active_neighbour)
+        self.n_avg['approval'] = self.n_avg['approval'] / len(self.active_neighbour)
         self.n_average = self.n_avg['approval'] / self.n_avg['money']
         return self.n_average
 
@@ -220,7 +224,15 @@ def transaction(index1,index2,t):
         
         agent1.worth_ratio = (amount*worth_ratio1 + agreement_point) / amount # = approval/money
         agent2.worth_ratio = (amount*worth_ratio1 + agreement_point) / amount # eqaul for both.
+#        agent1.worth_ratio = lamda * agent1.worth_ratio + (1-lamda) * (amount*worth_ratio1 + agreement_point)
+#        agent2.worth_ratio = lamda * agent2.worth_ratio + (1-lamda) * (amount*worth_ratio1 + agreement_point)
 
+        
+        agent1.asset_updater()
+        agent2.asset_updater()
+        asset_tracker[index1].append(agent1.asset)
+        asset_tracker[index2].append(agent2.asset)
+        
         #changing the memory        
         if number_of_transaction1 < memory_size:#memory is not full
             empty_memory = number_of_transaction1
@@ -379,7 +391,8 @@ prob1_magnify_factor = 3
 prob2_magnify_factor = 1
 alpha = 1                           #in short-term effect of the frequency of transaction
 beta = 0.3                          #in long-term effect of the frequency of transaction
-param = 2                           #a normalizing factor in assigning the acceptance probability. It normalizes difference of money of both sides
+param = 10                          #a normalizing factor in assigning the acceptance probability. It normalizes difference of money of both sides
+lamda = 0.9                         # how much one agent relies on his last worth_ratio and how much relies on current transaction's worth_ratio
 
 """Initial Condition"""
 
@@ -409,6 +422,7 @@ p0_tracker = []
 p1_tracker = []
 p2_tracker = []
 similarity_tracker = [ [] for _ in np.arange(N) ]
+asset_tracker = [ [] for _ in np.arange(N) ]
 # =============================================================================
 """Main"""
 
@@ -454,6 +468,8 @@ for t in np.arange(T)+1:#t goes from 1 to T
     tracker.get_list('self_value',t-1)
     tracker.get_list('valuable_to_others',t-1)
     tracker.get_list('trans_time',t-1)
+    tracker.get_list('correlation_mon',t-1)
+    tracker.get_list('correlation_situ',t-1)
     if t>2:
         tracker.get_list('worth_ratio',t-3)
     explore_prob_array[t-1] /= N
@@ -462,7 +478,7 @@ for t in np.arange(T)+1:#t goes from 1 to T
 print(datetime.now() - start_time)
 # =============================================================================
 """Write File"""
-version = '\\4_param_2' #XXX
+version = '\\5_normal_param_10' #XXX
 save_it(version)
 # =============================================================================
 """Analysis and Measurements"""
@@ -483,7 +499,9 @@ a_neighbour   = analyse.array('neighbour')
 a_value       = analyse.array('value')
 a_time        = analyse.array('time')
 a_probability = analyse.array('probability')
-a_utility = analyse.array('utility')
+a_utility     = analyse.array('utility')
+a_situation   = analyse.array('situation')
+a_asset       = analyse.array('asset')
 
 analyse.hist('money')
 analyse.hist_log_log('money')
@@ -497,10 +515,16 @@ analyse.hist('approval')
 #analyse.hist_log_log('probability')
 #analyse.hist('utility')
 #analyse.hist_log_log('utility')
+analyse.hist('asset')
+analyse.hist_log_log('asset')
+
+analyse.money_vs_situation()
 
 #tracker.plot('self_value',title='Self Value')
 tracker.plot('valuable_to_others',title='How Much Valuable to Others')
 tracker.plot('worth_ratio',title='worth_ratio Evolution by Time')
+tracker.plot('correlation_mon',title='Correlation of Money and Situation')
+tracker.plot('correlation_situ',title="Correlation of Situation and Neighbor's Situation")
 #tracker.trans_time_visualizer(3,'Transaction Time Tracker')
 #
 tracker.plot_general(num_transaction_tot, title='Number of Transaction Vs. Time')
@@ -533,11 +557,17 @@ plt.title('A[i]s number of transaction with others')
 #plt.ylim([0,1.1])
 #plt.title('Similarity Tracker')
 
+plt.figure()
+for i in np.arange(N):
+    plt.plot(asset_tracker[i])
+plt.title('Asset Tracker')
+
 analyse.assortativity('money')
 analyse.assortativity('approval')
 analyse.assortativity('degree')
 analyse.assortativity('situation')
 analyse.assortativity('worth_ratio')
+analyse.assortativity('asset')
 
 #tracker.hist_general(a_probability[a_probability>0.1])
 #tracker.hist_log_log_general(a_probability[a_probability>0.1])

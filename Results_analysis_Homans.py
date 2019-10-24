@@ -14,7 +14,7 @@ import os
 N,T,memory_size = [100,10000,10]
 
 current_path = os.getcwd()
-version = '\\4_param_2'
+version = '\\5_normal_param_10'
 path = '\\runned_files'+version+'\\N%d_T%d\\'%(N,T)
 
 with open(current_path+path+'Tracker.pkl','rb') as tracker_file:

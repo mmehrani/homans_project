@@ -94,13 +94,13 @@ class Analysis:
                             G.add_edge(i,j)
                         
         node_attr_dict = { i:{'situation':0,'money':0,'worth_ratio':0,'others_feeling':0} for i in G.nodes() }
-#        attr_dict = { i:{'similarity':float(self.a_matrix[i].situation)} for i in G.nodes() }
         for i in G.nodes():
             node_attr_dict[i]['situation'] = float(self.a_matrix[i].situation)
             node_attr_dict[i]['money'] = float(self.a_matrix[i].money)
             node_attr_dict[i]['worth_ratio'] = float(self.a_matrix[i].worth_ratio)
-            node_attr_dict[i]['approval'] = float(self.array('approval')[i])
+            node_attr_dict[i]['approval'] = float(self.a_matrix[i].approval)
             node_attr_dict[i]['others_feeling'] = float(self.array('others_feeling_for_agent')[i])
+            node_attr_dict[i]['asset'] = float(self.a_matrix[i].asset)
         
         nx.set_node_attributes(G,node_attr_dict)
         return G
@@ -110,13 +110,13 @@ class Analysis:
         plt.figure()
         print("Size of G is:", self.G.number_of_nodes())
 #        edgewidth = [ d['weight'] for (u,v,d) in self.G.edges(data=True)]
-        sim_color = [ self.a_matrix[u].situation for u in self.G.nodes()]
-        
-        pos = nx.spring_layout(self.G)
-#        pos = nx.kamada_kawai_layout(self.G)
+        color = [ self.a_matrix[u].situation for u in self.G.nodes()]
+        size = [self.a_matrix[u].asset*10 for u in self.G.nodes()]
+#        pos = nx.spring_layout(self.G)
+        pos = nx.kamada_kawai_layout(self.G)
         
 #        nx.draw(self.G, pos=pos, with_labels = True, node_size=100, font_size=8, width=np.array(edgewidth), node_color=s)
-        nx.draw(self.G, pos=pos, with_labels = True, node_size=150, font_size=8, node_color=sim_color, width=0.2)
+        nx.draw(self.G, pos=pos, with_labels = True, node_size=size, font_size=8, node_color=color, width=0.2)
 #        nx.draw(self.G, pos=pos, with_labels = True, node_size=150, font_size=8, width=np.array(edgewidth))
         plt.title('Graph')
         return
@@ -166,7 +166,6 @@ class Analysis:
         if what_array == 'worth_ratio':
             ref[what_array] = np.zeros(self.N)
             for i in np.arange(self.N):
-#                ref[what_array][i] = self.a_matrix[i].neighbour_average()['approval'] / self.a_matrix[i].neighbour_average()['money']
                 ref[what_array][i] = self.a_matrix[i].worth_ratio
             return ref[what_array]
         
@@ -214,16 +213,22 @@ class Analysis:
         
         if what_array == 'others_feeling_for_agent':
             ref[what_array] = np.zeros(self.N)
-            for i in range(self.N):
+            for i in np.arange(self.N):
                 ref[what_array] += self.a_matrix[i].feeling[:]
             
             return ref[what_array]/np.sum(ref[what_array])
-#        
-#            ref[what_array] = np.zeros((self.N,len(self.a_matrix[where_max].active_neighbour)))
-#            for i in np.arange(self.N):
-#                temp = Max - len(self.a_matrix[i].active_neighbour)
-#                ref[what_array][i] = np.concatenate((np.array(list(self.a_matrix[i].active_neighbour.values())) , np.full(temp,0) ))
-#            return ref[what_array]
+        
+        if what_array == 'asset':
+            ref[what_array] = np.zeros(self.N)
+            for i in np.arange(self.N):
+                ref[what_array][i] = self.a_matrix[i].asset
+            return ref[what_array]
+        
+        if what_array == 'situation':
+            ref[what_array] = np.zeros(self.N)
+            for i in np.arange(self.N):
+                ref[what_array][i] = self.a_matrix[i].situation
+            return ref[what_array]
     
     def hist(self,what_hist):
         plt.figure()
@@ -250,46 +255,24 @@ class Analysis:
     
     def topology_chars(self):
 
-#        for C in nx.connected_component_subgraphs(self.G):
-#            print("Size of C is:", C.number_of_nodes())
-#            print('Number of Edges is:',C.number_of_edges())
-#            print("Shortert Path Length")
-#            print(nx.average_shortest_path_length(C)) #calculates SPL for all subgraphs
         Gcc = sorted(nx.connected_components(self.G), key=len, reverse=True)
         G0 = self.G.subgraph(Gcc[0])
-        print('Size of Giant Component is:',G0.number_of_nodes())
+        print('Size of the Giant Component is:',G0.number_of_nodes(),'with',G0.number_of_edges(),'edges')
         print("Average Shortert Path Length")
         print(nx.average_shortest_path_length(G0))
         print("Clustering Coeficient")
         print(nx.average_clustering(self.G))
-        print('The Corresponding Random Graph Has:')
-        H = nx.gnp_random_graph(self.N,self.G.number_of_edges())
+        H = nx.gnm_random_graph(self.G.number_of_nodes(),self.G.number_of_edges())
         Hcc = sorted(nx.connected_components(H), key=len, reverse=True)
-        H0 = self.G.subgraph(Hcc[0])
-        print('Clustering Coeficient:',nx.average_clustering(H))
+        H0 = H.subgraph(Hcc[0])
+        print('The Corresponding Random Graph Has:')
         print('Shortert Path Length',nx.average_shortest_path_length(H0))
+        print('Clustering Coeficient:',nx.average_clustering(H))
         return
 
-#    def agents_value_sum(self):
-##        a_value = self.array('value')
-#        a_value = self.array('probability')
-#        agents_self_value = np.sum(a_value,axis = 0)
-#        agents_self_value_sorted = np.sort(agents_self_value)
-#        
-#        dic=dict(zip(agents_self_value,np.arange(self.N)))
-#        label=np.zeros(self.N,dtype=int)
-#        for i,x in enumerate(agents_self_value_sorted):
-#            label[i] = dic[x]
-#        
-#        plt.figure()
-#        for x,y in zip(np.arange(self.N),agents_self_value_sorted):
-#            plt.scatter(x,agents_self_value_sorted[x])
-#            plt.text(x-0.1,y+0.2,str(label[x]),fontsize=8)
-#        return
-
     def agents_prob_sum(self):
-        a_value = self.array('probability')
-        agents_self_value = np.sum(a_value,axis = 0)
+        a_prob = self.array('probability')
+        agents_self_value = np.sum(a_prob,axis = 0)
         a_money = self.array('money')
         stacked_array = np.transpose(np.stack((agents_self_value,a_money)))
         
@@ -330,7 +313,11 @@ class Analysis:
             print(nx.degree_assortativity_coefficient(self.G))
         return 
     
-
+    def money_vs_situation(self):
+        plt.figure()
+        plt.scatter(self.array('situation'),self.array('money'))
+        plt.title('Money Vs Situation')
+        return
 
 class Tracker:
     
@@ -341,19 +328,14 @@ class Tracker:
         self.memory_size = size
         self.N = number_agent
         
-#        global A,N,T,memory_size
-#        A = a_matrix
-#        T = total_time
-#        
-#        N = number_agent
-#        memory_size = size
-        
         """Trackers"""
         global self_value,valuable_to_others,worth_ratio,exploration,exploration_avg
         self_value = np.zeros((self.total_time,self.N))
         valuable_to_others = np.zeros((self.total_time,self.N))
         worth_ratio = np.zeros((self.total_time-2,self.N))
         self.trans_time = np.ones((self.total_time,self.N,self.N))
+        self.correlation_mon = np.zeros(self.total_time)
+        self.correlation_situ = np.zeros(self.total_time)
         
     def update_A(self,a_matrix):
         self.a_matrix = a_matrix
@@ -369,9 +351,11 @@ class Tracker:
             worth_ratio[t] = self._array('worth_ratio')
         if get_list == 'trans_time':
             for i in np.arange(self.N):
-#                for j in np.arange(self.N):
                 self.trans_time[t,i,:] = np.copy(self.a_matrix[i].neighbour)
-#                print(self.a_matrix[i].neighbour)
+        if get_list == 'correlation_mon':
+            self.correlation_mon[t] = self.correlation_money_situation()
+        if get_list == 'correlation_situ':
+            self.correlation_situ[t] = self.correlation_situation_situation()
         
     def make_dynamic_trans_time_graph(self,graph):
         """
@@ -420,7 +404,9 @@ class Tracker:
     def plot(self,what_array,**kwargs):
         ref = {'self_value': self_value,
                'valuable_to_others': valuable_to_others,
-               'worth_ratio': worth_ratio}
+               'worth_ratio': worth_ratio,
+               'correlation_mon': self.correlation_mon,
+               'correlation_situ': self.correlation_situ}
         plt.figure()
         plt.title(kwargs.get('title',what_array))
         plt.plot(ref[what_array])
@@ -464,5 +450,31 @@ class Tracker:
     def return_arr(self):
         return self.trans_time
     
+    def correlation_money_situation(self):
+        money = np.zeros(self.N)
+        situation = np.zeros(self.N)
+        for i in np.arange(self.N):
+            money[i] = self.a_matrix[i].money
+            situation[i] = self.a_matrix[i].situation
+        money_avg = np.average(money)
+        situation_avg = np.average(situation)
+        correlation = np.sum( (money-money_avg)*(situation-situation_avg) ) / np.sqrt(np.sum( (money-money_avg)**2 ) * np.sum( (situation-situation_avg)**2 ) )
+        return correlation
     
+    def correlation_situation_situation(self):
+        situation = np.zeros(self.N)
+        situation_neighbour = np.zeros(self.N)
+        for i in np.arange(self.N):
+            situation[i] = self.a_matrix[i].situation
+            length = len(self.a_matrix[i].active_neighbour)
+            if length != 0:
+                for j in self.a_matrix[i].active_neighbour.keys():
+                    situation_neighbour[i] += self.a_matrix[j].situation
+                situation_neighbour[i] /= length
+        avg_situation = np.average(situation)
+        avg_situation_n = np.average(situation_neighbour)
+        numerator = np.sum( (situation-avg_situation)*(situation_neighbour-avg_situation_n))
+        denominator = np.sqrt(np.sum( (situation-avg_situation)**2 ) * np.sum( (situation_neighbour-avg_situation_n)**2 ) )
+        correlation = numerator / denominator
+        return correlation
     
