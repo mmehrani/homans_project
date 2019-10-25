@@ -11,12 +11,13 @@ import os
 
 class Analysis:
     
-    def __init__(self,number_agent,total_time,size,a_matrix,*args,**kwargs):
+    def __init__(self,number_agent,total_time,size,a_matrix,path,*args,**kwargs):
         
         self.memory_size = size
         self.a_matrix = a_matrix
         self.N = number_agent
         self.total_time = total_time
+        self.path = path
         
 #        if string =='from_file': #load from file
 #            current_path = os.getcwd()
@@ -36,9 +37,9 @@ class Analysis:
         G = nx.Graph()
         if graph_type == 'last_time':
             for i in np.arange(self.N):
-                for j in self.a_matrix[i].active_neighbour.keys():
-                    if self.a_matrix[i].neighbour[j] < self.memory_size:
-                        where = self.a_matrix[i].neighbour[j]-1 #last value in memory
+                for j in self.a_matrix[i].active_neighbor.keys():
+                    if self.a_matrix[i].neighbor[j] < self.memory_size:
+                        where = self.a_matrix[i].neighbor[j]-1 #last value in memory
                     else:
                         where = self.memory_size-1
                     if self.a_matrix[i].time[j,where] >= self.total_time-10: #graph of last time
@@ -47,34 +48,34 @@ class Analysis:
         
         if graph_type == 'probability':
             for i in np.arange(self.N):
-                for j in self.a_matrix[i].active_neighbour.keys():
+                for j in self.a_matrix[i].active_neighbor.keys():
 #                    truncation_point = 1/self.N+0.01
                     truncation_point = 0.015
-                    if self.a_matrix[i].active_neighbour[j] >= truncation_point:
+                    if self.a_matrix[i].active_neighbor[j] >= truncation_point:
                         G.add_edge(i,j)
         
         if graph_type == 'utility':
             for i in np.arange(self.N):
-                for j in self.a_matrix[i].active_neighbour.keys():
-                    if self.a_matrix[i].neighbour[j] < self.memory_size:
-                        where = self.a_matrix[i].neighbour[j]-1 #last value in memory
+                for j in self.a_matrix[i].active_neighbor.keys():
+                    if self.a_matrix[i].neighbor[j] < self.memory_size:
+                        where = self.a_matrix[i].neighbor[j]-1 #last value in memory
                     else:
                         where = self.memory_size-1
                         
                     if self.a_matrix[i].time[j,where] > 0.95 * self.total_time:
-                        utility = self.a_matrix[i].active_neighbour[j] * self.a_matrix[j].active_neighbour[i] * self.N * .4
+                        utility = self.a_matrix[i].active_neighbor[j] * self.a_matrix[j].active_neighbor[i] * self.N * .4
                         G.add_edge(i,j,weight=utility)
                         
         if graph_type == 'trans_number_after_some_time':
             #it is different from 'trans_number'. 'trans_number' is more complete
             for i in np.arange(self.N):
-                for j in self.a_matrix[i].active_neighbour.keys():
-                    if self.a_matrix[i].neighbour[j] < self.memory_size:
-                        where = self.a_matrix[i].neighbour[j]-1 #last value in memory
+                for j in self.a_matrix[i].active_neighbor.keys():
+                    if self.a_matrix[i].neighbor[j] < self.memory_size:
+                        where = self.a_matrix[i].neighbor[j]-1 #last value in memory
                     else:
                         where = self.memory_size-1
                         
-                    if self.a_matrix[i].time[j,where] > 0.5 * self.total_time and self.a_matrix[i].neighbour[j] > 20:
+                    if self.a_matrix[i].time[j,where] > 0.5 * self.total_time and self.a_matrix[i].neighbor[j] > 20:
                         G.add_edge(i,j)
         
         if graph_type == 'trans_number':
@@ -83,14 +84,14 @@ class Analysis:
             
             if tracker != None:
                 for i in np.arange(self.N):
-                    for j in self.a_matrix[i].active_neighbour.keys():
+                    for j in self.a_matrix[i].active_neighbor.keys():
                         trans_last_value = tracker.trans_time[sampling_time,i,j]
                         if True in (tracker.trans_time[sampling_time:,i,j] > (trans_last_value + 5) ):
                             G.add_edge(i,j)
             else:                
                 for i in np.arange(self.N):
-                    for j in self.a_matrix[i].active_neighbour.keys():
-                        if self.a_matrix[i].neighbour[j] > 5:
+                    for j in self.a_matrix[i].active_neighbor.keys():
+                        if self.a_matrix[i].neighbor[j] > 5:
                             G.add_edge(i,j)
                         
         node_attr_dict = { i:{'situation':0,'money':0,'worth_ratio':0,'others_feeling':0} for i in G.nodes() }
@@ -118,7 +119,7 @@ class Analysis:
 #        nx.draw(self.G, pos=pos, with_labels = True, node_size=100, font_size=8, width=np.array(edgewidth), node_color=s)
         nx.draw(self.G, pos=pos, with_labels = True, node_size=size, font_size=8, node_color=color, width=0.2)
 #        nx.draw(self.G, pos=pos, with_labels = True, node_size=150, font_size=8, width=np.array(edgewidth))
-        plt.title('Graph')
+        plt.savefig(self.path+'graph')
         return
 
     def draw_graph(self):
@@ -146,9 +147,7 @@ class Analysis:
         ref = {}
         
         if what_array == 'degree':
-#            ref[what_array] = np.array(list(dict(nx.degree(self._graph_construction())).values()))
             ref[what_array] = [self.G.degree(n) for n in self.G.nodes()]
-#            ref[what_array] = [self._graph_construction('last_time').degree(n) for n in self._graph_construction('last_time').nodes()]
             return ref[what_array]
         
         if what_array == 'money':
@@ -169,18 +168,18 @@ class Analysis:
                 ref[what_array][i] = self.a_matrix[i].worth_ratio
             return ref[what_array]
         
-        if what_array == 'neighbour':
+        if what_array == 'neighbor':
             ref[what_array] = np.zeros((self.N,self.N))
             for i in np.arange(self.N):
-                ref[what_array][i] = self.a_matrix[i].neighbour
+                ref[what_array][i] = self.a_matrix[i].neighbor
             return ref[what_array]
         
         if what_array == 'value':
             ref[what_array] = np.zeros((self.N,self.N))
             for i in np.arange(self.N):
-                for j in self.a_matrix[i].active_neighbour.keys():
-                    if self.a_matrix[i].neighbour[j] < self.memory_size:
-                        where = self.a_matrix[i].neighbour[j]-1 #last value in memory
+                for j in self.a_matrix[i].active_neighbor.keys():
+                    if self.a_matrix[i].neighbor[j] < self.memory_size:
+                        where = self.a_matrix[i].neighbor[j]-1 #last value in memory
                     else:
                         where = self.memory_size-1
                     ref[what_array][i,j] = self.a_matrix[i].value[j, where ]
@@ -190,7 +189,7 @@ class Analysis:
             ref[what_array] = np.zeros((self.N,self.N,self.memory_size))
             for i in np.arange(self.N):
                 for j in np.arange(self.N):
-                    if self.a_matrix[i].neighbour[j] != 0:
+                    if self.a_matrix[i].neighbor[j] != 0:
                         ref[what_array][i,j] = self.a_matrix[i].time[j]
                         #ref[what_array][i,j] = self.a_matrix[i].value[j]
                     else:
@@ -200,22 +199,21 @@ class Analysis:
         if what_array == 'probability':
             ref[what_array] = np.zeros((self.N,self.N))
             for i in np.arange(self.N):
-                for j in self.a_matrix[i].active_neighbour.keys():
-                    ref[what_array][i,j] = self.a_matrix[i].active_neighbour[j]
+                for j in self.a_matrix[i].active_neighbor.keys():
+                    ref[what_array][i,j] = self.a_matrix[i].active_neighbor[j]
             return ref[what_array]
 
         if what_array == 'utility':
             ref[what_array] = np.zeros((self.N,self.N))
             for i in np.arange(self.N):
-                for j in self.a_matrix[i].active_neighbour.keys():
-                    ref[what_array][i,j] = self.a_matrix[i].active_neighbour[j] * self.a_matrix[j].active_neighbour[i]
+                for j in self.a_matrix[i].active_neighbor.keys():
+                    ref[what_array][i,j] = self.a_matrix[i].active_neighbor[j] * self.a_matrix[j].active_neighbor[i]
             return ref[what_array]
         
         if what_array == 'others_feeling_for_agent':
             ref[what_array] = np.zeros(self.N)
             for i in np.arange(self.N):
                 ref[what_array] += self.a_matrix[i].feeling[:]
-            
             return ref[what_array]/np.sum(ref[what_array])
         
         if what_array == 'asset':
@@ -236,7 +234,9 @@ class Analysis:
             plt.hist(self.array(what_hist).flatten(),bins=50)
         else:
             plt.hist(self.array(what_hist),bins=15)
-        plt.title(what_hist+' histogram'+' N={} T={}'.format(self.N,self.total_time))
+        title = what_hist+' histogram'
+        plt.title(title)
+        plt.savefig(self.path+title)
         return
     
     def hist_log_log(self,what_hist):
@@ -250,24 +250,29 @@ class Analysis:
         else:
             bins=np.logspace(np.log10(np.amin(array)),np.log10(np.amax(array)),20)
             plt.hist(array,bins=bins)
-        plt.title(what_hist+' histogram log-log'+' N={} T={}'.format(self.N,self.total_time))
+        title = what_hist+' histogram log-log'
+        plt.title(title)
+        plt.savefig(self.path+title)
         return
     
     def topology_chars(self):
 
         Gcc = sorted(nx.connected_components(self.G), key=len, reverse=True)
         G0 = self.G.subgraph(Gcc[0])
-        print('Size of the Giant Component is:',G0.number_of_nodes(),'with',G0.number_of_edges(),'edges')
-        print("Average Shortert Path Length")
-        print(nx.average_shortest_path_length(G0))
-        print("Clustering Coeficient")
-        print(nx.average_clustering(self.G))
         H = nx.gnm_random_graph(self.G.number_of_nodes(),self.G.number_of_edges())
         Hcc = sorted(nx.connected_components(H), key=len, reverse=True)
         H0 = H.subgraph(Hcc[0])
-        print('The Corresponding Random Graph Has:')
-        print('Shortert Path Length',nx.average_shortest_path_length(H0))
-        print('Clustering Coeficient:',nx.average_clustering(H))
+        
+        title = 'Topological Charateristics.txt'
+        topol_file = open(self.path+title,'w')
+        topol_file.write('Size of the Giant Component is: '+str(G0.number_of_nodes())+' with '+str(G0.number_of_edges())+' edges'+'\n')
+        topol_file.write('Average Shortert Path Length'+'\n')
+        topol_file.write(str(nx.average_shortest_path_length(G0))+'\n')
+        topol_file.write('Clustering Coeficient'+'\n')
+        topol_file.write(str(nx.average_clustering(self.G))+'\n'+'\n')
+        topol_file.write('The Corresponding Random Graph Has:'+'\n')
+        topol_file.write('Shortert Path Length: '+str(nx.average_shortest_path_length(H0))+'\n')
+        topol_file.write('Clustering Coeficient: '+str(nx.average_clustering(H))+'\n')
         return
 
     def agents_prob_sum(self):
@@ -284,12 +289,14 @@ class Analysis:
             label[i] = dic[x]
         
         plt.figure()
-        plt.title('probability to be chosen by other agents')
+        title = 'probability to be chosen by other agents'
+        plt.title(title)
         
         plt.scatter(np.arange(self.N),stacked_array_sorted[:,0],c = stacked_array_sorted[:,1] )
         
         for x,y in zip(np.arange(self.N),stacked_array_sorted[:,0]):
             plt.text(x-0.1,y+0.2,str(label[x]),fontsize=8)
+        plt.savefig(self.path+title)
         return
 
     def degree_vs_attr(self):
@@ -300,24 +307,73 @@ class Analysis:
         plt.figure()
         plt.xlabel('attractiveness')
         plt.ylabel('degree')
-        plt.title('How famous are the most attractive agents?')
+        title = 'How famous are the most attractive agents?'
+        plt.title(title)
         plt.scatter(deg_attr[0],deg_attr[1])
+        plt.savefig(self.path+title)
+        return
+    
+    def num_of_transactions(self):
+        plt.figure()
+        for i in np.arange(self.N):
+            plt.plot(self.a_matrix[i].neighbor)
+        title = 'A[i]s number of transaction with others'
+        plt.title(title)
+        plt.savefig(self.path+title)
         return
 
-    def assortativity(self,attribute='degree'):
-        if attribute != 'degree':
-            print('assortativity according to '+attribute+' is:')
-            print(nx.attribute_assortativity_coefficient(self.G,attribute))
-        else:
-            print('assortativity according to '+attribute+' is:')
-            print(nx.degree_assortativity_coefficient(self.G))
+    def assortativity(self):
+        title = 'Assortativity.txt'
+        assort_file = open(self.path + title,'w')
+        for attr in self.G.nodes(data=True)[0].keys():
+            assort_file.write('assortativity according to '+attr+' is: '+'\n')
+            assort_file.write(str(nx.attribute_assortativity_coefficient(self.G,attr))+'\n'+'\n')
         return 
     
-    def money_vs_situation(self):
+    def money_vs_situation(self,path):
         plt.figure()
         plt.scatter(self.array('situation'),self.array('money'))
-        plt.title('Money Vs Situation')
+        title = 'Money Vs Situation'
+        plt.title(title)
+        plt.savefig(self.path+title)
         return
+    
+    def transaction_vs_asset(self):
+        transaction = np.zeros(self.N)
+        asset = self.array('asset')
+        for i in np.arange(self.N):
+            transaction[i] = np.sum(self.a_matrix[i].neighbor)
+        bins = 15
+        x = np.linspace(np.min(asset),np.max(asset),num=bins+1,endpoint=True)
+        width = x[1] - x[0]
+        y = np.zeros(bins)
+        for bin_index in np.arange(bins):
+            for i in np.arange(self.N):
+                if asset[i] < x[bin_index+1] and x[bin_index] < asset[i]:
+                    y[bin_index] += transaction[i]
+        plt.figure()
+        plt.bar(x[:-1] + width/2,y,width=width)
+        title = 'Transaction Vs Asset'
+        plt.title(title)
+        plt.savefig(self.path+title)
+        return
+    
+    def rich_club(self,normalized=False):
+        rich_club_coef = nx.rich_club_coefficient(self.G,normalized=normalized)
+        print(rich_club_coef)
+        rc_array = np.zeros(len(rich_club_coef))
+        for i in np.arange(len(rich_club_coef)):
+            rc_array[i] = rich_club_coef[i]
+        plt.figure()
+        plt.plot(rc_array)
+        if normalized:
+            title = 'Rich Club Normalized'
+        else:
+            title = 'Rich Club NonNormalized'
+        plt.title(title)
+        plt.savefig(self.path+title)
+        return
+    
 
 class Tracker:
     
@@ -340,6 +396,10 @@ class Tracker:
     def update_A(self,a_matrix):
         self.a_matrix = a_matrix
         return
+    
+    def get_path(self,path):
+        self.path = path
+        return
         
     def get_list(self,get_list,t):
         
@@ -351,7 +411,7 @@ class Tracker:
             worth_ratio[t] = self._array('worth_ratio')
         if get_list == 'trans_time':
             for i in np.arange(self.N):
-                self.trans_time[t,i,:] = np.copy(self.a_matrix[i].neighbour)
+                self.trans_time[t,i,:] = np.copy(self.a_matrix[i].neighbor)
         if get_list == 'correlation_mon':
             self.correlation_mon[t] = self.correlation_money_situation()
         if get_list == 'correlation_situ':
@@ -384,9 +444,9 @@ class Tracker:
             ref[what_array] = np.zeros((self.N,self.N))
             for i in np.arange(self.N):
                 for j in np.arange(self.N):
-                    if self.a_matrix[i].neighbour[j] != 0:
-                        if self.a_matrix[i].neighbour[j] < self.memory_size:
-                            where = self.a_matrix[i].neighbour[j]-1 #last value in memory
+                    if self.a_matrix[i].neighbor[j] != 0:
+                        if self.a_matrix[i].neighbor[j] < self.memory_size:
+                            where = self.a_matrix[i].neighbor[j]-1 #last value in memory
                         else:
                             where = self.memory_size-1
                         ref[what_array][i,j] = self.a_matrix[i].value[j, where ]
@@ -408,20 +468,24 @@ class Tracker:
                'correlation_mon': self.correlation_mon,
                'correlation_situ': self.correlation_situ}
         plt.figure()
-        plt.title(kwargs.get('title',what_array))
+        title = kwargs.get('title',what_array)
+        plt.title(title)
         plt.plot(ref[what_array])
+        plt.savefig(self.path+title)
         return
     
     def plot_general(self,array,title=''):
         plt.figure()
         plt.plot(array)
         plt.title(title)
+        plt.savefig(self.path+title)
         return
     
     def hist_general(self,array,title=''):
         plt.figure()
         plt.hist(array)
         plt.title(title)
+        plt.savefig(self.path+title)
         return
     
     def hist_log_log_general(self,array,title=''):
@@ -431,6 +495,7 @@ class Tracker:
         bins=np.logspace(np.log10(np.amin(array)),np.log10(np.amax(array)),20)
         plt.hist(array,bins=bins)
         plt.title(title+' histogram log-log'+' N={} T={}'.format(self.N,self.total_time))
+        plt.savefig(self.path+title+' histogram log-log'+' N={} T={}'.format(self.N,self.total_time))
         return
     
     def index_in_arr(array,value):
@@ -443,8 +508,9 @@ class Tracker:
         fig, ax = plt.subplots(nrows=1,ncols=1)
         im = ax.imshow(self.trans_time[:,agent_to_watch,:].astype(float),aspect='auto')
         cbar = ax.figure.colorbar(im, ax=ax)
-        cbar.ax.set_ylabel('1=transacted   0=not transacted', rotation=-90, va="bottom")
+        cbar.ax.set_ylabel('number of transactions', rotation=-90, va="bottom")
         plt.title(title)
+        plt.savefig(self.path+title)
         return
     
     def return_arr(self):
@@ -463,18 +529,18 @@ class Tracker:
     
     def correlation_situation_situation(self):
         situation = np.zeros(self.N)
-        situation_neighbour = np.zeros(self.N)
+        situation_neighbor = np.zeros(self.N)
         for i in np.arange(self.N):
             situation[i] = self.a_matrix[i].situation
-            length = len(self.a_matrix[i].active_neighbour)
+            length = len(self.a_matrix[i].active_neighbor)
             if length != 0:
-                for j in self.a_matrix[i].active_neighbour.keys():
-                    situation_neighbour[i] += self.a_matrix[j].situation
-                situation_neighbour[i] /= length
+                for j in self.a_matrix[i].active_neighbor.keys():
+                    situation_neighbor[i] += self.a_matrix[j].situation
+                situation_neighbor[i] /= length
         avg_situation = np.average(situation)
-        avg_situation_n = np.average(situation_neighbour)
-        numerator = np.sum( (situation-avg_situation)*(situation_neighbour-avg_situation_n))
-        denominator = np.sqrt(np.sum( (situation-avg_situation)**2 ) * np.sum( (situation_neighbour-avg_situation_n)**2 ) )
+        avg_situation_n = np.average(situation_neighbor)
+        numerator = np.sum( (situation-avg_situation)*(situation_neighbor-avg_situation_n))
+        denominator = np.sqrt(np.sum( (situation-avg_situation)**2 ) * np.sum( (situation_neighbor-avg_situation_n)**2 ) )
         correlation = numerator / denominator
         return correlation
     
