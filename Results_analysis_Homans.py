@@ -11,10 +11,10 @@ import Analysis_Tools_Homans
 import networkx as nx
 import os
 
-N,T,memory_size = [100,10000,10]
+N,T,memory_size = [100,3000,10]
 
 current_path = os.getcwd()
-version = '\\5_normal_param_10'
+version = '\\12_threshold_percentage_4_10'
 path = '\\runned_files'+version+'\\N%d_T%d\\'%(N,T)
 
 with open(current_path+path+'Tracker.pkl','rb') as tracker_file:
@@ -23,7 +23,7 @@ with open(current_path+path+'Tracker.pkl','rb') as tracker_file:
 with open(current_path+path+'Agents.pkl','rb') as agent_file:
     a_matrix = pickle.load(agent_file)
 
-analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,a_matrix)
+analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,a_matrix,path)
 
 #analyse.draw_graph_weighted_colored()
 #analyse.draw_graph()
@@ -36,10 +36,11 @@ constructed_graph = analyse._graph_construction(graph_type)
 dynamic_graph = tracker.make_dynamic_trans_time_graph(constructed_graph)
 nx.write_gexf(dynamic_graph,current_path+path+'dynamic_%s_graph.gexf'%(graph_type))
 
+tracker.get_path(path)
 a_money       = analyse.array('money')
 #a_approval    = analyse.array('approval')
 #a_worth_ratio = analyse.array('worth_ratio')
-#a_neighbour   = analyse.array('neighbour')
+#a_neighbor   = analyse.array('neighbor')
 a_value       = analyse.array('value')
 #a_time        = analyse.array('time')
 a_probability = analyse.array('probability')
@@ -88,7 +89,7 @@ tracker.trans_time_visualizer(0,'Transaction Time Tracker')
 
 #plt.figure()
 #for i in np.arange(N):
-#    plt.plot(a_matrix[i].neighbour)
+#    plt.plot(a_matrix[i].neighbor)
 #plt.title('A[i]s number of transaction with others')
 
 analyse.degree_vs_attr()
