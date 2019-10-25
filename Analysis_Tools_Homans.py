@@ -482,17 +482,21 @@ class Tracker:
     def index_in_arr(array,value):
         return np.where( array == value )[0][0]
     
-    def trans_time_visualizer(self,agent_to_watch,title):
+    def trans_time_visualizer(self,agent_to_watch,title,**kwargs):
         """
         it will show each node transaction transcript.
         """
+        sort_by = kwargs.get('sorting_feature','situation')
+        
         fig, ax = plt.subplots(nrows=1,ncols=1)
-        situ_arr = self._array('situation')
-        situ_arr_sorted = np.sort(situ_arr)
-        x_label_list = ['%.2f'%(situ_arr_sorted[i]) for i in range(self.N) ]
+        
+        sort_arr = self._array(sort_by)
+        sort_arr_sorted = np.sort(sort_arr)
+         
+        x_label_list = ['%.2f'%(sort_arr_sorted[i]) for i in range(self.N) ]
         ax.set_xticklabels(x_label_list)
         
-        im = ax.imshow(self.trans_time[:,agent_to_watch,np.argsort(situ_arr)].astype(float),aspect='auto')
+        im = ax.imshow(self.trans_time[:,agent_to_watch,np.argsort(sort_arr)].astype(float),aspect='auto')
         cbar = ax.figure.colorbar(im, ax=ax)
         cbar.ax.set_ylabel('', rotation=-90, va="bottom")
         plt.title(title+'of agent %d with %f situation'%(agent_to_watch,self.a_matrix[agent_to_watch].situation))
