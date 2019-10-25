@@ -11,7 +11,7 @@ import Analysis_Tools_Homans
 import networkx as nx
 import os
 
-N,T,memory_size = [100,10000,10]
+N,T,memory_size = [100,1000,10]
 
 current_path = os.getcwd()
 version = '\\4_param_2'
@@ -69,6 +69,8 @@ analyse.agents_prob_sum()
 #tracker.plot('worth_ratio',title='worth_ratio Evolution by Time')
 tracker.trans_time_visualizer(0,'Transaction Time Tracker')
 
+for agent in analyse.rich_agents_in_communities():
+    tracker.trans_time_visualizer(agent,'Transaction Time Tracker money:%f'%(a_matrix[agent].money))
 #tracker.plot_general(num_transaction_tot, title='Number of Transaction Vs. Time')
 #tracker.plot_general(num_explore, title='Number of Explorations Vs. Time')
 ##tracker.plot_general(agreement_tracker, title='agreement Point')

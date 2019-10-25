@@ -5,8 +5,7 @@ Created on Fri Sep 13 12:53:00 2019
 import networkx as nx
 import numpy as np
 import matplotlib.pyplot as plt
-import pickle
-import os
+import community
 
 
 class Analysis:
@@ -29,7 +28,7 @@ class Analysis:
 #        if string =='in_memory': #file already ran and A[i]s are available
 #            self.a_matrix = args[0]
         
-        self.G = self._graph_construction('trans_number_after_some_time')
+        self.G = self._graph_construction('trans_number')
         return
     
     def _graph_construction(self,graph_type,**kwargs):
@@ -269,7 +268,33 @@ class Analysis:
         print('Clustering Coeficient:',nx.average_clustering(H))
         print('Shortert Path Length',nx.average_shortest_path_length(H0))
         return
-
+    
+    def community_detection(self):
+        community_members = {}
+        community_dict = community.best_partition(self.G)
+        
+        for agent in community_dict:
+            if community_dict[agent] in community_members.keys():
+                community_members[ community_dict[agent] ].append(agent)
+            else:
+                community_members[ community_dict[agent] ] = [agent]
+        
+        return community_members
+    
+    def rich_agents_in_communities(self):
+        community_members = self.community_detection()
+        
+        for com_num in community_members:
+            community_members_money = [ self.a_matrix[agent].money for agent in community_members[com_num] ]
+            community_members[com_num] = [community_members[com_num],community_members_money]
+        
+        richest_in_coms = []
+        for com_num in community_members:
+#            richest_in_coms = community_members[com_num][0][ np.argsort(community_members[com_num][1])[0] ]
+            richest_index = np.where(community_members[com_num][1] == max(community_members[com_num][1]))[0][0]
+            richest_in_coms.append(community_members[com_num][0][richest_index])
+            
+        return  richest_in_coms
 #    def agents_value_sum(self):
 ##        a_value = self.array('value')
 #        a_value = self.array('probability')
@@ -328,7 +353,8 @@ class Analysis:
         else:
             print('assortativity according to '+attribute+' is:')
             print(nx.degree_assortativity_coefficient(self.G))
-        return 
+        return
+    
     
 
 
@@ -416,6 +442,12 @@ class Tracker:
                 ref[what_array][i] = self.a_matrix[i].worth_ratio
             return ref[what_array]
         
+        if what_array == 'situation':
+            ref[what_array] = np.zeros(self.N)
+            for i in np.arange(self.N):
+                ref[what_array][i] = self.a_matrix[i].situation
+            return ref[what_array]
+        
     
     def plot(self,what_array,**kwargs):
         ref = {'self_value': self_value,
@@ -450,15 +482,24 @@ class Tracker:
     def index_in_arr(array,value):
         return np.where( array == value )[0][0]
     
-    def trans_time_visualizer(self,agent_to_watch,title):
+    def trans_time_visualizer(self,agent_to_watch,title,**kwargs):
         """
         it will show each node transaction transcript.
         """
+        sort_by = kwargs.get('sorting_feature','situation')
+        
         fig, ax = plt.subplots(nrows=1,ncols=1)
-        im = ax.imshow(self.trans_time[:,agent_to_watch,:].astype(float),aspect='auto')
+        
+        sort_arr = self._array(sort_by)
+        sort_arr_sorted = np.sort(sort_arr)
+         
+        x_label_list = ['%.2f'%(sort_arr_sorted[i]) for i in range(self.N) ]
+        ax.set_xticklabels(x_label_list)
+        
+        im = ax.imshow(self.trans_time[:,agent_to_watch,np.argsort(sort_arr)].astype(float),aspect='auto')
         cbar = ax.figure.colorbar(im, ax=ax)
-        cbar.ax.set_ylabel('1=transacted   0=not transacted', rotation=-90, va="bottom")
-        plt.title(title)
+        cbar.ax.set_ylabel('', rotation=-90, va="bottom")
+        plt.title(title+'of agent %d with %f situation'%(agent_to_watch,self.a_matrix[agent_to_watch].situation))
         return
     
     def return_arr(self):
