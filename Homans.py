@@ -367,7 +367,7 @@ def save_it(version):
 """Parameters"""#XXX
 
 N = 100
-T = 100*N
+T = 10*N
 similarity = 0.05                   #how much this should be?
 memory_size = 10                    #contains the last memory_size number of transaction times
 transaction_percentage = 0.3        #percent of amount of money the first agent proposes from his asset 
@@ -379,7 +379,7 @@ prob1_magnify_factor = 3
 prob2_magnify_factor = 1
 alpha = 1                           #in short-term effect of the frequency of transaction
 beta = 0.3                          #in long-term effect of the frequency of transaction
-param = 2                           #a normalizing factor in assigning the acceptance probability. It normalizes difference of money of both sides
+param = 20                           #a normalizing factor in assigning the acceptance probability. It normalizes difference of money of both sides
 
 """Initial Condition"""
 
@@ -463,7 +463,8 @@ print(datetime.now() - start_time)
 # =============================================================================
 """Write File"""
 version = '\\4_param_2' #XXX
-save_it(version)
+#save_it(version)
+
 # =============================================================================
 """Analysis and Measurements"""
 def plot_general(self,array,title=''):
