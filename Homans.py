@@ -367,7 +367,7 @@ def save_it(version):
 """Parameters"""#XXX
 
 N = 100
-T = 10*N
+T = 5*N
 similarity = 0.05                   #how much this should be?
 memory_size = 10                    #contains the last memory_size number of transaction times
 transaction_percentage = 0.3        #percent of amount of money the first agent proposes from his asset 
@@ -467,14 +467,13 @@ save_it(version)
 
 # =============================================================================
 """Analysis and Measurements"""
-def plot_general(self,array,title=''):
+def plot_general(array,title=''):
     plt.figure()
     plt.plot(array)
     plt.title(title)
     return
 
-
-analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,A)
+analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,A,num_transaction_tot,explore_prob_array)
 analyse.draw_graph_weighted_colored()
 
 a_money       = analyse.array('money')
