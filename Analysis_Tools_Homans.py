@@ -290,7 +290,6 @@ class Analysis:
         
         richest_in_coms = []
         for com_num in community_members:
-#            richest_in_coms = community_members[com_num][0][ np.argsort(community_members[com_num][1])[0] ]
             richest_index = np.where(community_members[com_num][1] == max(community_members[com_num][1]))[0][0]
             richest_in_coms.append(community_members[com_num][0][richest_index])
             
@@ -311,7 +310,14 @@ class Analysis:
 #            plt.scatter(x,agents_self_value_sorted[x])
 #            plt.text(x-0.1,y+0.2,str(label[x]),fontsize=8)
 #        return
-
+    
+    def total_asset_hist(self):
+        total_assets = [ self.a_matrix[i].money + self.a_matrix[i].worth_ratio*self.a_matrix[i].approval for i in range(self.N) ]
+        plt.figure()
+        plt.title('total assets'+' histogram log-log'+' N={} T={}'.format(self.N,self.total_time))
+        plt.hist(total_assets)
+        return 
+    
     def agents_prob_sum(self):
         a_value = self.array('probability')
         agents_self_value = np.sum(a_value,axis = 0)
@@ -479,7 +485,7 @@ class Tracker:
         plt.title(title+' histogram log-log'+' N={} T={}'.format(self.N,self.total_time))
         return
     
-    def index_in_arr(array,value):
+    def index_in_arr(self,array,value):
         return np.where( array == value )[0][0]
     
     def trans_time_visualizer(self,agent_to_watch,title,**kwargs):
