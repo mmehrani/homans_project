@@ -14,7 +14,7 @@ import os
 N,T,memory_size = [100,1000,10]
 
 current_path = os.getcwd()
-version = '\\4_param_2'
+version = '\\initial_condition'
 path = '\\runned_files'+version+'\\N%d_T%d\\'%(N,T)
 
 with open(current_path+path+'Tracker.pkl','rb') as tracker_file:
@@ -70,7 +70,7 @@ analyse.agents_prob_sum()
 tracker.trans_time_visualizer(0,'Transaction Time Tracker')
 
 for agent in analyse.rich_agents_in_communities():
-    tracker.trans_time_visualizer(agent,'Transaction Time Tracker money:%f'%(a_matrix[agent].money))
+    tracker.trans_time_visualizer(agent,'Transaction Time Tracker money:%f'%(a_matrix[agent].money),sort = 'money')
 #tracker.plot_general(num_transaction_tot, title='Number of Transaction Vs. Time')
 #tracker.plot_general(num_explore, title='Number of Explorations Vs. Time')
 ##tracker.plot_general(agreement_tracker, title='agreement Point')
