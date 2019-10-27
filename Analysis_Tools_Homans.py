@@ -5,12 +5,12 @@ Created on Fri Sep 13 12:53:00 2019
 import networkx as nx
 import numpy as np
 import matplotlib.pyplot as plt
-import community
+#import community
 
 
 class Analysis:
     
-    def __init__(self,number_agent,total_time,size,a_matrix,*args,**kwargs):
+    def __init__(self,number_agent,total_time,size,a_matrix,num_transaction,explore_prob_arr,*args,**kwargs):
         
         self.memory_size = size
         self.a_matrix = a_matrix
@@ -28,10 +28,10 @@ class Analysis:
 #        if string =='in_memory': #file already ran and A[i]s are available
 #            self.a_matrix = args[0]
         
-        self.G = self._graph_construction('trans_number')
+        self.G = self._graph_construction('trans_number',num_transaction,explore_prob_arr)
         return
     
-    def _graph_construction(self,graph_type,**kwargs):
+    def _graph_construction(self,graph_type,num_transaction,explore_prob_arr,**kwargs):
         G = nx.Graph()
         if graph_type == 'last_time':
             for i in np.arange(self.N):
@@ -80,16 +80,17 @@ class Analysis:
             sampling_time = kwargs.get('sampling_time',0)
             tracker = kwargs.get('tracker_obj',None)
             
+            friendship_num = self.friendship_point(num_transaction,explore_prob_arr)
             if tracker != None:
                 for i in np.arange(self.N):
                     for j in self.a_matrix[i].active_neighbour.keys():
                         trans_last_value = tracker.trans_time[sampling_time,i,j]
-                        if True in (tracker.trans_time[sampling_time:,i,j] > (trans_last_value + 5) ):
+                        if True in (tracker.trans_time[sampling_time:,i,j] > (trans_last_value + friendship_num) ):
                             G.add_edge(i,j)
             else:                
                 for i in np.arange(self.N):
                     for j in self.a_matrix[i].active_neighbour.keys():
-                        if self.a_matrix[i].neighbour[j] > 5:
+                        if self.a_matrix[i].neighbour[j] > friendship_num:
                             G.add_edge(i,j)
                         
         node_attr_dict = { i:{'situation':0,'money':0,'worth_ratio':0,'others_feeling':0} for i in G.nodes() }
@@ -355,7 +356,17 @@ class Analysis:
             print(nx.degree_assortativity_coefficient(self.G))
         return
     
-    
+    def friendship_point(self,num_transaction,explore_prob_arr):
+        """ When we consider someone as friend
+        Or in other words: how many transactions one agent with an agent means that they are friends
+        """
+        alpha = num_transaction[:] / ((1 - explore_prob_arr[:]) * self.N)
+        T_eff = np.sum(alpha)
+        beta = 1
+        friendship_num = int(np.ceil(beta * T_eff / self.N))
+        print('friendship point:',friendship_num)
+        return friendship_num
+        
 
 
 class Tracker:
