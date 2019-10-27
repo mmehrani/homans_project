@@ -389,8 +389,9 @@ situation_arr = np.random.random(N) #randomly distributed
 #money = 1 + situation_arr * 2
 #money = np.zeros(N)
 #money = np.random.random(N) * 2
-money = np.round(situation_arr[:] * 9 + 1 ,decimals=3)
+#money = np.round(situation_arr[:] * 9 + 1 ,decimals=3)
 approval = np.full(N,5.5)     #may have distribution
+money = np.full(N,5.5)
 #approval = 1 + situation_arr * 2
 #approval = np.round(situation_arr[:] * 9 + 1 ,decimals=3)
 
@@ -462,7 +463,7 @@ for t in np.arange(T)+1:#t goes from 1 to T
 print(datetime.now() - start_time)
 # =============================================================================
 """Write File"""
-version = '\\test' #XXX
+version = '\\initial_condition' #XXX
 save_it(version)
 
 # =============================================================================
