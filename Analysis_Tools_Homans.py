@@ -11,7 +11,7 @@ import os
 
 class Analysis:
     
-    def __init__(self,number_agent,total_time,size,a_matrix,path,*args,**kwargs):
+    def __init__(self,number_agent,total_time,size,a_matrix,path,num_transaction,explore_prob_arr,*args,**kwargs):
         
         self.memory_size = size
         self.a_matrix = a_matrix
@@ -30,68 +30,27 @@ class Analysis:
 #        if string =='in_memory': #file already ran and A[i]s are available
 #            self.a_matrix = args[0]
         
-        self.G = self._graph_construction('trans_number_after_some_time')
+        self.G = self._graph_construction('trans_number',num_transaction,explore_prob_arr)
         return
     
-    def _graph_construction(self,graph_type,**kwargs):
+    def _graph_construction(self,graph_type,num_transaction,explore_prob_arr,**kwargs):
         G = nx.Graph()
-        if graph_type == 'last_time':
-            for i in np.arange(self.N):
-                for j in self.a_matrix[i].active_neighbor.keys():
-                    if self.a_matrix[i].neighbor[j] < self.memory_size:
-                        where = self.a_matrix[i].neighbor[j]-1 #last value in memory
-                    else:
-                        where = self.memory_size-1
-                    if self.a_matrix[i].time[j,where] >= self.total_time-10: #graph of last time
-                        G.add_edge(i,j)
-            
-        
-        if graph_type == 'probability':
-            for i in np.arange(self.N):
-                for j in self.a_matrix[i].active_neighbor.keys():
-#                    truncation_point = 1/self.N+0.01
-                    truncation_point = 0.015
-                    if self.a_matrix[i].active_neighbor[j] >= truncation_point:
-                        G.add_edge(i,j)
-        
-        if graph_type == 'utility':
-            for i in np.arange(self.N):
-                for j in self.a_matrix[i].active_neighbor.keys():
-                    if self.a_matrix[i].neighbor[j] < self.memory_size:
-                        where = self.a_matrix[i].neighbor[j]-1 #last value in memory
-                    else:
-                        where = self.memory_size-1
-                        
-                    if self.a_matrix[i].time[j,where] > 0.95 * self.total_time:
-                        utility = self.a_matrix[i].active_neighbor[j] * self.a_matrix[j].active_neighbor[i] * self.N * .4
-                        G.add_edge(i,j,weight=utility)
-                        
-        if graph_type == 'trans_number_after_some_time':
-            #it is different from 'trans_number'. 'trans_number' is more complete
-            for i in np.arange(self.N):
-                for j in self.a_matrix[i].active_neighbor.keys():
-                    if self.a_matrix[i].neighbor[j] < self.memory_size:
-                        where = self.a_matrix[i].neighbor[j]-1 #last value in memory
-                    else:
-                        where = self.memory_size-1
-                        
-                    if self.a_matrix[i].time[j,where] > 0.5 * self.total_time and self.a_matrix[i].neighbor[j] > 20:
-                        G.add_edge(i,j)
         
         if graph_type == 'trans_number':
             sampling_time = kwargs.get('sampling_time',0)
             tracker = kwargs.get('tracker_obj',None)
             
+            friendship_num = self.friendship_point(num_transaction,explore_prob_arr)
             if tracker != None:
                 for i in np.arange(self.N):
                     for j in self.a_matrix[i].active_neighbor.keys():
                         trans_last_value = tracker.trans_time[sampling_time,i,j]
-                        if True in (tracker.trans_time[sampling_time:,i,j] > (trans_last_value + 5) ):
+                        if True in (tracker.trans_time[sampling_time:,i,j] > (trans_last_value + friendship_num) ):
                             G.add_edge(i,j)
             else:                
                 for i in np.arange(self.N):
                     for j in self.a_matrix[i].active_neighbor.keys():
-                        if self.a_matrix[i].neighbor[j] > 5:
+                        if self.a_matrix[i].neighbor[j] > friendship_num:
                             G.add_edge(i,j)
                         
         node_attr_dict = { i:{'situation':0,'money':0,'worth_ratio':0,'others_feeling':0} for i in G.nodes() }
@@ -262,24 +221,31 @@ class Analysis:
         H = nx.gnm_random_graph(self.G.number_of_nodes(),self.G.number_of_edges())
         Hcc = sorted(nx.connected_components(H), key=len, reverse=True)
         H0 = H.subgraph(Hcc[0])
+        cc = nx.average_clustering(self.G)
+        cc_r = nx.average_clustering(H)
+        asph = nx.average_shortest_path_length(G0)
+        asph_r = nx.average_shortest_path_length(H0)
         
         title = 'Topological Charateristics.txt'
         topol_file = open(self.path+title,'w')
         topol_file.write('Size of the Giant Component is: '+str(G0.number_of_nodes())+' with '+str(G0.number_of_edges())+' edges'+'\n')
         topol_file.write('Average Shortert Path Length'+'\n')
-        topol_file.write(str(nx.average_shortest_path_length(G0))+'\n')
+        topol_file.write(str(asph)+'\n')
         topol_file.write('Clustering Coeficient'+'\n')
-        topol_file.write(str(nx.average_clustering(self.G))+'\n'+'\n')
+        topol_file.write(str(cc)+'\n')
+        topol_file.write('Small-Worldness'+'\n')
+        topol_file.write(str( (cc/cc_r) / (asph/asph_r) )+'\n')
+        topol_file.write('\n')
         topol_file.write('The Corresponding Random Graph Has:'+'\n')
-        topol_file.write('Shortert Path Length: '+str(nx.average_shortest_path_length(H0))+'\n')
-        topol_file.write('Clustering Coeficient: '+str(nx.average_clustering(H))+'\n')
+        topol_file.write('Shortert Path Length: '+str(asph_r)+'\n')
+        topol_file.write('Clustering Coeficient: '+str(cc_r)+'\n')
         return
 
     def agents_prob_sum(self):
         a_prob = self.array('probability')
         agents_self_value = np.sum(a_prob,axis = 0)
-        a_money = self.array('money')
-        stacked_array = np.transpose(np.stack((agents_self_value,a_money)))
+        a_asset = self.array('asset')
+        stacked_array = np.transpose(np.stack((agents_self_value,a_asset)))
         
         stacked_array_sorted = stacked_array[np.argsort(stacked_array[:,0])]
         
@@ -373,6 +339,19 @@ class Analysis:
         plt.title(title)
         plt.savefig(self.path+title)
         return
+    
+    def friendship_point(self,num_transaction,explore_prob_arr):
+        """ When we consider someone as friend
+        Or in other words: how many transactions one agent with an agent means that they are friends
+        """
+        alpha = num_transaction[:] / ((1 - explore_prob_arr[:]) * self.N)
+        T_eff = np.sum(alpha)
+        beta = 1
+        friendship_num = int(np.ceil(beta * T_eff / self.N))
+        print('friendship point:',friendship_num)
+        print('average transaction',np.average(num_transaction))
+        return friendship_num
+
     
 
 class Tracker:

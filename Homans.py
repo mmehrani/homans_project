@@ -41,8 +41,8 @@ class Agent():
         for j in self.active_neighbor.keys():
             self.n_avg['money'] += A[j].money
             self.n_avg['approval'] += A[j].approval
-        self.n_avg['money'] += self.money
-        self.n_avg['approval'] += self.approval
+#        self.n_avg['money'] += self.money
+#        self.n_avg['approval'] += self.approval
         
         self.n_avg['money'] = self.n_avg['money'] / len(self.active_neighbor)
         self.n_avg['approval'] = self.n_avg['approval'] / len(self.active_neighbor)
@@ -380,7 +380,7 @@ similarity = 0.05                   #how much this should be?
 memory_size = 10                    #contains the last memory_size number of transaction times
 transaction_percentage = 0.3        #percent of amount of money the first agent proposes from his asset 
 num_of_tries = 20                   #in function explore()
-threshold_percentage =np.full(N,0.4)#the maximum amount which the agent is willing to give
+threshold_percentage =np.full(N,1.0)#the maximum amount which the agent is willing to give
 normalization_factor = 1            #used in transaction(). what should be?
 prob0_magnify_factor = 0.35         #this is in probability() for changing value so that it can take advantage of arctan
 prob1_magnify_factor = 3
@@ -476,7 +476,7 @@ for t in np.arange(T)+1:#t goes from 1 to T
 print(datetime.now() - start_time)
 # =============================================================================
 """Write File"""
-version = '\\12_threshold_percentage_4_10' #XXX
+version = '\\5_normal_param_10' #XXX
 path = save_it(version)
 # =============================================================================
 """Analysis and Measurements"""
@@ -487,7 +487,7 @@ def plot_general(self,array,title=''):
     return
 
 tracker.get_path(path)
-analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,A,path)
+analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,A,path,num_transaction_tot,explore_prob_array)
 analyse.draw_graph_weighted_colored()
 
 #a_money       = analyse.array('money')
