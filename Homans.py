@@ -44,8 +44,8 @@ class Agent():
 #        self.n_avg['money'] += self.money
 #        self.n_avg['approval'] += self.approval
         
-        self.n_avg['money'] = self.n_avg['money'] / len(self.active_neighbor)
-        self.n_avg['approval'] = self.n_avg['approval'] / len(self.active_neighbor)
+        self.n_avg['money'] = self.n_avg['money'] / (len(self.active_neighbor)+1)
+        self.n_avg['approval'] = self.n_avg['approval'] / (len(self.active_neighbor)+1)
         self.n_average = self.n_avg['approval'] / self.n_avg['money']
         return self.n_average
 
@@ -54,7 +54,8 @@ class Agent():
 #        self.n_avg = 0
 #        for j in self.active_neighbor.keys():
 #            self.n_avg += A[j].approval / A[j].money
-#        self.n_avg /= len(self.active_neighbor)
+#        self.n_avg += self.approval / self.money
+#        self.n_avg /= len(self.active_neighbor) + 1
 #        return self.n_avg
 
 
@@ -82,8 +83,8 @@ class Agent():
 #        p0 = np.arctan(factor*value)*2/np.pi + 1 #ranges from 0 to 2: value=0 maps to p=1. that means p=1 is the defaul number.
 #        p0 = np.arctan(prob0_magnify_factor*value*10)*2/np.pi + 1 #ranges from 0 to 2: value=0 maps to p=1. that means p=1 is the defaul number.
 #        p0 = np.exp(value * prob0_magnify_factor)
-#        p0 = value * prob0_magnify_factor 
-        p0 = value * prob0_magnify_factor + 1
+        p0 = value * prob0_magnify_factor 
+#        p0 = value * prob0_magnify_factor + 1
         p1 = self.frequency_to_probability(neighbor,t) * prob1_magnify_factor - (prob1_magnify_factor -1)
         p2 = np.exp(self.feeling[neighbor] * prob2_magnify_factor)
 #        p1 = 1.0
@@ -352,35 +353,35 @@ def save_it(version):
         print ("runned_files already exists")
         
     try:
-        os.mkdir(current_path+'\\runned_files'+version)
+        os.mkdir(current_path+'\\runned_files'+'\\N%d_T%d'%(N,T))
     except OSError:
         print ("version already exists")
         
     try:
-        os.mkdir(current_path+'\\runned_files'+version+'\\N%d_T%d'%(N,T))
+        os.mkdir(current_path+'\\runned_files'+'\\N%d_T%d\\'%(N,T)+version)
     except OSError:
         print ("Creation of the directory failed")
     
-    path = 'runned_files'+version+'\\N%d_T%d\\'%(N,T)
+    path = 'runned_files'+'\\N%d_T%d\\'%(N,T)+version+'\\'
 #    np.save(path+'Agents.npy',A)
 #    np.save(path+'Tracker.npy',tracker)
     with open(path + 'Agents.pkl','wb') as agent_file:
         pickle.dump(A,agent_file,pickle.HIGHEST_PROTOCOL)
 
-    with open(path + 'Tracker.pkl','wb') as tracker_file:
-        pickle.dump(tracker,tracker_file,pickle.HIGHEST_PROTOCOL)
+#    with open(path + 'Tracker.pkl','wb') as tracker_file:
+#        pickle.dump(tracker,tracker_file,pickle.HIGHEST_PROTOCOL)
         
     return path
 # =============================================================================
 """Parameters"""#XXX
 
 N = 100
-T = 30*N
+T = 2*N
 similarity = 0.05                   #how much this should be?
 memory_size = 10                    #contains the last memory_size number of transaction times
 transaction_percentage = 0.3        #percent of amount of money the first agent proposes from his asset 
 num_of_tries = 20                   #in function explore()
-threshold_percentage =np.full(N,1.0)#the maximum amount which the agent is willing to give
+threshold_percentage =np.full(N,1)  #the maximum amount which the agent is willing to give
 normalization_factor = 1            #used in transaction(). what should be?
 prob0_magnify_factor = 0.35         #this is in probability() for changing value so that it can take advantage of arctan
 prob1_magnify_factor = 3
@@ -393,16 +394,16 @@ lamda = 0.9                         # how much one agent relies on his last wort
 """Initial Condition"""
 
 situation_arr = np.random.random(N) #randomly distributed
-#money = np.full(N,2)        #may have distribution
+#money = np.full(N,2)
 #money = np.random.normal(loc=4,scale=1,size=N)
 #money = 1 + situation_arr * 2
 #money = np.zeros(N)
 #money = np.random.random(N) * 2
 money = np.round(situation_arr[:] * 9 + 1 ,decimals=3)
-#approval = np.full(N,5.5)     #may have distribution
+approval = np.full(N,5.5)
 #approval = 1 + situation_arr * 2
 #approval = np.round(situation_arr[:] * 9 + 1 ,decimals=3)
-approval = np.round(11 - money[:],decimals=3)
+#approval = np.round(11 - money[:],decimals=3)
 #risk_receptibility = np.random.random(N)*4*similarity
 
 A = np.zeros(N,dtype=object)
@@ -476,7 +477,7 @@ for t in np.arange(T)+1:#t goes from 1 to T
 print(datetime.now() - start_time)
 # =============================================================================
 """Write File"""
-version = '\\5_normal_param_10' #XXX
+version = 'test' #XXX
 path = save_it(version)
 # =============================================================================
 """Analysis and Measurements"""
@@ -488,6 +489,7 @@ def plot_general(self,array,title=''):
 
 tracker.get_path(path)
 analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,A,path,num_transaction_tot,explore_prob_array)
+analyse.graph_construction('trans_number',num_transaction_tot,explore_prob_array,tracker_obj=tracker)
 analyse.draw_graph_weighted_colored()
 
 #a_money       = analyse.array('money')
@@ -520,8 +522,8 @@ analyse.money_vs_situation(path+'money_vs_situation')
 analyse.transaction_vs_asset()
 
 #tracker.plot('self_value',title='Self Value')
-tracker.plot('valuable_to_others',title='How Much Valuable to Others')
-tracker.plot('worth_ratio',title='worth_ratio Evolution by Time')
+#tracker.plot('valuable_to_others',title='How Much Valuable to Others')
+tracker.plot('worth_ratio',title='Worth_ratio Evolution by Time',alpha=1)
 tracker.plot('correlation_mon',title='Correlation of Money and Situation')
 tracker.plot('correlation_situ',title="Correlation of Situation and Neighbor's Situation")
 #tracker.trans_time_visualizer(3,'Transaction Time Tracker')
@@ -559,19 +561,14 @@ for i in np.arange(N):
 plt.title('Asset Tracker')
 plt.savefig(path+'Asset Tracker')
 
-analyse.assortativity()
+analyse.community_detection()
 analyse.topology_chars()
 analyse.rich_club()
+analyse.assortativity()
 
-#tracker.hist_general(a_probability[a_probability>0.1])
-#tracker.hist_log_log_general(a_probability[a_probability>0.1])
-#array = a_value[a_value>0.8]
-#plt.figure()
-#plt.xscale('log')
-#plt.yscale('log')
-#bins=np.logspace(np.log10(np.amin(array)),np.log10(np.amax(array)),12)
-#plt.hist(array,bins=bins)
-#plt.title('Probability log-log Historgram bigger than 0.1')
+agent = 0
+tracker.trans_time_visualizer(agent,'Transaction Time Tracker')
+tracker.valuability()
 
 
 """Time Evaluation"""
