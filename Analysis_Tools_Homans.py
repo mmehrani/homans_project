@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 import pickle
 import os
 import community
+import matplotlib.animation as animation
+
 
 class Analysis: #XXX
     
@@ -356,16 +358,19 @@ class Analysis: #XXX
         return
     
     def rich_club(self,normalized=False):
-        rich_club_coef = nx.rich_club_coefficient(self.G,normalized=normalized)
+        if normalized:
+            Gcc = sorted(nx.connected_components(self.G), key=len, reverse=True)
+            G0 = self.G.subgraph(Gcc[0])
+            rich_club_coef = nx.rich_club_coefficient(G0,normalized=normalized)
+            title = 'Rich Club Normalized'
+        else:
+            rich_club_coef = nx.rich_club_coefficient(self.G,normalized=normalized)
+            title = 'Rich Club NonNormalized'
         rc_array = np.zeros(len(rich_club_coef))
         for i in np.arange(len(rich_club_coef)):
             rc_array[i] = rich_club_coef[i]
         plt.figure()
         plt.plot(rc_array)
-        if normalized:
-            title = 'Rich Club Normalized'
-        else:
-            title = 'Rich Club NonNormalized'
         plt.title(title)
         plt.savefig(self.path+title)
         return
@@ -382,7 +387,7 @@ class Analysis: #XXX
         avg = np.average(num_transaction[sampling_time:])
         sigma = np.sqrt(np.var(num_transaction[sampling_time:]))
         T_eff = self.T * (avg + 2*sigma)/self.N
-        beta = 5
+        beta = 1
         self.friendship_num = int(np.ceil(beta * T_eff / self.N))
         
         print('friendship point:',self.friendship_num)
@@ -414,7 +419,7 @@ class Analysis: #XXX
 #        return  richest_in_coms
         
         """Modularity"""
-        modularity = community.modularity(community_dict,self.G)
+        modularity = community.modularity(community_dict,self.G,weight='asdfd')
         #corresponding random graph
         H = nx.gnm_random_graph(self.G.number_of_nodes(),self.G.number_of_edges())
         part = community.best_partition(H)
@@ -432,7 +437,47 @@ class Analysis: #XXX
         com_file.write(str(len(community_members)))
         com_file.close()
         return
-    
+
+    def graph_correlations(self):
+        nodes = self.G.nodes()
+        nodes_dict = dict(self.G.nodes(data=True))
+        i = 0
+        while i not in nodes:
+            i += 1
+        attributes = nodes_dict[i].keys()
+        length = len(attributes)
+        correlation = np.zeros((length,length))
+        attr_array = np.zeros((length,len(nodes_dict)))
+        attr_array_avg = np.zeros(length)
+        attr_index = 0
+        for attr in attributes:
+            i = 0
+            for n in nodes:
+                attr_array[attr_index,i] = nodes_dict[n][attr]
+                i += 1
+            attr_index += 1
+        attr_array_avg = np.average(attr_array,axis=1)
+        for i in np.arange(length):
+            for j in np.arange(length):
+                if j > i:
+                    numerator = np.sum( (attr_array[i,:]-attr_array_avg[i])*(attr_array[j,:]-attr_array_avg[j]))
+                    denominator = np.sqrt(np.sum( (attr_array[i,:]-attr_array_avg[i])**2 ) * np.sum( (attr_array[j,:]-attr_array_avg[j])**2 ) )
+                    correlation[i,j] = numerator / denominator
+                elif j < i:
+                    correlation[i,j] = correlation[j,i]
+                elif j==i:
+                    correlation[i,j] = 1
+        fig, ax = plt.subplots(nrows=1,ncols=1)
+        im = ax.imshow(correlation)
+        cbar = ax.figure.colorbar(im, ax=ax)
+        cbar.ax.set_ylabel('correlation', rotation=-90, va="bottom")
+        title = ''
+        for attr in attributes:
+            title += attr + ', '
+        plt.title(title)
+        plt.savefig(self.path + 'correlation in graph')
+        return
+
     
 class Tracker: #XXX
     
@@ -580,15 +625,14 @@ class Tracker: #XXX
         fig, ax = plt.subplots(nrows=1,ncols=1)
         
         sort_arr = self._array(sort_by)
-        sort_arr_sorted = np.sort(sort_arr)
-         
-        x_label_list = ['%.2f'%(sort_arr_sorted[i]) for i in range(self.N) ]
-        ax.set_xticklabels(x_label_list)
+#        sort_arr_sorted = np.sort(sort_arr)
+#        x_label_list = ['%.2f'%(sort_arr_sorted[i]) for i in range(self.N) ]
+#        ax.set_xticklabels(x_label_list)
         
         im = ax.imshow(self.trans_time[:,agent_to_watch,np.argsort(sort_arr)].astype(float),aspect='auto')
         cbar = ax.figure.colorbar(im, ax=ax)
         cbar.ax.set_ylabel('number of transactions', rotation=-90, va="bottom")
-        plt.title(title+'asset:%f'%(self.a_matrix[agent_to_watch].asset)+'of agent %d with %f situation'%(agent_to_watch,self.a_matrix[agent_to_watch].situation))
+        plt.title(title+' asset:{0:.3g}'.format(self.a_matrix[agent_to_watch].asset)+'of agent {0} with {1:.2f} situation'.format(agent_to_watch,self.a_matrix[agent_to_watch].situation))
         plt.savefig(self.path+title)
         return
     
@@ -626,14 +670,17 @@ class Tracker: #XXX
     def valuability(self):
         fig, ax = plt.subplots(nrows=1,ncols=1)
         asset = self._array('asset')
-        asset_sort = np.sort(asset)
+#        asset_sort = np.sort(asset)
 #        x_label_list = np.array(['{0:.2f}'.format(asset_sort[int(self.N/5)*i]) for i in np.arange(5) ])
 #        x_label_list = np.concatenate(([0],x_label_list))
 #        ax.set_xticklabels(x_label_list)
-        im = ax.imshow(self.valuable_to_others[:,np.argsort(asset)].astype(float),aspect='auto')
+        valuable_to_others_normalized = np.zeros((self.T,self.N))
+        for i in np.arange(self.N):
+            valuable_to_others_normalized[:,i] = self.valuable_to_others[:,i] / len(self.a_matrix[i].active_neighbor)
+        im = ax.imshow(valuable_to_others_normalized[:,np.argsort(asset)].astype(float),aspect='auto')
         cbar = ax.figure.colorbar(im, ax=ax)
         cbar.ax.set_ylabel('value sum', rotation=-90, va="bottom")
-        title = 'How Much Valuable to Others (sorted based on asset)'
+        title = 'How Much Valuable to Others (sorted based on asset & normalized)'
         plt.title(title)
         plt.savefig(self.path + title)
         return

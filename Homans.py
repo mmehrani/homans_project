@@ -10,11 +10,17 @@ import winsound
 import pickle
 import Analysis_Tools_Homans
 import os
+import matplotlib.animation as animation
+import shutil
+
 
 start_time = datetime.now()
 
 # =============================================================================
 """Class"""
+
+class NegativeProbability(Exception):
+    pass
 
 class Agent():
     def __init__(self,money,approval,situation):
@@ -41,11 +47,14 @@ class Agent():
         for j in self.active_neighbor.keys():
             self.n_avg['money'] += A[j].money
             self.n_avg['approval'] += A[j].approval
+        self.n_avg['money'] = self.n_avg['money'] / len(self.active_neighbor)
+        self.n_avg['approval'] = self.n_avg['approval'] / len(self.active_neighbor)
+
 #        self.n_avg['money'] += self.money
 #        self.n_avg['approval'] += self.approval
+#        self.n_avg['money'] = self.n_avg['money'] / (len(self.active_neighbor)+1)
+#        self.n_avg['approval'] = self.n_avg['approval'] / (len(self.active_neighbor)+1)
         
-        self.n_avg['money'] = self.n_avg['money'] / (len(self.active_neighbor)+1)
-        self.n_avg['approval'] = self.n_avg['approval'] / (len(self.active_neighbor)+1)
         self.n_average = self.n_avg['approval'] / self.n_avg['money']
         return self.n_average
 
@@ -83,8 +92,8 @@ class Agent():
 #        p0 = np.arctan(factor*value)*2/np.pi + 1 #ranges from 0 to 2: value=0 maps to p=1. that means p=1 is the defaul number.
 #        p0 = np.arctan(prob0_magnify_factor*value*10)*2/np.pi + 1 #ranges from 0 to 2: value=0 maps to p=1. that means p=1 is the defaul number.
 #        p0 = np.exp(value * prob0_magnify_factor)
-        p0 = value * prob0_magnify_factor 
-#        p0 = value * prob0_magnify_factor + 1
+#        p0 = value * prob0_magnify_factor 
+        p0 = value * prob0_magnify_factor + 1
         p1 = self.frequency_to_probability(neighbor,t) * prob1_magnify_factor - (prob1_magnify_factor -1)
         p2 = np.exp(self.feeling[neighbor] * prob2_magnify_factor)
 #        p1 = 1.0
@@ -107,25 +116,60 @@ class Agent():
     
     
     def neighbor_concatenation(self,self_index,new_neighbor,t):
-
+        sum_before = sum(list(self.active_neighbor.values()))
         for j in self.active_neighbor.keys():
             self.active_neighbor[j] *= self.sigma
         
+        sigma_before = self.sigma            
         probability_new_neighbor = self.probability(new_neighbor,t)
+        sum_middle = sum(list(self.active_neighbor.values()))
+
         if new_neighbor in self.active_neighbor:
             self.sigma += probability_new_neighbor - self.active_neighbor[new_neighbor]
         else:
             self.sigma += probability_new_neighbor
             
+#        before = np.zeros(len(self.active_neighbor))
+#        after = np.zeros(len(self.active_neighbor))
+#        i = 0
         self.active_neighbor[new_neighbor] = probability_new_neighbor
         for j in self.active_neighbor.keys():
+#            before[i] = self.active_neighbor[j]
             self.active_neighbor[j] /= self.sigma
+#            after[i] = self.active_neighbor[j]
+#            i += 1
         if np.size(np.array(list(self.active_neighbor.values()))[np.array(list(self.active_neighbor.values()))>1]) != 0:
             #normalize again
             summ = sum(self.active_neighbor.values())
             for j in self.active_neighbor:
                 self.active_neighbor[j]/summ
-        
+
+        #error finding
+        if probability_new_neighbor < 0:
+            raise NegativeProbability('self index:',self_index,'neighbor',new_neighbor)
+        elif np.size(np.array(list(self.active_neighbor.values()))[np.array(list(self.active_neighbor.values()))>1]) != 0:
+            print('\nerror')
+            print('self index',self_index)
+            print('neighbor index',new_neighbor)
+            print('sum after',sum(list(self.active_neighbor.values())))
+            print('sum middle',sum_middle)
+            print('sum before',sum_before)
+            print('sigma before',sigma_before)
+            print('sigma after',self.sigma)
+            print('value',self.value[new_neighbor])
+            print('intered prob',probability_new_neighbor)
+#            print('active before',active_before)
+#            print('active middle',active_middle)
+#            print('active after',self.active_neighbor)
+#            for i in np.arange(np.size(before)):
+#                print('b',before[i],'a',after[i])
+            raise NegativeProbability('self index:',self_index,'neighbor',new_neighbor)
+        elif sum(list(self.active_neighbor.values())) > 1.01 or sum(list(self.active_neighbor.values())) < 0.99:
+            raise NegativeProbability('not one',sum(list(self.active_neighbor.values())))
+#        elif self.sigma > len(self.active_neighbor):
+#            raise NegativeProbability('sigma error')
+
+
         return
 
     def second_agent(self,self_index,self_active_neighbor):
@@ -182,8 +226,8 @@ def transaction(index1,index2,t):
     else:
         acceptance_worth = 0
     
-    p = np.exp( -np.abs(agent1.money - agent2.money)/param )
-    acceptance_mon = np.random.choice([0,1],p=[1-p,p])
+    p = np.exp( -np.abs(agent1.asset - agent2.asset)/param )
+    acceptance_asset = np.random.choice([0,1],p=[1-p,p])
     
     amount = transaction_percentage * agent1.money
     agreement_point = (worth_ratio2 - worth_ratio1)/(worth_ratio2 + worth_ratio1) * amount * worth_ratio1 #x=(E2-E1/E2+E1)*AE1
@@ -195,7 +239,7 @@ def transaction(index1,index2,t):
     
     acceptance_tracker[t-1] += acceptance_thr
     
-    acceptance = acceptance_worth * acceptance_thr * acceptance_mon * acceptance_util
+    acceptance = acceptance_worth * acceptance_thr * acceptance_asset * acceptance_util
     if acceptance:   #transaction accepts
         num_transaction_tot[t-1] += 1
         agreement_tracker.append(agreement_point)
@@ -221,10 +265,10 @@ def transaction(index1,index2,t):
         agent2.approval -= np.round(amount*worth_ratio1 + agreement_point,3)
         
         
-        agent1.worth_ratio = (amount*worth_ratio1 + agreement_point) / amount # = approval/money
-        agent2.worth_ratio = (amount*worth_ratio1 + agreement_point) / amount # eqaul for both.
-#        agent1.worth_ratio = lamda * agent1.worth_ratio + (1-lamda) * (amount*worth_ratio1 + agreement_point)
-#        agent2.worth_ratio = lamda * agent2.worth_ratio + (1-lamda) * (amount*worth_ratio1 + agreement_point)
+#        agent1.worth_ratio = (amount*worth_ratio1 + agreement_point) / amount # = approval/money
+#        agent2.worth_ratio = (amount*worth_ratio1 + agreement_point) / amount # eqaul for both.
+        agent1.worth_ratio = lamda * agent1.worth_ratio + (1-lamda) * (amount*worth_ratio1 + agreement_point)
+        agent2.worth_ratio = lamda * agent2.worth_ratio + (1-lamda) * (amount*worth_ratio1 + agreement_point)
 
         
         agent1.asset_updater()
@@ -376,26 +420,26 @@ def save_it(version):
 """Parameters"""#XXX
 
 N = 100
-T = 2*N
+T = 50*N
 similarity = 0.05                   #how much this should be?
 memory_size = 10                    #contains the last memory_size number of transaction times
-transaction_percentage = 0.3        #percent of amount of money the first agent proposes from his asset 
+transaction_percentage = 0.1        #percent of amount of money the first agent proposes from his asset 
 num_of_tries = 20                   #in function explore()
-threshold_percentage =np.full(N,1)  #the maximum amount which the agent is willing to give
+threshold_percentage =np.full(N,1)#the maximum amount which the agent is willing to give
 normalization_factor = 1            #used in transaction(). what should be?
 prob0_magnify_factor = 0.35         #this is in probability() for changing value so that it can take advantage of arctan
 prob1_magnify_factor = 3
 prob2_magnify_factor = 1
 alpha = 1                           #in short-term effect of the frequency of transaction
 beta = 0.3                          #in long-term effect of the frequency of transaction
-param = 10                          #a normalizing factor in assigning the acceptance probability. It normalizes difference of money of both sides
-lamda = 0.9                         # how much one agent relies on his last worth_ratio and how much relies on current transaction's worth_ratio
+param = 2                           #a normalizing factor in assigning the acceptance probability. It normalizes difference of money of both sides
+lamda = 0.1                         # how much one agent relies on his last worth_ratio and how much relies on current transaction's worth_ratio
 
 """Initial Condition"""
 
 situation_arr = np.random.random(N) #randomly distributed
 #money = np.full(N,2)
-#money = np.random.normal(loc=4,scale=1,size=N)
+#money = np.round(np.random.normal(loc=5.5,scale=1,size=N),decimals=3)
 #money = 1 + situation_arr * 2
 #money = np.zeros(N)
 #money = np.random.random(N) * 2
@@ -477,20 +521,18 @@ for t in np.arange(T)+1:#t goes from 1 to T
 print(datetime.now() - start_time)
 # =============================================================================
 """Write File"""
-version = 'test' #XXX
+version = 'test7_lambda_1_10' #XXX
 path = save_it(version)
 # =============================================================================
 """Analysis and Measurements"""
-def plot_general(self,array,title=''):
-    plt.figure()
-    plt.plot(array)
-    plt.title(title)
-    return
+shutil.copyfile(os.getcwd()+'\\Homans.py',path+'\\Homans.py')
+shutil.copyfile(os.getcwd()+'\\Analysis_Tools_Homans.py',path+'\\Analysis_Tools_Homans.py')
 
 tracker.get_path(path)
 analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,A,path,num_transaction_tot,explore_prob_array)
 analyse.graph_construction('trans_number',num_transaction_tot,explore_prob_array,tracker_obj=tracker)
 analyse.draw_graph_weighted_colored()
+analyse.graph_correlations()
 
 #a_money       = analyse.array('money')
 #a_approval    = analyse.array('approval')
@@ -563,13 +605,24 @@ plt.savefig(path+'Asset Tracker')
 
 analyse.community_detection()
 analyse.topology_chars()
-analyse.rich_club()
+analyse.rich_club(normalized=False)
 analyse.assortativity()
 
 agent = 0
 tracker.trans_time_visualizer(agent,'Transaction Time Tracker')
 tracker.valuability()
 
+
+
+fig, ax = plt.subplots(nrows=1,ncols=1)
+probability = analyse.array('probability')
+im = ax.imshow(probability.astype(float),aspect='auto',animated=True)
+def animate(alpha):
+    probability[probability < alpha/N] = 0
+    im.set_array(probability)
+    return im,
+anim = animation.FuncAnimation(fig,animate,frames=20, interval=1000, blit=True)
+anim.save(path+'probability.gif', writer='imagemagick')
 
 """Time Evaluation"""
 duration = 500  # millisecond
