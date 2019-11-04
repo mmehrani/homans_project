@@ -420,7 +420,9 @@ def save_it(version):
 """Parameters"""#XXX
 
 N = 100
-T = 50*N
+
+T = 5*N
+
 similarity = 0.05                   #how much this should be?
 memory_size = 10                    #contains the last memory_size number of transaction times
 transaction_percentage = 0.1        #percent of amount of money the first agent proposes from his asset 
@@ -434,6 +436,7 @@ alpha = 1                           #in short-term effect of the frequency of tr
 beta = 0.3                          #in long-term effect of the frequency of transaction
 param = 2                           #a normalizing factor in assigning the acceptance probability. It normalizes difference of money of both sides
 lamda = 0.1                         # how much one agent relies on his last worth_ratio and how much relies on current transaction's worth_ratio
+
 
 """Initial Condition"""
 
@@ -521,7 +524,7 @@ for t in np.arange(T)+1:#t goes from 1 to T
 print(datetime.now() - start_time)
 # =============================================================================
 """Write File"""
-version = 'test7_lambda_1_10' #XXX
+version = 'test' #XXX
 path = save_it(version)
 # =============================================================================
 """Analysis and Measurements"""
@@ -531,6 +534,7 @@ shutil.copyfile(os.getcwd()+'\\Analysis_Tools_Homans.py',path+'\\Analysis_Tools_
 tracker.get_path(path)
 analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,A,path,num_transaction_tot,explore_prob_array)
 analyse.graph_construction('trans_number',num_transaction_tot,explore_prob_array,tracker_obj=tracker)
+
 analyse.draw_graph_weighted_colored()
 analyse.graph_correlations()
 
