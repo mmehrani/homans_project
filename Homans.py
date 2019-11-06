@@ -5,7 +5,7 @@ Created on Mon Aug 12 10:12:03 2019
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
-import networkx as nx
+#import networkx as nx
 import winsound
 import pickle
 import Analysis_Tools_Homans
@@ -420,7 +420,7 @@ def save_it(version):
 """Parameters"""#XXX
 
 N = 100
-T = 100*N
+T = 10*N
 similarity = 0.05                   #how much this should be?
 memory_size = 10                    #contains the last memory_size number of transaction times
 transaction_percentage = 0.1        #percent of amount of money the first agent proposes from his asset 
@@ -442,7 +442,7 @@ situation_arr = np.random.random(N) #randomly distributed
 #money = np.round(np.random.normal(loc=5.5,scale=1,size=N),decimals=3)
 #money = 1 + situation_arr * 2
 #money = np.zeros(N)
-#money = np.random.random(N) * 2
+#money = np.round(np.random.rand(N) * 9 + 1 ,decimals=3)
 money = np.round(situation_arr[:] * 9 + 1 ,decimals=3)
 approval = np.full(N,5.5)
 #approval = 1 + situation_arr * 2
@@ -513,6 +513,10 @@ for t in np.arange(T)+1:#t goes from 1 to T
     tracker.get_list('trans_time',t-1)
     tracker.get_list('correlation_mon',t-1)
     tracker.get_list('correlation_situ',t-1)
+
+    tracker.get_list('money',t-1)
+    tracker.get_list('asset',t-1)
+    
     if t>2:
         tracker.get_list('worth_ratio',t-3)
     explore_prob_array[t-1] /= N
@@ -521,7 +525,7 @@ for t in np.arange(T)+1:#t goes from 1 to T
 print(datetime.now() - start_time)
 # =============================================================================
 """Write File"""
-version = 'test7_lambda_9_10' #XXX
+version = 'initial_condition' #XXX
 path = save_it(version)
 # =============================================================================
 """Analysis and Measurements"""
