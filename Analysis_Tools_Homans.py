@@ -751,19 +751,21 @@ class Tracker: #XXX
         property_arr = ref[property_id]
         
         fig1, (ax1,ax2) = plt.subplots(nrows=2,ncols=1)
-        fig2, ax = plt.subplots(nrows=1,ncols=1)
+        fig2, (ax3,ax4) = plt.subplots(nrows=2,ncols=1)
         
-        plt.title('last&first' + property_id + 'vs situation')
+        ax1.title.set_text('last&first ' + property_id + ' vs situation')
         ax1.scatter(self._array('situation'),property_arr[0,:],c='r')
         
         for t in np.arange(1,self.T,self.T-1,dtype = int):
             ax1.scatter(self._array('situation'),property_arr[t,:])
         
-        plt.title(property_id + 'growth vs situation')
+        ax2.title.set_text(property_id + ' growth vs situation')
         ax2.scatter(self._array('situation'),property_arr[self.T-1,:] - property_arr[0,:])
         
-        plt.title('initial vs last')
-        ax.scatter(property_arr[0,:],property_arr[self.T-1,:])
+        ax3.title.set_text('initial vs last'+property_id)
+        ax3.scatter(property_arr[0,:],property_arr[self.T-1,:])
+        ax4.title.set_text(property_id+' growth')
+        ax4.scatter(property_arr[0,:],property_arr[self.T-1,:] - property_arr[0,:])
         return
     
 
