@@ -533,6 +533,10 @@ class Tracker: #XXX
         self.correlation_mon = np.zeros(self.T)
         self.correlation_situ = np.zeros(self.T)
         
+        self.agents_money  = np.zeros((self.T,self.N))
+        self.agents_asset  = np.zeros((self.T,self.N))
+        self.agents_approval  = np.zeros((self.T,self.N))
+        
     def update_A(self,a_matrix):
         self.a_matrix = a_matrix
         return
@@ -549,6 +553,14 @@ class Tracker: #XXX
             self.valuable_to_others[t] = np.sum(self._array('value'),axis = 0)
         if get_list == 'worth_ratio':
             self.worth_ratio[t] = self._array('worth_ratio')
+            
+        if get_list == 'money':
+            self.agents_money[t] = self._array('money')
+        if get_list == 'asset':
+            self.agents_asset[t] = self._array('asset')
+        if get_list == 'asset':
+            self.agents_approval[t] = self._array('approval')
+        
         if get_list == 'trans_time':
             for i in np.arange(self.N):
                 self.trans_time[t,i,:] = np.copy(self.a_matrix[i].neighbor)
@@ -610,6 +622,18 @@ class Tracker: #XXX
             ref[what_array] = np.zeros(self.N)
             for i in np.arange(self.N):
                 ref[what_array][i] = self.a_matrix[i].asset
+            return ref[what_array]
+        
+        if what_array == 'money':
+            ref[what_array] = np.zeros(self.N)
+            for i in np.arange(self.N):
+                ref[what_array][i] = self.a_matrix[i].money
+            return ref[what_array]
+        
+        if what_array == 'approval':
+            ref[what_array] = np.zeros(self.N)
+            for i in np.arange(self.N):
+                ref[what_array][i] = self.a_matrix[i].approval
             return ref[what_array]
 
     def plot(self,what_array,**kwargs):
@@ -721,5 +745,27 @@ class Tracker: #XXX
         plt.title(title)
         plt.savefig(self.path + title)
         return
+    
+    def property_evolution(self,property_id):
+        ref = {'money':self.agents_money,'approval':self.agents_approval,'asset':self.agents_asset}
+        property_arr = ref[property_id]
+        
+        fig1, (ax1,ax2) = plt.subplots(nrows=2,ncols=1)
+        fig2, ax = plt.subplots(nrows=1,ncols=1)
+        
+        plt.title('last&first' + property_id + 'vs situation')
+        ax1.scatter(self._array('situation'),property_arr[0,:],c='r')
+        
+        for t in np.arange(1,self.T,self.T-1,dtype = int):
+            ax1.scatter(self._array('situation'),property_arr[t,:])
+        
+        plt.title(property_id + 'growth vs situation')
+        ax2.scatter(self._array('situation'),property_arr[self.T-1,:] - property_arr[0,:])
+        
+        plt.title('initial vs last')
+        ax.scatter(property_arr[0,:],property_arr[self.T-1,:])
+        return
+    
+
     
     
