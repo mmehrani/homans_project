@@ -2,7 +2,7 @@
 """
 Created on Thu Oct  3 12:04:52 2019
 
-@author: vaio
+@author: Taha Enayat, Mohsen Mehrani
 """
 import matplotlib.pyplot as plt
 import numpy as np

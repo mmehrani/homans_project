@@ -1,6 +1,6 @@
 """
 Created on Mon Aug 12 10:12:03 2019
-@author: Taha Enayat
+@author: Taha Enayat, Mohsen Mehrani
 """
 import numpy as np
 import matplotlib.pyplot as plt
@@ -95,7 +95,7 @@ class Agent():
 #        p0 = value * prob0_magnify_factor 
         p0 = value * prob0_magnify_factor + 1
         p1 = self.frequency_to_probability(neighbor,t) * prob1_magnify_factor - (prob1_magnify_factor -1)
-        p2 = np.exp(self.feeling[neighbor] * prob2_magnify_factor)
+        p2 = np.exp(self.feeling[neighbor]) * prob2_magnify_factor - (prob2_magnify_factor -1)
 #        p1 = 1.0
         
         p0_tracker.append(p0)
@@ -267,8 +267,8 @@ def transaction(index1,index2,t):
         
 #        agent1.worth_ratio = (amount*worth_ratio1 + agreement_point) / amount # = approval/money
 #        agent2.worth_ratio = (amount*worth_ratio1 + agreement_point) / amount # eqaul for both.
-        agent1.worth_ratio = lamda * agent1.worth_ratio + (1-lamda) * (amount*worth_ratio1 + agreement_point)
-        agent2.worth_ratio = lamda * agent2.worth_ratio + (1-lamda) * (amount*worth_ratio1 + agreement_point)
+        agent1.worth_ratio = lamda * agent1.worth_ratio + (1-lamda) * (amount*worth_ratio1 + agreement_point) / amount
+        agent2.worth_ratio = lamda * agent2.worth_ratio + (1-lamda) * (amount*worth_ratio1 + agreement_point) / amount
 
         
         agent1.asset_updater()
@@ -420,23 +420,20 @@ def save_it(version):
 """Parameters"""#XXX
 
 N = 100
-
-T = 5*N
-
+T = 100*N
 similarity = 0.05                   #how much this should be?
 memory_size = 10                    #contains the last memory_size number of transaction times
 transaction_percentage = 0.1        #percent of amount of money the first agent proposes from his asset 
 num_of_tries = 20                   #in function explore()
 threshold_percentage =np.full(N,1)#the maximum amount which the agent is willing to give
 normalization_factor = 1            #used in transaction(). what should be?
-prob0_magnify_factor = 0.35         #this is in probability() for changing value so that it can take advantage of arctan
-prob1_magnify_factor = 3
+prob0_magnify_factor = 0.3          #this is in probability() for changing value so that it can take advantage of arctan
+prob1_magnify_factor = 2
 prob2_magnify_factor = 1
 alpha = 1                           #in short-term effect of the frequency of transaction
 beta = 0.3                          #in long-term effect of the frequency of transaction
 param = 2                           #a normalizing factor in assigning the acceptance probability. It normalizes difference of money of both sides
-lamda = 0.1                         # how much one agent relies on his last worth_ratio and how much relies on current transaction's worth_ratio
-
+lamda = 0                           # how much one agent relies on his last worth_ratio and how much relies on current transaction's worth_ratio
 
 """Initial Condition"""
 
@@ -524,7 +521,7 @@ for t in np.arange(T)+1:#t goes from 1 to T
 print(datetime.now() - start_time)
 # =============================================================================
 """Write File"""
-version = 'test' #XXX
+version = 'test7_lambda_9_10' #XXX
 path = save_it(version)
 # =============================================================================
 """Analysis and Measurements"""
@@ -534,7 +531,6 @@ shutil.copyfile(os.getcwd()+'\\Analysis_Tools_Homans.py',path+'\\Analysis_Tools_
 tracker.get_path(path)
 analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,A,path,num_transaction_tot,explore_prob_array)
 analyse.graph_construction('trans_number',num_transaction_tot,explore_prob_array,tracker_obj=tracker)
-
 analyse.draw_graph_weighted_colored()
 analyse.graph_correlations()
 
@@ -633,3 +629,5 @@ duration = 500  # millisecond
 freq = 2000  # Hz
 winsound.Beep(freq, duration)
 print (datetime.now() - start_time)
+
+analyse.graph_related_chars(num_transaction_tot,explore_prob_array,tracker) #make sure it is the last thing that runs

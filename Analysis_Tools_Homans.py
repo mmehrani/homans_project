@@ -9,14 +9,12 @@ import pickle
 import os
 import community
 import matplotlib.animation as animation
-
+from networkx.algorithms import community as communityx
 
 
 class Analysis: #XXX
     
-
     def __init__(self,number_agent,total_time,size,a_matrix,path,num_transaction,explore_prob_arr,*args,**kwargs):
-
         
         self.memory_size = size
         self.a_matrix = a_matrix
@@ -34,10 +32,11 @@ class Analysis: #XXX
 #                
 #        if string =='in_memory': #file already ran and A[i]s are available
 #            self.a_matrix = args[0]
+        
 #        self.G = self.graph_construction('trans_number',num_transaction,explore_prob_arr)
         return
     
-    def graph_construction(self,graph_type,num_transaction,explore_prob_arr,**kwargs):
+    def graph_construction(self,graph_type,num_transaction,explore_prob_arr,beta=1,**kwargs):
         G = nx.Graph()
         if graph_type == 'trans_number':
 #            sampling_time = kwargs.get('sampling_time',0)
@@ -48,7 +47,7 @@ class Analysis: #XXX
                 
             tracker = kwargs.get('tracker_obj',None)
 #            tracker = Tracker(self.N,self.T,self.memory_size,self.a_matrix)
-            self.friendship_point(num_transaction,explore_prob_arr,sampling_time)
+            self.friendship_point(num_transaction,explore_prob_arr,sampling_time,beta)
             if tracker != None:
                 for i in np.arange(self.N):
                     for j in self.a_matrix[i].active_neighbor.keys():
@@ -91,8 +90,11 @@ class Analysis: #XXX
         plt.figure()
         print("Size of G is:", self.G.number_of_nodes())
 #        edgewidth = [ d['weight'] for (u,v,d) in self.G.edges(data=True)]
-        color = [ self.a_matrix[u].situation for u in self.G.nodes()]
-        size = [self.a_matrix[u].asset*10 for u in self.G.nodes()]
+#        color = [ self.a_matrix[u].situation for u in self.G.nodes()]
+        color = list(community.best_partition(self.G).values())
+#        size = [self.a_matrix[u].asset*10 for u in self.G.nodes()]
+#        size = [ self.a_matrix[u].situation*150 for u in self.G.nodes()]
+        size = [ self.a_matrix[u].worth_ratio*150 for u in self.G.nodes()]
 #        pos = nx.spring_layout(self.G)
         pos = nx.kamada_kawai_layout(self.G)
         
@@ -268,34 +270,6 @@ class Analysis: #XXX
         topol_file.close()
         return
 
-    
-    def community_detection(self):
-        community_members = {}
-        community_dict = community.best_partition(self.G)
-        
-        for agent in community_dict:
-            if community_dict[agent] in community_members.keys():
-                community_members[ community_dict[agent] ].append(agent)
-            else:
-                community_members[ community_dict[agent] ] = [agent]
-        
-        return community_members
-    
-    def rich_agents_in_communities(self):
-        community_members = self.community_detection()
-        
-        for com_num in community_members:
-            community_members_money = [ self.a_matrix[agent].money for agent in community_members[com_num] ]
-            community_members[com_num] = [community_members[com_num],community_members_money]
-        
-        richest_in_coms = []
-        for com_num in community_members:
-#            richest_in_coms = community_members[com_num][0][ np.argsort(community_members[com_num][1])[0] ]
-            richest_index = np.where(community_members[com_num][1] == max(community_members[com_num][1]))[0][0]
-            richest_in_coms.append(community_members[com_num][0][richest_index])
-            
-        return  richest_in_coms
-
     def agents_prob_sum(self):
         a_prob = self.array('probability')
         agents_self_value = np.sum(a_prob,axis = 0)
@@ -405,7 +379,7 @@ class Analysis: #XXX
         plt.savefig(self.path+title)
         return
     
-    def friendship_point(self,num_transaction,explore_prob_arr,sampling_time):
+    def friendship_point(self,num_transaction,explore_prob_arr,sampling_time,beta):
         """ When we consider someone as friend
         Or in other words: how many transactions one agent with an agent means that they are friends
         """
@@ -417,7 +391,7 @@ class Analysis: #XXX
         avg = np.average(num_transaction[sampling_time:])
         sigma = np.sqrt(np.var(num_transaction[sampling_time:]))
         T_eff = self.T * (avg + 2*sigma)/self.N
-        beta = 1
+#        beta = 1
         self.friendship_num = int(np.ceil(beta * T_eff / self.N))
         
         print('friendship point:',self.friendship_num)
@@ -429,6 +403,7 @@ class Analysis: #XXX
         """Community Detection"""
         community_members = {}
         community_dict = community.best_partition(self.G)
+        partition2 = communityx.greedy_modularity_communities(self.G)
         
         for agent in community_dict:
             if community_dict[agent] in community_members.keys():
@@ -450,21 +425,30 @@ class Analysis: #XXX
         
         """Modularity"""
         modularity = community.modularity(community_dict,self.G,weight='asdfd')
+        coverage = communityx.coverage(self.G,partition2)
         #corresponding random graph
         H = nx.gnm_random_graph(self.G.number_of_nodes(),self.G.number_of_edges())
         part = community.best_partition(H)
+        part2 = communityx.greedy_modularity_communities(H)
         modularity_rand = community.modularity(part,H)
+        coverage_rand = communityx.coverage(H,part2)
         
         """Write File"""
         title = 'Communities.txt'
         com_file = open(self.path + title,'w')
         com_file.write('Modularity:'+'\n')
         com_file.write(str(modularity)+'\n')
+        com_file.write('Coverage'+'\n')
+        com_file.write(str(coverage)+'\n')
         com_file.write('The corresponding random graph has modularity:'+'\n')
         com_file.write(str(modularity_rand)+'\n')
+        com_file.write('The corresponding random graph has coverage:'+'\n')
+        com_file.write(str(coverage_rand))
         com_file.write('\n')
         com_file.write('number of communities:'+'\n')
-        com_file.write(str(len(community_members)))
+        com_file.write(str(len(community_members))+'\n')
+        com_file.write('\n')
+        com_file.write('The coverage of a partition is the ratio of the number of intra-community edges to the total number of edges in the graph.')
         com_file.close()
         return
 
@@ -506,6 +490,29 @@ class Analysis: #XXX
             title += attr + ', '
         plt.title(title)
         plt.savefig(self.path + 'correlation in graph')
+        return
+
+    def graph_related_chars(self,num_transaction,explore_prob_arr,tracker):
+        path = self.path
+        try:
+            os.mkdir(path + '\\graph_related')
+        except:
+            print('exists')
+        for i in np.arange(5):
+            self.path = path + '\\graph_related' + '\\{0}, '.format(i)
+            self.graph_construction('trans_number',num_transaction,explore_prob_arr,beta=i,tracker_obj=tracker)
+            self.draw_graph_weighted_colored()
+            self.hist('degree')
+            plt.close()
+            self.hist_log_log('degree')
+            plt.close()
+            self.community_detection()
+            self.topology_chars()
+            self.assortativity()
+            self.graph_correlations()
+            plt.close()
+            self.rich_club()
+            plt.close()
         return
 
     
@@ -655,7 +662,6 @@ class Tracker: #XXX
         fig, ax = plt.subplots(nrows=1,ncols=1)
         
         sort_arr = self._array(sort_by)
-
 #        sort_arr_sorted = np.sort(sort_arr)
 #        x_label_list = ['%.2f'%(sort_arr_sorted[i]) for i in range(self.N) ]
 #        ax.set_xticklabels(x_label_list)
