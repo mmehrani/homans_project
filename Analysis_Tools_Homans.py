@@ -743,8 +743,8 @@ class Tracker: #XXX
         for t in np.arange(self.T):
             ax.scatter( [t],[ np.corrcoef(survey_arr[t,:]-survey_arr[0,:],base_arr[:])[0,1] ],c = 'b' )
         
-        ax.set_title('correlation between '+survey_property_id+' & '+base_property_id)
-        fig.savefig(self.path + 'correlation between '+survey_property_id+' & '+base_property_id)
+        ax.set_title('correlation between '+survey_property_id+' growth'+' & '+base_property_id)
+        fig.savefig(self.path + 'correlation between '+survey_property_id+' growth'+' & '+base_property_id)
         
         return
         
