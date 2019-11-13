@@ -442,8 +442,8 @@ situation_arr = np.random.random(N) #randomly distributed
 #money = np.round(np.random.normal(loc=5.5,scale=1,size=N),decimals=3)
 #money = 1 + situation_arr * 2
 #money = np.zeros(N)
-#money = np.round(np.random.rand(N) * 9 + 1 ,decimals=3)
-money = np.round(situation_arr[:] * 9 + 1 ,decimals=3)
+money = np.round(np.random.rand(N) * 9 + 1 ,decimals=3)
+#money = np.round(situation_arr[:] * 9 + 1 ,decimals=3)
 approval = np.full(N,5.5)
 #approval = 1 + situation_arr * 2
 #approval = np.round(situation_arr[:] * 9 + 1 ,decimals=3)
@@ -566,6 +566,28 @@ analyse.hist_log_log('asset')
 
 analyse.money_vs_situation(path+'money_vs_situation')
 analyse.transaction_vs_asset()
+#analyse.degree_vs_attr()
+analyse.num_of_transactions()
+analyse.community_detection()
+analyse.topology_chars()
+analyse.rich_club(normalized=False)
+analyse.assortativity()
+
+"""tracker plots"""
+agent = 0
+tracker.trans_time_visualizer(agent,'Transaction Time Tracker')
+tracker.valuability()
+
+for prop in ['money','asset','approval']:
+    tracker.property_evolution(prop)
+
+tracker.correlation_growth_situation('money','situation')
+tracker.correlation_growth_situation('asset','situation')
+tracker.correlation_growth_situation('approval','situation')
+
+tracker.correlation_growth_situation('money','initial_money')
+tracker.correlation_growth_situation('asset','initial_asset')
+tracker.correlation_growth_situation('approval','initial_approval')
 
 #tracker.plot('self_value',title='Self Value')
 #tracker.plot('valuable_to_others',title='How Much Valuable to Others')
@@ -592,9 +614,6 @@ plt.savefig(path+'P0 & P1 & P2')
 #tracker.hist_log_log_general(p1_tracker,title='P1')
 #tracker.hist_log_log_general(p2_tracker,title='P2')
 
-#analyse.degree_vs_attr()
-analyse.num_of_transactions()
-
 #plt.figure()
 #for i in np.arange(N):
 #    plt.plot(similarity_tracker[i])
@@ -607,15 +626,6 @@ for i in np.arange(N):
 plt.title('Asset Tracker')
 plt.savefig(path+'Asset Tracker')
 
-analyse.community_detection()
-analyse.topology_chars()
-analyse.rich_club(normalized=False)
-analyse.assortativity()
-
-agent = 0
-tracker.trans_time_visualizer(agent,'Transaction Time Tracker')
-tracker.valuability()
-
 
 
 fig, ax = plt.subplots(nrows=1,ncols=1)
@@ -627,6 +637,9 @@ def animate(alpha):
     return im,
 anim = animation.FuncAnimation(fig,animate,frames=20, interval=1000, blit=True)
 anim.save(path+'probability.gif', writer='imagemagick')
+
+"""closes all figures"""
+plt.close('all')
 
 """Time Evaluation"""
 duration = 500  # millisecond
