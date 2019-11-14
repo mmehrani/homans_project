@@ -420,7 +420,7 @@ def save_it(version):
 """Parameters"""#XXX
 
 N = 100
-T = 10*N
+T = 5*N
 similarity = 0.05                   #how much this should be?
 memory_size = 10                    #contains the last memory_size number of transaction times
 transaction_percentage = 0.1        #percent of amount of money the first agent proposes from his asset 
@@ -533,8 +533,8 @@ shutil.copyfile(os.getcwd()+'\\Homans.py',path+'\\Homans.py')
 shutil.copyfile(os.getcwd()+'\\Analysis_Tools_Homans.py',path+'\\Analysis_Tools_Homans.py')
 
 tracker.get_path(path)
-analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,A,path,num_transaction_tot,explore_prob_array)
-analyse.graph_construction('trans_number',num_transaction_tot,explore_prob_array,tracker_obj=tracker)
+analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,A,path)
+analyse.graph_construction('trans_number',num_transaction_tot,tracker_obj=tracker)
 analyse.draw_graph_weighted_colored()
 analyse.graph_correlations()
 
@@ -585,6 +585,7 @@ plt.plot(p1_tracker[::2])
 plt.plot(p2_tracker[::2])
 plt.title('P0 & P1 & P2')
 plt.savefig(path+'P0 & P1 & P2')
+plt.close()
 #tracker.hist_general(p0_tracker,title='p0')
 #tracker.hist_general(p1_tracker,title='p1')
 #tracker.hist_general(p2_tracker,title='p2')
@@ -606,6 +607,7 @@ for i in np.arange(N):
     plt.plot(asset_tracker[i])
 plt.title('Asset Tracker')
 plt.savefig(path+'Asset Tracker')
+plt.close()
 
 analyse.community_detection()
 analyse.topology_chars()
@@ -627,6 +629,9 @@ def animate(alpha):
     return im,
 anim = animation.FuncAnimation(fig,animate,frames=20, interval=1000, blit=True)
 anim.save(path+'probability.gif', writer='imagemagick')
+plt.close()
+
+analyse.graph_related_chars(num_transaction_tot,tracker)
 
 """Time Evaluation"""
 duration = 500  # millisecond
@@ -634,4 +639,3 @@ freq = 2000  # Hz
 winsound.Beep(freq, duration)
 print (datetime.now() - start_time)
 
-analyse.graph_related_chars(num_transaction_tot,explore_prob_array,tracker) #make sure it is the last thing that runs
