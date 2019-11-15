@@ -14,7 +14,7 @@ from networkx.algorithms import community as communityx
 
 class Analysis: #XXX
     
-    def __init__(self,number_agent,total_time,size,a_matrix,path,num_transaction,explore_prob_arr,*args,**kwargs):
+    def __init__(self,number_agent,total_time,size,a_matrix,path,*args,**kwargs):
         
         self.memory_size = size
         self.a_matrix = a_matrix
@@ -33,10 +33,10 @@ class Analysis: #XXX
 #        if string =='in_memory': #file already ran and A[i]s are available
 #            self.a_matrix = args[0]
         
-#        self.G = self.graph_construction('trans_number',num_transaction,explore_prob_arr)
+#        self.G = self.graph_construction('trans_number',num_transaction)
         return
     
-    def graph_construction(self,graph_type,num_transaction,explore_prob_arr,beta=1,**kwargs):
+    def graph_construction(self,graph_type,num_transaction,boolean=True,**kwargs):
         G = nx.Graph()
         if graph_type == 'trans_number':
 #            sampling_time = kwargs.get('sampling_time',0)
@@ -47,25 +47,16 @@ class Analysis: #XXX
                 
             tracker = kwargs.get('tracker_obj',None)
 #            tracker = Tracker(self.N,self.T,self.memory_size,self.a_matrix)
-            self.friendship_point(num_transaction,explore_prob_arr,sampling_time,beta)
+            if boolean:
+                self.friendship_point(num_transaction,sampling_time)
+            else:
+                self.friendship_num = kwargs.get('fpoint')
             if tracker != None:
                 for i in np.arange(self.N):
                     for j in self.a_matrix[i].active_neighbor.keys():
                         trans_last_value = tracker.trans_time[sampling_time,i,j]
                         if True in (tracker.trans_time[sampling_time:,i,j] > (trans_last_value + self.friendship_num) ):
                             G.add_edge(i,j)
-#            else:
-#                for i in np.arange(self.N):
-#                    for j in self.a_matrix[i].active_neighbor.keys():
-##                        trans_last_value = tracker.trans_time[sampling_time,i,j]
-##                        if True in (tracker.trans_time[sampling_time:,i,j] > (trans_last_value + self.friendship_num) ):
-#                        if self.a_matrix[i].neighbor[j] > self.friendship_num:
-#                                G.add_edge(i,j)
-#            for i in np.arange(self.N):
-#                for j in self.a_matrix[i].active_neighbor.keys():
-#                    trans_last_value = int(tracker.trans_time[sampling_time,i,j])
-#                    if True in (tracker.trans_time[sampling_time:,i,j] > (trans_last_value + self.friendship_num) ):
-#                        G.add_edge(i,j)
                         
         node_attr_dict = { i:{'situation':0,'money':0,'worth_ratio':0,'others_feeling':0} for i in G.nodes() }
         for i in G.nodes():
@@ -86,7 +77,7 @@ class Analysis: #XXX
         return 
     
     
-    def draw_graph_weighted_colored(self):
+    def draw_graph_weighted_colored(self,position='spring'):
         plt.figure()
         print("Size of G is:", self.G.number_of_nodes())
 #        edgewidth = [ d['weight'] for (u,v,d) in self.G.edges(data=True)]
@@ -95,14 +86,18 @@ class Analysis: #XXX
 #        size = [self.a_matrix[u].asset*10 for u in self.G.nodes()]
 #        size = [ self.a_matrix[u].situation*150 for u in self.G.nodes()]
         size = [ self.a_matrix[u].worth_ratio*150 for u in self.G.nodes()]
-#        pos = nx.spring_layout(self.G)
-        pos = nx.kamada_kawai_layout(self.G)
+        
+        if position == 'spring':
+            pos = nx.spring_layout(self.G)
+        if position == 'kamada_kawai':
+            pos = nx.kamada_kawai_layout(self.G)
         
 #        nx.draw(self.G, pos=pos, with_labels = True, node_size=100, font_size=8, width=np.array(edgewidth), node_color=s)
         nx.draw(self.G, pos=pos, with_labels = True, node_size=size, font_size=8, node_color=color, width=0.2)
 #        nx.draw(self.G, pos=pos, with_labels = True, node_size=150, font_size=8, width=np.array(edgewidth))
 #        plt.savefig(self.path+'graph'+' friedship number:'+str(self.friendship_num))
-        plt.savefig(self.path+'graph - friendship point %d.png'%(self.friendship_num))
+        plt.savefig(self.path+'graph '+position+' - fpoint %d.png'%(self.friendship_num))
+        plt.close()
         return
 
     def draw_graph(self):
@@ -220,6 +215,7 @@ class Analysis: #XXX
         title = what_hist+' histogram'
         plt.title(title)
         plt.savefig(self.path+title)
+        plt.close()
         return
     
     def hist_log_log(self,what_hist):
@@ -236,6 +232,7 @@ class Analysis: #XXX
         title = what_hist+' histogram log-log'
         plt.title(title)
         plt.savefig(self.path+title)
+        plt.close()
         return
     
     def topology_chars(self):
@@ -249,6 +246,8 @@ class Analysis: #XXX
         cc_r = nx.average_clustering(H)
         asph = nx.average_shortest_path_length(G0)
         asph_r = nx.average_shortest_path_length(H0)
+        sigma = (cc/cc_r) / (asph/asph_r)
+        omega = asph_r/asph - cc/cc_r
         
         title = 'Topological Charateristics.txt'
         topol_file = open(self.path+title,'w')
@@ -258,17 +257,17 @@ class Analysis: #XXX
         topol_file.write('Clustering Coeficient'+'\n')
         topol_file.write(str(cc)+'\n')
         topol_file.write('Small-Worldness Sigma'+'\n')
-        topol_file.write(str( (cc/cc_r) / (asph/asph_r) )+'\n')
+        topol_file.write(str(sigma)+'\n')
         topol_file.write('Small-Worldness Omega'+'\n')
-        topol_file.write(str( asph_r/asph - cc/cc_r )+'\n')
+        topol_file.write(str(omega)+'\n')
         topol_file.write('\n')
         topol_file.write('The Corresponding Random Graph Has:'+'\n')
         topol_file.write('Shortert Path Length: '+str(asph_r)+'\n')
         topol_file.write('Clustering Coeficient: '+str(cc_r)+'\n'+'\n')
-        topol_file.write('The small-world coefficient Omega ranges between -1 and 1.\nValues close to 0 means the G features small-world characteristics.\nValues close to -1 means G has a lattice shape whereas values close to 1 means G is a random graph. \n\n')
-        topol_file.write('A graph is commonly classified as small-world if Small-Worldness Sigma is bigger than 1.')
+        topol_file.write('A graph is commonly classified as small-world if Small-Worldness Sigma is bigger than 1. \n\n')
+        topol_file.write('The small-world coefficient Omega ranges between -1 and 1.\nValues close to 0 means the G features small-world characteristics.\nValues close to -1 means G has a lattice shape whereas values close to 1 means G is a random graph.')
         topol_file.close()
-        return
+        return asph, cc, asph_r, cc_r, sigma, omega
 
     def agents_prob_sum(self):
         a_prob = self.array('probability')
@@ -292,6 +291,7 @@ class Analysis: #XXX
         for x,y in zip(np.arange(self.N),stacked_array_sorted[:,0]):
             plt.text(x-0.1,y+0.2,str(label[x]),fontsize=8)
         plt.savefig(self.path+title)
+        plt.close()
         return
 
     def degree_vs_attr(self):
@@ -306,6 +306,7 @@ class Analysis: #XXX
         plt.title(title)
         plt.scatter(deg_attr[0],deg_attr[1])
         plt.savefig(self.path+title)
+        plt.close()
         return
     
     def num_of_transactions(self):
@@ -315,6 +316,7 @@ class Analysis: #XXX
         title = 'Number of Transaction {0:.3g}'.format(self.transaction_average)
         plt.title(title)
         plt.savefig(self.path+title+'.png')
+        plt.close()
         return
 
     def assortativity(self):
@@ -335,6 +337,7 @@ class Analysis: #XXX
         title = 'Money Vs Situation'
         plt.title(title)
         plt.savefig(self.path+title)
+        plt.close()
         return
     
     def transaction_vs_asset(self):
@@ -359,6 +362,7 @@ class Analysis: #XXX
         title = 'Transaction Vs Asset'
         plt.title(title)
         plt.savefig(self.path+title)
+        plt.close()
         return
     
     def rich_club(self,normalized=False):
@@ -377,9 +381,11 @@ class Analysis: #XXX
         plt.plot(rc_array)
         plt.title(title)
         plt.savefig(self.path+title)
-        return
+        plt.close()
+        return rc_array
+
     
-    def friendship_point(self,num_transaction,explore_prob_arr,sampling_time,beta):
+    def friendship_point(self,num_transaction,sampling_time):
         """ When we consider someone as friend
         Or in other words: how many transactions one agent with an agent means that they are friends
         """
@@ -391,7 +397,7 @@ class Analysis: #XXX
         avg = np.average(num_transaction[sampling_time:])
         sigma = np.sqrt(np.var(num_transaction[sampling_time:]))
         T_eff = self.T * (avg + 2*sigma)/self.N
-#        beta = 1
+        beta = 1
         self.friendship_num = int(np.ceil(beta * T_eff / self.N))
         
         print('friendship point:',self.friendship_num)
@@ -450,7 +456,7 @@ class Analysis: #XXX
         com_file.write('\n')
         com_file.write('The coverage of a partition is the ratio of the number of intra-community edges to the total number of edges in the graph.')
         com_file.close()
-        return
+        return modularity,coverage
 
     def graph_correlations(self):
         nodes = self.G.nodes()
@@ -490,29 +496,60 @@ class Analysis: #XXX
             title += attr + ', '
         plt.title(title)
         plt.savefig(self.path + 'correlation in graph')
+        plt.close()
         return
 
-    def graph_related_chars(self,num_transaction,explore_prob_arr,tracker):
+    
+    def graph_related_chars(self,num_transaction,tracker):
         path = self.path
         try:
             os.mkdir(path + '\\graph_related')
         except:
             print('exists')
-        for i in np.arange(5):
-            self.path = path + '\\graph_related' + '\\{0}, '.format(i)
-            self.graph_construction('trans_number',num_transaction,explore_prob_arr,beta=i,tracker_obj=tracker)
-            self.draw_graph_weighted_colored()
-            self.hist('degree')
-            plt.close()
-            self.hist_log_log('degree')
-            plt.close()
-            self.community_detection()
-            self.topology_chars()
-            self.assortativity()
-            self.graph_correlations()
-            plt.close()
-            self.rich_club()
-            plt.close()
+        dic = {'modul':[],'cover':[],'asph':[],'asph_r':[],'cc':[],'cc_r':[],'sigma':[],'omega':[],'rc':[]}
+        for i in np.arange(20):
+            try:
+                for arr in dic:
+                    dic[arr].append(0)
+                self.path = path + '\\graph_related' + '\\{0}, '.format(i)
+                self.graph_construction('trans_number',num_transaction,boolean=False,fpoint=i,tracker_obj=tracker)
+                self.draw_graph_weighted_colored('spring')
+                self.draw_graph_weighted_colored('kamada_kawai')
+                self.hist('degree')
+                self.hist_log_log('degree')
+                dic['modul'][i], dic['cover'][i] = self.community_detection()
+                dic['asph'][i], dic['cc'][i], dic['asph_r'][i], dic['cc_r'][i], dic['sigma'][i], dic['omega'][i] = self.topology_chars()
+                self.assortativity()
+                self.graph_correlations()
+                dic['rc'][i] = self.rich_club()
+            except:
+                print('cannot make more graphs',i)
+                break
+        
+        """Plot"""
+        self.plot_general(path,dic['modul'],title='GR Modularity Vs Friendship Point')
+        self.plot_general(path,dic['cover'],title='GR Coverage Vs Friendship Point')
+        self.plot_general(path,dic['sigma'],title='GR Smallworldness Sigma Vs Friendship Point')
+        self.plot_general(path,dic['omega'],title='GR Smallworldness Omega Vs Friendship Point')
+        self.plot_general(path,dic['cc'],second_array=dic['cc_r'],title='GR Clustering Coefficient Vs Friendship Point')
+        self.plot_general(path,dic['asph'],second_array=dic['asph_r'],title='GR Shortest Path Length Vs Friendship Point')
+        self.plot_general(path,np.array(dic['cc'])/np.array(dic['cc_r']),title='GR Clustering Coefficient Normalized Vs Friendship Point')
+        self.plot_general(path,np.array(dic['asph'])/np.array(dic['asph_r']),title='GR Shortest Path Length Normalized Vs Friendship Point')
+        self.plot_general(path,dic['rc'],indicator=False,title='GR Rich Club Vs Friendship Point')
+        return
+
+    def plot_general(self,path,array,title='',second_array=None,indicator=True):
+        plt.figure()
+        if indicator:
+            plt.plot(array)
+        else:
+            for i in np.arange(len(array)):
+                plt.plot(array[i])
+        if second_array != None:
+            plt.plot(second_array)
+        plt.title(title)
+        plt.savefig(path + title)
+        plt.close()
         return
 
     
@@ -648,6 +685,7 @@ class Tracker: #XXX
         plt.title(title)
         plt.plot(ref[what_array],alpha=alpha)
         plt.savefig(self.path+title)
+        plt.close()
         return
     
     def plot_general(self,array,title=''):
@@ -655,6 +693,7 @@ class Tracker: #XXX
         plt.plot(array)
         plt.title(title)
         plt.savefig(self.path+title)
+        plt.close()
         return
     
     def hist_general(self,array,title=''):
@@ -662,6 +701,7 @@ class Tracker: #XXX
         plt.hist(array)
         plt.title(title)
         plt.savefig(self.path+title)
+        plt.close()
         return
     
     def hist_log_log_general(self,array,title=''):
@@ -672,6 +712,7 @@ class Tracker: #XXX
         plt.hist(array,bins=bins)
         plt.title(title+' histogram log-log'+' N={} T={}'.format(self.N,self.T))
         plt.savefig(self.path+title+' histogram log-log'+' N={} T={}'.format(self.N,self.T))
+        plt.close()
         return
     
     def index_in_arr(array,value):
@@ -695,6 +736,7 @@ class Tracker: #XXX
         cbar.ax.set_ylabel('number of transactions', rotation=-90, va="bottom")
         plt.title(title+' asset:{0:.3g}'.format(self.a_matrix[agent_to_watch].asset)+'of agent {0} with {1:.2f} situation'.format(agent_to_watch,self.a_matrix[agent_to_watch].situation))
         plt.savefig(self.path+title)
+        plt.close()
         return
     
     def return_arr(self):
@@ -764,6 +806,7 @@ class Tracker: #XXX
         title = 'How Much Valuable to Others (sorted based on asset & normalized)'
         plt.title(title)
         plt.savefig(self.path + title)
+        plt.close()
         return
     
     def property_evolution(self,property_id):

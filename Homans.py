@@ -129,15 +129,9 @@ class Agent():
         else:
             self.sigma += probability_new_neighbor
             
-#        before = np.zeros(len(self.active_neighbor))
-#        after = np.zeros(len(self.active_neighbor))
-#        i = 0
         self.active_neighbor[new_neighbor] = probability_new_neighbor
         for j in self.active_neighbor.keys():
-#            before[i] = self.active_neighbor[j]
             self.active_neighbor[j] /= self.sigma
-#            after[i] = self.active_neighbor[j]
-#            i += 1
         if np.size(np.array(list(self.active_neighbor.values()))[np.array(list(self.active_neighbor.values()))>1]) != 0:
             #normalize again
             summ = sum(self.active_neighbor.values())
@@ -158,17 +152,9 @@ class Agent():
             print('sigma after',self.sigma)
             print('value',self.value[new_neighbor])
             print('intered prob',probability_new_neighbor)
-#            print('active before',active_before)
-#            print('active middle',active_middle)
-#            print('active after',self.active_neighbor)
-#            for i in np.arange(np.size(before)):
-#                print('b',before[i],'a',after[i])
             raise NegativeProbability('self index:',self_index,'neighbor',new_neighbor)
         elif sum(list(self.active_neighbor.values())) > 1.01 or sum(list(self.active_neighbor.values())) < 0.99:
             raise NegativeProbability('not one',sum(list(self.active_neighbor.values())))
-#        elif self.sigma > len(self.active_neighbor):
-#            raise NegativeProbability('sigma error')
-
 
         return
 
@@ -177,7 +163,6 @@ class Agent():
         probability() is like value
         proposition 6"""
         
-#        self_active_neighbor = self.active_neighbor.keys()
         i = 0
         Max = 0
         for j in self_active_neighbor:
@@ -194,19 +179,13 @@ class Agent():
 # =============================================================================
 
 """Functions"""
-def transaction(index1,index2,t):
+def transaction(index1,index2,t,init=False):
     
     agent1 = A[index1]
     agent2 = A[index2]
     number_of_transaction1 = agent1.neighbor[index2]
     number_of_transaction2 = agent2.neighbor[index1]
-
-    if index1 in agent2.active_neighbor:
-        p = agent2.active_neighbor[index1]
-        acceptance_util = np.random.choice([0,1],p=[1-p,p])
-    else:
-        acceptance_util = 1
-
+    
     if len(agent1.active_neighbor) != 0:
         worth_ratio1 = agent1.neighbor_average()
     else:
@@ -215,34 +194,40 @@ def transaction(index1,index2,t):
         worth_ratio2 = agent2.neighbor_average()
     else:
         worth_ratio2 = agent2.worth_ratio
-
-    if agent2.approval > 0.001:
-        if worth_ratio2 >= worth_ratio1:
-            acceptance_worth = 1
-        else:
-    #        acceptance_worth = 0
-            p = np.exp( -(worth_ratio1 - worth_ratio2)/normalization_factor )
-            acceptance_worth = np.random.choice([0,1],p=[1-p,p])
-    else:
-        acceptance_worth = 0
-    
-    p = np.exp( -np.abs(agent1.asset - agent2.asset)/param )
-    acceptance_asset = np.random.choice([0,1],p=[1-p,p])
-    
+        
     amount = transaction_percentage * agent1.money
     agreement_point = (worth_ratio2 - worth_ratio1)/(worth_ratio2 + worth_ratio1) * amount * worth_ratio1 #x=(E2-E1/E2+E1)*AE1
-    threshold = threshold_percentage[index2] * agent2.approval
 
-    if threshold > (amount * worth_ratio1 + agreement_point):
-        acceptance_thr = 1
-    else: acceptance_thr = 0
+    if init:
+        acceptance = 1 #used in initial neighboring
+    else:
+        if index1 in agent2.active_neighbor:
+            p = agent2.active_neighbor[index1]
+            acceptance_util = np.random.choice([0,1],p=[1-p,p])
+        else:
+            acceptance_util = 1
     
-    acceptance_tracker[t-1] += acceptance_thr
+        if agent2.approval > 0.001:
+            if worth_ratio2 >= worth_ratio1:
+                acceptance_worth = 1
+            else:
+        #        acceptance_worth = 0
+                p = np.exp( -(worth_ratio1 - worth_ratio2)/normalization_factor )
+                acceptance_worth = np.random.choice([0,1],p=[1-p,p])
+        else:
+            acceptance_worth = 0
+        
+        p = np.exp( -np.abs(agent1.asset - agent2.asset)/param )
+        acceptance_asset = np.random.choice([0,1],p=[1-p,p])
+        
+        threshold = threshold_percentage[index2] * agent2.approval
+        if threshold > (amount * worth_ratio1 + agreement_point):
+            acceptance_thr = 1
+        else: acceptance_thr = 0
+        acceptance = acceptance_worth * acceptance_thr * acceptance_asset * acceptance_util
     
-    acceptance = acceptance_worth * acceptance_thr * acceptance_asset * acceptance_util
     if acceptance:   #transaction accepts
         num_transaction_tot[t-1] += 1
-        agreement_tracker.append(agreement_point)
         
         feeling = agreement_point / worth_ratio1 #is equal for both (from definition)
 
@@ -420,7 +405,7 @@ def save_it(version):
 """Parameters"""#XXX
 
 N = 100
-T = 10*N
+T = N*20
 similarity = 0.05                   #how much this should be?
 memory_size = 10                    #contains the last memory_size number of transaction times
 transaction_percentage = 0.1        #percent of amount of money the first agent proposes from his asset 
@@ -459,13 +444,21 @@ for i in np.arange(N):
 tracker = Analysis_Tools_Homans.Tracker(N,T,memory_size,A)
 num_transaction_tot = np.zeros(T)
 num_explore = np.zeros(T)
-agreement_tracker = []
-acceptance_tracker = np.zeros(T)
 p0_tracker = []
 p1_tracker = []
 p2_tracker = []
 similarity_tracker = [ [] for _ in np.arange(N) ]
 asset_tracker = [ [] for _ in np.arange(N) ]
+
+"""initial neighboring"""
+initial_neighbors = int(N/20)
+for i in np.arange(N):
+    init_arr = np.random.choice(np.arange(N)[np.arange(N) != i],size=initial_neighbors,replace=False)
+    for j in init_arr:
+        if len(A[i].active_neighbor) > initial_neighbors:
+            break #it is not precisly initial_neighbors number. it is bigger. but it doesn't matter.
+        transaction(i,j,1,init=True)
+
 # =============================================================================
 """Main"""
 
@@ -475,7 +468,6 @@ explores for new agent (expands his memory)"""
 
 for t in np.arange(T)+1:#t goes from 1 to T
     """computations"""
-#    situation_arr = np.copy(money)
     print(t)
     shuffled_agents=np.arange(N)
     np.random.shuffle(shuffled_agents)
@@ -533,8 +525,8 @@ shutil.copyfile(os.getcwd()+'\\Homans.py',path+'\\Homans.py')
 shutil.copyfile(os.getcwd()+'\\Analysis_Tools_Homans.py',path+'\\Analysis_Tools_Homans.py')
 
 tracker.get_path(path)
-analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,A,path,num_transaction_tot,explore_prob_array)
-analyse.graph_construction('trans_number',num_transaction_tot,explore_prob_array,tracker_obj=tracker)
+analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,A,path)
+analyse.graph_construction('trans_number',num_transaction_tot,tracker_obj=tracker)
 analyse.draw_graph_weighted_colored()
 analyse.graph_correlations()
 
@@ -595,18 +587,17 @@ tracker.plot('worth_ratio',title='Worth_ratio Evolution by Time',alpha=1)
 tracker.plot('correlation_mon',title='Correlation of Money and Situation')
 tracker.plot('correlation_situ',title="Correlation of Situation and Neighbor's Situation")
 #tracker.trans_time_visualizer(3,'Transaction Time Tracker')
-#
+
 tracker.plot_general(num_transaction_tot, title='Number of Transaction Vs Time')
 tracker.plot_general(num_explore, title='Number of Explorations Vs Time')
-#tracker.plot_general(agreement_tracker, title='agreement Point')
-#tracker.plot_general(acceptance_tracker, title='Threshold Acceptance Over Time')
-#
+
 plt.figure()
 plt.plot(p0_tracker[::2])
 plt.plot(p1_tracker[::2])
 plt.plot(p2_tracker[::2])
 plt.title('P0 & P1 & P2')
 plt.savefig(path+'P0 & P1 & P2')
+plt.close()
 #tracker.hist_general(p0_tracker,title='p0')
 #tracker.hist_general(p1_tracker,title='p1')
 #tracker.hist_general(p2_tracker,title='p2')
@@ -625,6 +616,7 @@ for i in np.arange(N):
     plt.plot(asset_tracker[i])
 plt.title('Asset Tracker')
 plt.savefig(path+'Asset Tracker')
+plt.close()
 
 
 
@@ -637,6 +629,9 @@ def animate(alpha):
     return im,
 anim = animation.FuncAnimation(fig,animate,frames=20, interval=1000, blit=True)
 anim.save(path+'probability.gif', writer='imagemagick')
+plt.close()
+
+analyse.graph_related_chars(num_transaction_tot,tracker)
 
 """closes all figures"""
 plt.close('all')
@@ -647,4 +642,3 @@ freq = 2000  # Hz
 winsound.Beep(freq, duration)
 print (datetime.now() - start_time)
 
-analyse.graph_related_chars(num_transaction_tot,explore_prob_array,tracker) #make sure it is the last thing that runs
