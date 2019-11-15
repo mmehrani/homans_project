@@ -37,8 +37,16 @@ class Agent():
         self.asset = self.money + self.approval / self.worth_ratio
         return
     
+    def average_worth_ratio(self):
+        worth_ratio_avg = 0
+        for agent in A:
+            worth_ratio_avg += agent.worth_ratio 
+        worth_ratio_avg/= N
+        return worth_ratio_avg
+    
     def asset_updater(self):
-        self.asset = self.money + self.approval / self.worth_ratio
+#        self.asset = self.money + self.approval / self.worth_ratio
+        self.asset = self.money + self.approval / self.average_worth_ratio()
         return 
     
     def neighbor_average(self):
@@ -525,7 +533,7 @@ for t in np.arange(T)+1:#t goes from 1 to T
 print(datetime.now() - start_time)
 # =============================================================================
 """Write File"""
-version = 'initial_condition' #XXX
+version = 'avg_worth_ratio' #XXX
 path = save_it(version)
 # =============================================================================
 """Analysis and Measurements"""
