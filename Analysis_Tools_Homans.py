@@ -728,6 +728,26 @@ class Tracker: #XXX
         correlation = numerator / denominator
         return correlation
     
+    def correlation_growth_situation(self,survey_property_id,base_property_id):
+        
+        survey_ref = {'money':self.agents_money,'approval':self.agents_approval,'asset':self.agents_asset}
+        base_ref = { base_property_id:self._array(base_property_id)}
+        
+        for key in survey_ref.keys():
+            base_ref['initial_'+ key] = survey_ref[key][0,:]
+        
+        fig, ax = plt.subplots(nrows=1,ncols=1)
+        
+        survey_arr = survey_ref[survey_property_id]
+        base_arr = base_ref[base_property_id]
+        for t in np.arange(self.T):
+            ax.scatter( [t],[ np.corrcoef(survey_arr[t,:]-survey_arr[0,:],base_arr[:])[0,1] ],c = 'b' )
+        
+        ax.set_title('correlation between '+survey_property_id+' growth'+' & '+base_property_id)
+        fig.savefig(self.path + 'correlation between '+survey_property_id+' growth'+' & '+base_property_id)
+        
+        return
+        
     def valuability(self):
         fig, ax = plt.subplots(nrows=1,ncols=1)
         asset = self._array('asset')
@@ -766,6 +786,9 @@ class Tracker: #XXX
         ax3.scatter(property_arr[0,:],property_arr[self.T-1,:])
         ax4.title.set_text(property_id+' growth')
         ax4.scatter(property_arr[0,:],property_arr[self.T-1,:] - property_arr[0,:])
+        
+        fig1.savefig(self.path + property_id + ' growth vs situation')
+        fig2.savefig(self.path + 'initial vs last'+property_id)
         return
     
 
