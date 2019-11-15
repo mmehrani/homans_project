@@ -63,7 +63,8 @@ class Agent():
 #        self.n_avg['money'] = self.n_avg['money'] / (len(self.active_neighbor)+1)
 #        self.n_avg['approval'] = self.n_avg['approval'] / (len(self.active_neighbor)+1)
         
-        self.n_average = self.n_avg['approval'] / self.n_avg['money']
+#        self.n_average = self.n_avg['approval'] / self.n_avg['money']
+        self.n_average = zeta * self.worth_ratio + (1 - zeta)*self.n_avg['approval'] / self.n_avg['money']
         return self.n_average
 
 #    def neighbor_average(self):
@@ -442,7 +443,7 @@ alpha = 1                           #in short-term effect of the frequency of tr
 beta = 0.3                          #in long-term effect of the frequency of transaction
 param = 2                           #a normalizing factor in assigning the acceptance probability. It normalizes difference of money of both sides
 lamda = 0                           # how much one agent relies on his last worth_ratio and how much relies on current transaction's worth_ratio
-
+zeta = 0.8
 """Initial Condition"""
 
 situation_arr = np.random.random(N) #randomly distributed
@@ -533,7 +534,7 @@ for t in np.arange(T)+1:#t goes from 1 to T
 print(datetime.now() - start_time)
 # =============================================================================
 """Write File"""
-version = 'avg_worth_ratio' #XXX
+version = 'avg_worth_ratio_self_importance' #XXX
 path = save_it(version)
 # =============================================================================
 """Analysis and Measurements"""
