@@ -573,6 +573,9 @@ analyse.topology_chars()
 analyse.rich_club(normalized=False)
 analyse.assortativity()
 
+analyse.communities_property_hist('money')
+analyse.communities_property_hist('approval')
+analyse.communities_property_hist('asset')
 """tracker plots"""
 agent = 0
 tracker.trans_time_visualizer(agent,'Transaction Time Tracker')
