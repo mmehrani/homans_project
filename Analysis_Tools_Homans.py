@@ -450,6 +450,21 @@ class Analysis: #XXX
         com_file.write('\n')
         com_file.write('The coverage of a partition is the ratio of the number of intra-community edges to the total number of edges in the graph.')
         com_file.close()
+        
+        return community_members
+    
+    def communities_property_hist(self,property_id):
+        
+        """properties histogram in inter-communities"""
+        community_members = self.community_detection()
+        proprety_arr = self.array(property_id)
+        print(community_members)
+        for com_num in community_members.keys():
+            plt.figure()
+            property_list = [ proprety_arr[agent] for agent in community_members[com_num][0]]
+            plt.hist(property_list)
+            plt.title('%s community number %d'%(property_id,com_num))
+            
         return
 
     def graph_correlations(self):
