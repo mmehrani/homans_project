@@ -458,7 +458,6 @@ class Analysis: #XXX
         """properties histogram in inter-communities"""
         community_members = self.community_detection()
         proprety_arr = self.array(property_id)
-        print(community_members)
         for com_num in community_members.keys():
             plt.figure()
             property_list = [ proprety_arr[agent] for agent in community_members[com_num][0]]
