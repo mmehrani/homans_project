@@ -407,8 +407,10 @@ def save_it(version):
         print ("Creation of the directory failed")
     
     path = 'runned_files'+'\\N%d_T%d\\'%(N,T)+version+'\\'
-#    np.save(path+'Agents.npy',A)
-#    np.save(path+'Tracker.npy',tracker)
+    
+    np.save(path+'num_transaction_tot.npy',num_transaction_tot)
+    np.save(path+'explore_prob_array.npy',explore_prob_array)
+    
     with open(path + 'Agents.pkl','wb') as agent_file:
         pickle.dump(A,agent_file,pickle.HIGHEST_PROTOCOL)
 
@@ -534,6 +536,7 @@ shutil.copyfile(os.getcwd()+'\\Analysis_Tools_Homans.py',path+'\\Analysis_Tools_
 
 tracker.get_path(path)
 analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,A,path,num_transaction_tot,explore_prob_array)
+analyse.num_of_transactions
 analyse.graph_construction('trans_number',num_transaction_tot,explore_prob_array,tracker_obj=tracker)
 analyse.draw_graph_weighted_colored()
 analyse.graph_correlations()
