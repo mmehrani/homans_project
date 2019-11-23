@@ -450,6 +450,24 @@ class Analysis: #XXX
         com_file.write('\n')
         com_file.write('The coverage of a partition is the ratio of the number of intra-community edges to the total number of edges in the graph.')
         com_file.close()
+        
+        return community_members
+    
+    def communities_property_hist(self,property_id):
+        
+        """properties histogram in inter-communities"""
+        community_members = self.community_detection()
+        proprety_arr = self.array(property_id)
+        plt.figure()
+        communities_property_list = []
+        for com_num in community_members.keys():
+            property_list = [ proprety_arr[agent] for agent in community_members[com_num][0]]
+            communities_property_list.append(property_list)
+            
+        plt.hist(communities_property_list,alpha=0.5)
+#            plt.title('%s community number %d'%(property_id,com_num))
+        plt.title('%s community number'%(property_id))
+            
         return
 
     def graph_correlations(self):
@@ -586,7 +604,7 @@ class Tracker: #XXX
         """
         compute the start time for an edge
         """
-        time = np.where(self.trans_time[:,x,y] >= 5)[0][0]
+        time = np.where(self.trans_time[:,x,y] >= self.friendship_num)[0][0]
         return int(time)
     
     def _array(self,what_array):
