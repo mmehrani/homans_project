@@ -467,7 +467,6 @@ class Analysis: #XXX
         plt.hist(communities_property_list,alpha=0.5)
 #            plt.title('%s community number %d'%(property_id,com_num))
         plt.title('%s community number'%(property_id))
-            
         return
 
     def graph_correlations(self):
