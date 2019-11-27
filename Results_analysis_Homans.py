@@ -11,107 +11,58 @@ import Analysis_Tools_Homans
 import networkx as nx
 import os
 
-N,T,memory_size = [100,3000,10]
+N,T,memory_size = [100,10000,10]
 
 current_path = os.getcwd()
-version = '\\12_threshold_percentage_4_10'
-path = '\\runned_files'+version+'\\N%d_T%d\\'%(N,T)
+version = 'community_isomorphism'
+path = '\\runned_files'+'\\N%d_T%d\\'%(N,T)+version+'\\'
+path = current_path+path
 
-with open(current_path+path+'Tracker.pkl','rb') as tracker_file:
+with open(path+'Tracker.pkl','rb') as tracker_file:
     tracker = pickle.load(tracker_file)
 
-with open(current_path+path+'Agents.pkl','rb') as agent_file:
+with open(path+'Agents.pkl','rb') as agent_file:
     a_matrix = pickle.load(agent_file)
 
-analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,a_matrix,path)
-
-#analyse.draw_graph_weighted_colored()
-#analyse.draw_graph()
-
-graph_type = 'trans_number'
-mid_constructed_graph = analyse._graph_construction(graph_type,tracker_obj = tracker,sampling_time = int(T/2))
-nx.write_gexf(mid_constructed_graph,current_path+path+'%s_graph.gexf'%(graph_type))
-
-constructed_graph = analyse._graph_construction(graph_type)
-dynamic_graph = tracker.make_dynamic_trans_time_graph(constructed_graph)
-nx.write_gexf(dynamic_graph,current_path+path+'dynamic_%s_graph.gexf'%(graph_type))
-
-tracker.get_path(path)
-a_money       = analyse.array('money')
-#a_approval    = analyse.array('approval')
-#a_worth_ratio = analyse.array('worth_ratio')
-#a_neighbor   = analyse.array('neighbor')
-a_value       = analyse.array('value')
-#a_time        = analyse.array('time')
-a_probability = analyse.array('probability')
-#a_utility = analyse.array('utility')
-
-#analyse.hist('money')
-#analyse.hist_log_log('money')
-#analyse.hist('approval')
-#analyse.hist_log_log('approval')
-#analyse.hist('degree')
-#analyse.hist_log_log('degree')
-#analyse.hist('value')
-#analyse.hist_log_log('value')
-#analyse.hist('probability')
-#analyse.hist_log_log('probability')
-#analyse.hist('utility')
-#analyse.hist_log_log('utility')
+num_transaction_tot = np.load( path + 'num_transaction_tot.npy')
+explore_prob_array = np.load( path+'explore_prob_array.npy')
 
 
-analyse.topology_chars()
+""" Analysis Plots""" 
+analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,a_matrix,path,num_transaction_tot,explore_prob_array)
+analyse.graph_construction('trans_number',num_transaction_tot,explore_prob_array,tracker_obj=tracker)
+analyse.draw_graph_weighted_colored()
+analyse.graph_correlations()
 
-analyse.agents_prob_sum()
 
-#a_utility = analyse.array('utility')
-#tracker.plot('self_value',title='Self Value')
-#tracker.plot('valuable_to_others',title='How Much Valuable to Others')
-#tracker.plot('worth_ratio',title='worth_ratio Evolution by Time')
-tracker.trans_time_visualizer(0,'Transaction Time Tracker')
-
-for agent in analyse.rich_agents_in_communities():
-    tracker.trans_time_visualizer(agent,'Transaction Time Tracker money:%f'%(a_matrix[agent].money))
-#tracker.plot_general(num_transaction_tot, title='Number of Transaction Vs. Time')
-#tracker.plot_general(num_explore, title='Number of Explorations Vs. Time')
-##tracker.plot_general(agreement_tracker, title='agreement Point')
-##tracker.plot_general(acceptance_tracker, title='Threshold Acceptance Over Time')
 #
-#plt.figure()
-#plt.plot(p0_tracker[::2])
-#plt.plot(p1_tracker[::2])
-#plt.plot(p2_tracker[::2])
-#plt.title('P0 & P1 & P2')
-#tracker.hist_general(p0_tracker,title='p0')
-#tracker.hist_general(p1_tracker,title='p1')
-#tracker.hist_general(p2_tracker,title='p2')
-#tracker.hist_log_log_general(p0_tracker,title='P0')
-#tracker.hist_log_log_general(p1_tracker,title='P1')
-#tracker.hist_log_log_general(p2_tracker,title='P2')
+#constructed_graph = analyse.G
+#dynamic_graph = tracker.make_dynamic_trans_time_graph(constructed_graph)
+#nx.write_gexf(dynamic_graph,path+'dynamic_trans_number_graph.gexf')
 
-#plt.figure()
-#for i in np.arange(N):
-#    plt.plot(a_matrix[i].neighbor)
-#plt.title('A[i]s number of transaction with others')
+"""tracker plots"""
+tracker.get_path(path)
+tracker.valuability()
 
-analyse.degree_vs_attr()
+for prop in ['money','asset','approval']:
+    tracker.property_evolution(prop)
+    tracker.correlation_growth_situation(prop,'situation')
 
-#plt.figure()
-#for i in np.arange(N):
-#    plt.plot(similarity_tracker[i])
-#plt.ylim([0,1.1])
-#plt.title('Similarity Tracker')
+tracker.correlation_growth_situation('money','initial_money')
+tracker.correlation_growth_situation('asset','initial_asset')
+tracker.correlation_growth_situation('approval','initial_approval')
 
-#print(analyse.segregation())
+tracker.plot('worth_ratio',title='Worth_ratio Evolution by Time',alpha=1)
+tracker.plot('correlation_mon',title='Correlation of Money and Situation')
+tracker.plot('correlation_situ',title="Correlation of Situation and Neighbor's Situation")
 
-#tracker.hist_general(a_probability[a_probability>0.1])
-#tracker.hist_log_log_general(a_probability[a_probability>0.1])
-#array = a_value[a_value>0.1]
-#plt.figure()
-#plt.xscale('log')
-#plt.yscale('log')
-#bins=np.logspace(np.log10(np.amin(array)),np.log10(np.amax(array)),12)
-#plt.hist(array,bins=bins)
-#plt.title('Probability log-log Historgram bigger than 0.1')
+""" community isomorphism investigation"""
+
+analyse.community_detection()
+
+for prop in ['money','asset','approval']:
+    analyse.communities_property_hist(prop)
+
+
 
 
