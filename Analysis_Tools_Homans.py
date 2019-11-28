@@ -401,27 +401,8 @@ class Analysis: #XXX
 
     def community_detection(self):
         """Community Detection"""
-        community_members = {}
         community_dict = community.best_partition(self.G)
         partition2 = communityx.greedy_modularity_communities(self.G)
-        
-        for agent in community_dict:
-            if community_dict[agent] in community_members.keys():
-                community_members[ community_dict[agent] ].append(agent)
-            else:
-                community_members[ community_dict[agent] ] = [agent]
-
-        """Rich Agents in Communities"""
-        for com_num in community_members:
-            community_members_asset = [ self.a_matrix[agent].asset for agent in community_members[com_num] ]
-            community_members[com_num] = [community_members[com_num],community_members_asset]
-        
-        richest_in_coms = []
-        for com_num in community_members:
-#            richest_in_coms = community_members[com_num][0][ np.argsort(community_members[com_num][1])[0] ]
-            richest_index = np.where(community_members[com_num][1] == max(community_members[com_num][1]))[0][0]
-            richest_in_coms.append(community_members[com_num][0][richest_index])
-#        return  richest_in_coms
         
         """Modularity"""
         modularity = community.modularity(community_dict,self.G,weight='asdfd')
@@ -446,28 +427,39 @@ class Analysis: #XXX
         com_file.write(str(coverage_rand))
         com_file.write('\n')
         com_file.write('number of communities:'+'\n')
-        com_file.write(str(len(community_members))+'\n')
+        com_file.write(str(len(partition2))+'\n')
         com_file.write('\n')
         com_file.write('The coverage of a partition is the ratio of the number of intra-community edges to the total number of edges in the graph.')
         com_file.close()
         
-        return community_members
+        return
     
     def communities_property_hist(self,property_id):
-        
         """properties histogram in inter-communities"""
-        community_members = self.community_detection()
+        community_members = [list(x) for x in communityx.greedy_modularity_communities(self.G)]
         proprety_arr = self.array(property_id)
-        plt.figure()
         communities_property_list = []
-        for com_num in community_members.keys():
-            property_list = [ proprety_arr[agent] for agent in community_members[com_num][0]]
+        
+        for com_members_list in community_members:
+            property_list = [ proprety_arr[agent] for agent in com_members_list]
             communities_property_list.append(property_list)
-            
-        plt.hist(communities_property_list,alpha=0.5)
-#            plt.title('%s community number %d'%(property_id,com_num))
-        plt.title('%s community number'%(property_id))
-            
+        
+        fig, ax = plt.subplots(nrows=1,ncols=1)
+        ax.hist(communities_property_list,alpha=0.5)
+        ax.set_title('%s in community'%(property_id))
+        plt.savefig(self.path + 'inter_com_%s'%(property_id))
+
+#        """Rich Agents in Communities"""
+#        for com_num in community_members:
+#            community_members_asset = [ self.a_matrix[agent].asset for agent in community_members[com_num] ]
+#            community_members[com_num] = [community_members[com_num],community_members_asset]
+        
+#        richest_in_coms = []
+#        for com_num in community_members:
+##            richest_in_coms = community_members[com_num][0][ np.argsort(community_members[com_num][1])[0] ]
+#            richest_index = np.where(community_members[com_num][1] == max(community_members[com_num][1]))[0][0]
+#            richest_in_coms.append(community_members[com_num][0][richest_index])
+#        return  richest_in_coms
         return
 
     def graph_correlations(self):
