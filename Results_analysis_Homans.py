@@ -29,8 +29,8 @@ explore_prob_array = np.load( path+'explore_prob_array.npy')
 
 
 """ Analysis Plots""" 
-analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,a_matrix,path,num_transaction_tot,explore_prob_array)
-analyse.graph_construction('trans_number',num_transaction_tot,explore_prob_array,tracker_obj=tracker)
+analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,A,path)
+analyse.graph_construction('trans_number',num_transaction_tot,tracker_obj=tracker)
 analyse.draw_graph_weighted_colored()
 analyse.graph_correlations()
 
