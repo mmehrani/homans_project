@@ -11,7 +11,7 @@ import Analysis_Tools_Homans
 import networkx as nx
 import os
 
-N,T,memory_size = [100,20000,10]
+N,T,memory_size = [100,10000,10]
 
 current_path = os.getcwd()
 version = 'community_isomorphism'
@@ -29,7 +29,7 @@ explore_prob_array = np.load( path+'explore_prob_array.npy')
 
 
 """ Analysis Plots""" 
-analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,A,path)
+analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,a_matrix,path)
 analyse.graph_construction('trans_number',num_transaction_tot,tracker_obj=tracker)
 analyse.draw_graph_weighted_colored()
 analyse.graph_correlations()
