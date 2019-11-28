@@ -60,48 +60,6 @@ tracker.valuability()
 
 analyse.community_detection()
 
-money_arr = analyse.array('money')
-approval_arr = analyse.array('approval')
-
-def average_worth_ratio():
-    ratio_avg = 0
-    for agent in a_matrix:
-        ratio_avg += agent.approval / agent.money
-    ratio_avg/= N
-    
-    total_money = 0
-    total_approval = 0
-    for agent in a_matrix:
-        total_money +=  agent.money
-        total_approval += agent.approval
-        
-    worth_ratio_avg = 0
-    for agent in a_matrix:
-        worth_ratio_avg += agent.worth_ratio 
-    worth_ratio_avg/= N
-    return worth_ratio_avg,ratio_avg, total_approval/total_money
-
-def communities_asset_hist():
-    
-    """properties histogram in inter-communities"""
-    community_members = analyse.community_detection()
-    
-    plt.figure()
-    communities_property_list = []
-    proprety_arr = np.zeros(N)
-    
-    for i in range(N):
-        proprety_arr[i] = a_matrix[i].money + a_matrix[i].approval / average_worth_ratio()[0]
-        
-    for com_num in community_members.keys():
-        property_list = [ proprety_arr[agent] for agent in community_members[com_num][0]]
-        communities_property_list.append(property_list)
-        
-    plt.hist(communities_property_list,alpha=0.5)
-#            plt.title('%s community number %d'%(property_id,com_num))
-    plt.title('%s community number'%('asset'))
-        
-    return
 for prop in ['money','asset','approval','worth_ratio']:
     analyse.communities_property_hist(prop)
     
