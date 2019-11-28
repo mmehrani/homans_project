@@ -11,7 +11,7 @@ import Analysis_Tools_Homans
 import networkx as nx
 import os
 
-N,T,memory_size = [100,10000,10]
+N,T,memory_size = [100,20000,10]
 
 current_path = os.getcwd()
 version = 'community_isomorphism'
@@ -44,17 +44,17 @@ analyse.graph_correlations()
 tracker.get_path(path)
 tracker.valuability()
 
-for prop in ['money','asset','approval']:
-    tracker.property_evolution(prop)
-    tracker.correlation_growth_situation(prop,'situation')
+#for prop in ['money','asset','approval']:
+#    tracker.property_evolution(prop)
+#    tracker.correlation_growth_situation(prop,'situation')
 
 #tracker.correlation_growth_situation('money','initial_money')
 #tracker.correlation_growth_situation('asset','initial_asset')
 #tracker.correlation_growth_situation('approval','initial_approval')
 
-tracker.plot('worth_ratio',title='Worth_ratio Evolution by Time',alpha=1)
-tracker.plot('correlation_mon',title='Correlation of Money and Situation')
-tracker.plot('correlation_situ',title="Correlation of Situation and Neighbor's Situation")
+#tracker.plot('worth_ratio',title='Worth_ratio Evolution by Time',alpha=1)
+#tracker.plot('correlation_mon',title='Correlation of Money and Situation')
+#tracker.plot('correlation_situ',title="Correlation of Situation and Neighbor's Situation")
 
 """ community isomorphism investigation"""
 
