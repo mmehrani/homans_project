@@ -11,26 +11,28 @@ import Analysis_Tools_Homans
 import networkx as nx
 import os
 
-N,T,memory_size = [100,10000,10]
-
+N = 100
+T = N*20
+memory_size = 10
 current_path = os.getcwd()
 version = 'community_isomorphism'
 path = '\\runned_files'+'\\N%d_T%d\\'%(N,T)+version+'\\'
 path = current_path+path
 
-with open(path+'Tracker.pkl','rb') as tracker_file:
-    tracker = pickle.load(tracker_file)
-
+with open(path+'Other_data.pkl','rb') as data_file:
+    num_transaction_tot = pickle.load(data_file)
+#    trans_time          = pickle.load(data_file)
+    explore_prob_arr    = pickle.load(data_file)
+    
 with open(path+'Agents.pkl','rb') as agent_file:
     a_matrix = pickle.load(agent_file)
 
-num_transaction_tot = np.load( path + 'num_transaction_tot.npy')
-explore_prob_array = np.load( path+'explore_prob_array.npy')
-
-
+with open(path + 'Tracker.pkl','rb') as tracker_file:
+    tracker = pickle.load(tracker_file)
+    
 """ Analysis Plots""" 
 analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,a_matrix,path)
-analyse.graph_construction('trans_number',num_transaction_tot,tracker_obj=tracker)
+analyse.graph_construction('trans_number',num_transaction_tot,trans_time=trans_time)
 analyse.draw_graph_weighted_colored()
 analyse.graph_correlations()
 

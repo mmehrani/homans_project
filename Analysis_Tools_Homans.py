@@ -41,21 +41,23 @@ class Analysis: #XXX
         if graph_type == 'trans_number':
 #            sampling_time = kwargs.get('sampling_time',0)
             if self.T >= 1000:
-                sampling_time = int(self.T - 1000)
+                sampling_time = 1000
             else:
                 sampling_time = int(self.T / 2)
                 
-            tracker = kwargs.get('tracker_obj',None)
+            trans_time = kwargs.get('trans_time',None)
 #            tracker = Tracker(self.N,self.T,self.memory_size,self.a_matrix)
             if boolean:
-                self.friendship_point(num_transaction,sampling_time)
+#                self.friendship_point(num_transaction,sampling_time)
+                self.friendship_point(num_transaction)
             else:
                 self.friendship_num = kwargs.get('fpoint')
-            if tracker != None:
+            if trans_time != None:
                 for i in np.arange(self.N):
                     for j in self.a_matrix[i].active_neighbor.keys():
-                        trans_last_value = tracker.trans_time[sampling_time,i,j]
-                        if True in (tracker.trans_time[sampling_time:,i,j] > (trans_last_value + self.friendship_num) ):
+#                        trans_last_value = tracker.trans_time[sampling_time,i,j]
+                        trans_last_value = trans_time[sampling_time,i,j]
+                        if True in (trans_time[sampling_time:,i,j] > (trans_last_value + self.friendship_num) ):
                             G.add_edge(i,j)
                         
         node_attr_dict = { i:{'situation':0,'money':0,'worth_ratio':0,'others_feeling':0} for i in G.nodes() }
@@ -394,8 +396,10 @@ class Analysis: #XXX
 #        beta = 1
 #        print('old friendship point',int(np.ceil(beta * T_eff / self.N)))
         
-        avg = np.average(num_transaction[sampling_time:])
-        sigma = np.sqrt(np.var(num_transaction[sampling_time:]))
+#        avg = np.average(num_transaction[sampling_time:])
+        avg = np.average(num_transaction)
+        sigma = np.sqrt(np.var(num_transaction))
+#        sigma = np.sqrt(np.var(num_transaction[sampling_time:]))
         T_eff = self.T * (avg + 2*sigma)/self.N
         beta = 1
         self.friendship_num = int(np.ceil(beta * T_eff / self.N))
@@ -571,12 +575,16 @@ class Tracker: #XXX
         self.T = total_time
         self.memory_size = size
         self.N = number_agent
-        
+        if self.T >= 1000:
+            sampling_time = 1000
+        else:
+            sampling_time = int(self.T / 2)
+
         """Trackers"""
         self.self_value = np.zeros((self.T,self.N))
         self.valuable_to_others = np.zeros((self.T,self.N))
         self.worth_ratio = np.zeros((self.T-2,self.N))
-        self.trans_time = np.ones((self.T,self.N,self.N))
+        self.trans_time = np.ones((sampling_time,self.N,self.N))
         self.correlation_mon = np.zeros(self.T)
         self.correlation_situ = np.zeros(self.T)
         
@@ -792,12 +800,12 @@ class Tracker: #XXX
         
         survey_arr = survey_ref[survey_property_id]
         base_arr = base_ref[base_property_id]
+        corr = np.zeros(self.T)
         for t in np.arange(self.T):
-            ax.scatter( [t],[ np.corrcoef(survey_arr[t,:]-survey_arr[0,:],base_arr[:])[0,1] ],c = 'b' )
-        
+            corr[t] = np.corrcoef(survey_arr[t,:]-survey_arr[0,:],base_arr[:])[0,1]
+        plt.plot(np.arange(self.T),corr)
         ax.set_title('correlation between '+survey_property_id+' growth'+' & '+base_property_id)
         fig.savefig(self.path + 'correlation between '+survey_property_id+' growth'+' & '+base_property_id)
-        
         return
         
     def valuability(self):
