@@ -45,19 +45,23 @@ class Analysis: #XXX
             else:
                 sampling_time = int(self.T / 2)
                 
-            trans_time = kwargs.get('trans_time',None)
+#            trans_time = kwargs.get('trans_time',None)
+            sample_time_trans = kwargs.get('sample_time_trans',None)
 #            tracker = Tracker(self.N,self.T,self.memory_size,self.a_matrix)
             if boolean:
-#                self.friendship_point(num_transaction,sampling_time)
-                self.friendship_point(num_transaction)
+                self.friendship_point(num_transaction,sampling_time)
+#                self.friendship_point(num_transaction)
             else:
                 self.friendship_num = kwargs.get('fpoint')
-            if trans_time != None:
+#            if trans_time != None or sample_time_trans != None:
+            if type(sample_time_trans) != None:
                 for i in np.arange(self.N):
                     for j in self.a_matrix[i].active_neighbor.keys():
 #                        trans_last_value = tracker.trans_time[sampling_time,i,j]
-                        trans_last_value = trans_time[sampling_time,i,j]
-                        if True in (trans_time[sampling_time:,i,j] > (trans_last_value + self.friendship_num) ):
+#                        trans_last_value = trans_time[sampling_time,i,j]
+                        trans_last_value = sample_time_trans[i,j]
+#                        if True in (trans_time[sampling_time:,i,j] > (trans_last_value + self.friendship_num) ):
+                        if (self.a_matrix[i].neighbor[j] > (trans_last_value + self.friendship_num) ):
                             G.add_edge(i,j)
                         
         node_attr_dict = { i:{'situation':0,'money':0,'worth_ratio':0,'others_feeling':0} for i in G.nodes() }
@@ -584,10 +588,9 @@ class Tracker: #XXX
         self.self_value = np.zeros((self.T,self.N))
         self.valuable_to_others = np.zeros((self.T,self.N))
         self.worth_ratio = np.zeros((self.T-2,self.N))
-        self.trans_time = np.ones((sampling_time,self.N,self.N))
+#        self.trans_time = np.ones((sampling_time,self.N,self.N))
         self.correlation_mon = np.zeros(self.T)
         self.correlation_situ = np.zeros(self.T)
-        
         self.agents_money  = np.zeros((self.T,self.N))
         self.agents_asset  = np.zeros((self.T,self.N))
         self.agents_approval  = np.zeros((self.T,self.N))
@@ -613,12 +616,17 @@ class Tracker: #XXX
             self.agents_money[t] = self._array('money')
         if get_list == 'asset':
             self.agents_asset[t] = self._array('asset')
-        if get_list == 'asset':
+        if get_list == 'approval':
             self.agents_approval[t] = self._array('approval')
         
-        if get_list == 'trans_time':
+        if get_list == 'sample_time_trans':
+            self.sample_time_trans = np.zeros((self.N,self.N))
             for i in np.arange(self.N):
-                self.trans_time[t,i,:] = np.copy(self.a_matrix[i].neighbor)
+                self.sample_time_trans[i,:] = np.copy(self.a_matrix[i].neighbor)
+                
+#        if get_list == 'trans_time':
+#            for i in np.arange(self.N):
+#                self.trans_time[t,i,:] = np.copy(self.a_matrix[i].neighbor)
         if get_list == 'correlation_mon':
             self.correlation_mon[t] = self.correlation_money_situation()
         if get_list == 'correlation_situ':
@@ -757,9 +765,6 @@ class Tracker: #XXX
         plt.close()
         return
     
-    def return_arr(self):
-        return self.trans_time
-    
     def correlation_money_situation(self):
         money = np.zeros(self.N)
         situation = np.zeros(self.N)
@@ -790,7 +795,9 @@ class Tracker: #XXX
     
     def correlation_growth_situation(self,survey_property_id,base_property_id):
         
-        survey_ref = {'money':self.agents_money,'approval':self.agents_approval,'asset':self.agents_asset}
+        survey_ref = {'money':self.agents_money,
+                      'approval':self.agents_approval,
+                      'asset':self.agents_asset}
         base_ref = { base_property_id:self._array(base_property_id)}
         
         for key in survey_ref.keys():
@@ -828,7 +835,9 @@ class Tracker: #XXX
         return
     
     def property_evolution(self,property_id):
-        ref = {'money':self.agents_money,'approval':self.agents_approval,'asset':self.agents_asset}
+        ref = {'money':self.agents_money,
+               'approval':self.agents_approval,
+               'asset':self.agents_asset}
         property_arr = ref[property_id]
         
         fig1, (ax1,ax2) = plt.subplots(nrows=2,ncols=1)
