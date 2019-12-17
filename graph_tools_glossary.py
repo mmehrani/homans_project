@@ -80,14 +80,17 @@ class Community_related_tools():
     pass
 
 class Graph_related_tools():
+    def __init__(self):
+        return
     def graph_construction(self,graph_type,num_transaction,boolean=True,**kwargs):
+        time = kwargs.get('time',self.T)
         G = nx.Graph()
         if graph_type == 'trans_number':
 #            sampling_time = kwargs.get('sampling_time',0)
-            if self.T >= 1000:
+            if time >= 1000:
                 sampling_time = 1000
             else:
-                sampling_time = int(self.T / 2)
+                sampling_time = int(time / 2)
                 
 #            trans_time = kwargs.get('trans_time',None)
             sample_time_trans = kwargs.get('sample_time_trans',None)
@@ -124,7 +127,7 @@ class Graph_related_tools():
 #        dynamic_graph = tracker.make_dynamic_trans_time_graph(constructed_graph)
 #        nx.write_gexf(dynamic_graph,self.path+'dynamic_%s_graph.gexf'%(graph_type))
         self.G = G
-        return 
+        return G
     
     
     def draw_graph_weighted_colored(self,position='spring'):
@@ -258,6 +261,7 @@ class Graph_related_tools():
         self.transaction_average = avg
         print('average transaction',self.transaction_average)
         return 
+    
     def graph_correlations(self):
         nodes = self.G.nodes()
         nodes_dict = dict(self.G.nodes(data=True))
