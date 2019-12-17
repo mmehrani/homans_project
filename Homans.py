@@ -462,15 +462,15 @@ p2_tracker = []
 #similarity_tracker = [ [] for _ in np.arange(N) ]
 asset_tracker = [ [] for _ in np.arange(N) ]
 
-"""initial neighboring"""
-#initial_neighbors = int(N/2)
-initial_neighbors = 20
-for i in np.arange(N):
-    init_arr = np.random.choice(np.arange(N)[np.arange(N) != i],size=initial_neighbors,replace=False)
-    for j in init_arr:
-        if len(A[i].active_neighbor) > initial_neighbors:
-            break #it is not precisly initial_neighbors number. it is bigger. but it doesn't matter.
-        transaction(i,j,1,init=True)
+#"""initial neighboring"""
+##initial_neighbors = int(N/2)
+#initial_neighbors = 20
+#for i in np.arange(N):
+#    init_arr = np.random.choice(np.arange(N)[np.arange(N) != i],size=initial_neighbors,replace=False)
+#    for j in init_arr:
+#        if len(A[i].active_neighbor) > initial_neighbors:
+#            break #it is not precisly initial_neighbors number. it is bigger. but it doesn't matter.
+#        transaction(i,j,1,init=True)
 
 # =============================================================================
 """Main"""
