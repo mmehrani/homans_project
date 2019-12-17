@@ -11,6 +11,129 @@ import community
 import matplotlib.animation as animation
 from networkx.algorithms import community as communityx
 
+class properties_alteration():
+    def property_evolution(self,property_id):
+        ref = {'money':self.agents_money,
+               'approval':self.agents_approval,
+               'asset':self.agents_asset}
+        property_arr = ref[property_id]
+        
+        fig1, (ax1,ax2) = plt.subplots(nrows=2,ncols=1)
+        fig2, (ax3,ax4) = plt.subplots(nrows=2,ncols=1)
+        
+        ax1.title.set_text('last&first ' + property_id + ' vs situation')
+        ax1.scatter(self._array('situation'),property_arr[0,:],c='r')
+        
+        for t in np.arange(1,self.T,self.T-1,dtype = int):
+            ax1.scatter(self._array('situation'),property_arr[t,:])
+        
+        ax2.title.set_text(property_id + ' growth vs situation')
+        ax2.scatter(self._array('situation'),property_arr[self.T-1,:] - property_arr[0,:])
+        
+        ax3.title.set_text('initial vs last'+property_id)
+        ax3.scatter(property_arr[0,:],property_arr[self.T-1,:])
+        ax4.title.set_text(property_id+' growth')
+        ax4.scatter(property_arr[0,:],property_arr[self.T-1,:] - property_arr[0,:])
+        
+        fig1.savefig(self.path + property_id + ' growth vs situation')
+        fig2.savefig(self.path + 'initial vs last'+property_id)
+        return
+    
+    def correlation_money_situation(self):
+        money = np.zeros(self.N)
+        situation = np.zeros(self.N)
+        for i in np.arange(self.N):
+            money[i] = self.a_matrix[i].money
+            situation[i] = self.a_matrix[i].situation
+        money_avg = np.average(money)
+        situation_avg = np.average(situation)
+        correlation = np.sum( (money-money_avg)*(situation-situation_avg) ) / np.sqrt(np.sum( (money-money_avg)**2 ) * np.sum( (situation-situation_avg)**2 ) )
+        return correlation
+    
+    def correlation_situation_situation(self):
+        situation = np.zeros(self.N)
+        situation_neighbor = np.zeros(self.N)
+        for i in np.arange(self.N):
+            situation[i] = self.a_matrix[i].situation
+            length = len(self.a_matrix[i].active_neighbor)
+            if length != 0:
+                for j in self.a_matrix[i].active_neighbor.keys():
+                    situation_neighbor[i] += self.a_matrix[j].situation
+                situation_neighbor[i] /= length
+        avg_situation = np.average(situation)
+        avg_situation_n = np.average(situation_neighbor)
+        numerator = np.sum( (situation-avg_situation)*(situation_neighbor-avg_situation_n))
+        denominator = np.sqrt(np.sum( (situation-avg_situation)**2 ) * np.sum( (situation_neighbor-avg_situation_n)**2 ) )
+        correlation = numerator / denominator
+        return correlation
+    
+    def correlation_growth_situation(self,survey_property_id,base_property_id):
+        
+        survey_ref = {'money':self.agents_money,
+                      'approval':self.agents_approval,
+                      'asset':self.agents_asset}
+        base_ref = { base_property_id:self._array(base_property_id)}
+        
+        for key in survey_ref.keys():
+            base_ref['initial_'+ key] = survey_ref[key][0,:]
+        
+        fig, ax = plt.subplots(nrows=1,ncols=1)
+        
+        survey_arr = survey_ref[survey_property_id]
+        base_arr = base_ref[base_property_id]
+        corr = np.zeros(self.T)
+        for t in np.arange(self.T):
+            corr[t] = np.corrcoef(survey_arr[t,:]-survey_arr[0,:],base_arr[:])[0,1]
+        plt.plot(np.arange(self.T),corr)
+        ax.set_title('correlation between '+survey_property_id+' growth'+' & '+base_property_id)
+        fig.savefig(self.path + 'correlation between '+survey_property_id+' growth'+' & '+base_property_id)
+        return
+    pass
+
+class hist_plot_tools():
+    def plot(self,what_array,**kwargs):
+        ref = {'self_value': self.self_value,
+               'valuable_to_others': self.valuable_to_others,
+               'worth_ratio': self.worth_ratio,
+               'correlation_mon': self.correlation_mon,
+               'correlation_situ': self.correlation_situ}
+        plt.figure()
+        title = kwargs.get('title',what_array)
+        alpha = kwargs.get('alpha',1)
+        plt.title(title)
+        plt.plot(ref[what_array],alpha=alpha)
+        plt.savefig(self.path+title)
+        plt.close()
+        return
+    
+    def plot_general(self,array,title=''):
+        plt.figure()
+        plt.plot(array)
+        plt.title(title)
+        plt.savefig(self.path+title)
+        plt.close()
+        return
+    
+    def hist_general(self,array,title=''):
+        plt.figure()
+        plt.hist(array)
+        plt.title(title)
+        plt.savefig(self.path+title)
+        plt.close()
+        return
+    
+    def hist_log_log_general(self,array,title=''):
+        plt.figure()
+        plt.xscale('log')
+        plt.yscale('log')
+        bins=np.logspace(np.log10(np.amin(array)),np.log10(np.amax(array)),20)
+        plt.hist(array,bins=bins)
+        plt.title(title+' histogram log-log'+' N={} T={}'.format(self.N,self.T))
+        plt.savefig(self.path+title+' histogram log-log'+' N={} T={}'.format(self.N,self.T))
+        plt.close()
+        return
+    pass
+
 class community_related_tools():
     def community_detection(self):
         """Community Detection"""
@@ -574,7 +697,7 @@ class Analysis(Graph_related_tools,community_related_tools): #XXX
         return
 
     
-class Tracker(): #XXX
+class Tracker(properties_alteration,hist_plot_tools): #XXX
     
     def __init__(self,number_agent,total_time,size,a_matrix):
         
@@ -701,48 +824,6 @@ class Tracker(): #XXX
             for i in np.arange(self.N):
                 ref[what_array][i] = self.a_matrix[i].approval
             return ref[what_array]
-
-    def plot(self,what_array,**kwargs):
-        ref = {'self_value': self.self_value,
-               'valuable_to_others': self.valuable_to_others,
-               'worth_ratio': self.worth_ratio,
-               'correlation_mon': self.correlation_mon,
-               'correlation_situ': self.correlation_situ}
-        plt.figure()
-        title = kwargs.get('title',what_array)
-        alpha = kwargs.get('alpha',1)
-        plt.title(title)
-        plt.plot(ref[what_array],alpha=alpha)
-        plt.savefig(self.path+title)
-        plt.close()
-        return
-    
-    def plot_general(self,array,title=''):
-        plt.figure()
-        plt.plot(array)
-        plt.title(title)
-        plt.savefig(self.path+title)
-        plt.close()
-        return
-    
-    def hist_general(self,array,title=''):
-        plt.figure()
-        plt.hist(array)
-        plt.title(title)
-        plt.savefig(self.path+title)
-        plt.close()
-        return
-    
-    def hist_log_log_general(self,array,title=''):
-        plt.figure()
-        plt.xscale('log')
-        plt.yscale('log')
-        bins=np.logspace(np.log10(np.amin(array)),np.log10(np.amax(array)),20)
-        plt.hist(array,bins=bins)
-        plt.title(title+' histogram log-log'+' N={} T={}'.format(self.N,self.T))
-        plt.savefig(self.path+title+' histogram log-log'+' N={} T={}'.format(self.N,self.T))
-        plt.close()
-        return
     
     def index_in_arr(array,value):
         return np.where( array == value )[0][0]
@@ -768,55 +849,7 @@ class Tracker(): #XXX
         plt.close()
         return
     
-    def correlation_money_situation(self):
-        money = np.zeros(self.N)
-        situation = np.zeros(self.N)
-        for i in np.arange(self.N):
-            money[i] = self.a_matrix[i].money
-            situation[i] = self.a_matrix[i].situation
-        money_avg = np.average(money)
-        situation_avg = np.average(situation)
-        correlation = np.sum( (money-money_avg)*(situation-situation_avg) ) / np.sqrt(np.sum( (money-money_avg)**2 ) * np.sum( (situation-situation_avg)**2 ) )
-        return correlation
-    
-    def correlation_situation_situation(self):
-        situation = np.zeros(self.N)
-        situation_neighbor = np.zeros(self.N)
-        for i in np.arange(self.N):
-            situation[i] = self.a_matrix[i].situation
-            length = len(self.a_matrix[i].active_neighbor)
-            if length != 0:
-                for j in self.a_matrix[i].active_neighbor.keys():
-                    situation_neighbor[i] += self.a_matrix[j].situation
-                situation_neighbor[i] /= length
-        avg_situation = np.average(situation)
-        avg_situation_n = np.average(situation_neighbor)
-        numerator = np.sum( (situation-avg_situation)*(situation_neighbor-avg_situation_n))
-        denominator = np.sqrt(np.sum( (situation-avg_situation)**2 ) * np.sum( (situation_neighbor-avg_situation_n)**2 ) )
-        correlation = numerator / denominator
-        return correlation
-    
-    def correlation_growth_situation(self,survey_property_id,base_property_id):
-        
-        survey_ref = {'money':self.agents_money,
-                      'approval':self.agents_approval,
-                      'asset':self.agents_asset}
-        base_ref = { base_property_id:self._array(base_property_id)}
-        
-        for key in survey_ref.keys():
-            base_ref['initial_'+ key] = survey_ref[key][0,:]
-        
-        fig, ax = plt.subplots(nrows=1,ncols=1)
-        
-        survey_arr = survey_ref[survey_property_id]
-        base_arr = base_ref[base_property_id]
-        corr = np.zeros(self.T)
-        for t in np.arange(self.T):
-            corr[t] = np.corrcoef(survey_arr[t,:]-survey_arr[0,:],base_arr[:])[0,1]
-        plt.plot(np.arange(self.T),corr)
-        ax.set_title('correlation between '+survey_property_id+' growth'+' & '+base_property_id)
-        fig.savefig(self.path + 'correlation between '+survey_property_id+' growth'+' & '+base_property_id)
-        return
+
         
     def valuability(self):
         fig, ax = plt.subplots(nrows=1,ncols=1)
@@ -837,32 +870,9 @@ class Tracker(): #XXX
         plt.close()
         return
     
-    def property_evolution(self,property_id):
-        ref = {'money':self.agents_money,
-               'approval':self.agents_approval,
-               'asset':self.agents_asset}
-        property_arr = ref[property_id]
-        
-        fig1, (ax1,ax2) = plt.subplots(nrows=2,ncols=1)
-        fig2, (ax3,ax4) = plt.subplots(nrows=2,ncols=1)
-        
-        ax1.title.set_text('last&first ' + property_id + ' vs situation')
-        ax1.scatter(self._array('situation'),property_arr[0,:],c='r')
-        
-        for t in np.arange(1,self.T,self.T-1,dtype = int):
-            ax1.scatter(self._array('situation'),property_arr[t,:])
-        
-        ax2.title.set_text(property_id + ' growth vs situation')
-        ax2.scatter(self._array('situation'),property_arr[self.T-1,:] - property_arr[0,:])
-        
-        ax3.title.set_text('initial vs last'+property_id)
-        ax3.scatter(property_arr[0,:],property_arr[self.T-1,:])
-        ax4.title.set_text(property_id+' growth')
-        ax4.scatter(property_arr[0,:],property_arr[self.T-1,:] - property_arr[0,:])
-        
-        fig1.savefig(self.path + property_id + ' growth vs situation')
-        fig2.savefig(self.path + 'initial vs last'+property_id)
-        return
+
+
+
     
 
     
