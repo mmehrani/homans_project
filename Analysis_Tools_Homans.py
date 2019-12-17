@@ -11,31 +11,71 @@ import community
 import matplotlib.animation as animation
 from networkx.algorithms import community as communityx
 
+class community_related_tools():
+    def community_detection(self):
+        """Community Detection"""
+        community_dict = community.best_partition(self.G)
+        partition2 = communityx.greedy_modularity_communities(self.G)
+        
+        """Modularity"""
+        modularity = community.modularity(community_dict,self.G,weight='asdfd')
+        coverage = communityx.coverage(self.G,partition2)
+        #corresponding random graph
+        H = nx.gnm_random_graph(self.G.number_of_nodes(),self.G.number_of_edges())
+        part = community.best_partition(H)
+        part2 = communityx.greedy_modularity_communities(H)
+        modularity_rand = community.modularity(part,H)
+        coverage_rand = communityx.coverage(H,part2)
+        
+        """Write File"""
+        title = 'Communities.txt'
+        com_file = open(self.path + title,'w')
+        com_file.write('Modularity:'+'\n')
+        com_file.write(str(modularity)+'\n')
+        com_file.write('Coverage'+'\n')
+        com_file.write(str(coverage)+'\n')
+        com_file.write('The corresponding random graph has modularity:'+'\n')
+        com_file.write(str(modularity_rand)+'\n')
+        com_file.write('The corresponding random graph has coverage:'+'\n')
+        com_file.write(str(coverage_rand))
+        com_file.write('\n')
+        com_file.write('number of communities:'+'\n')
+        com_file.write(str(len(partition2))+'\n')
+        com_file.write('\n')
+        com_file.write('The coverage of a partition is the ratio of the number of intra-community edges to the total number of edges in the graph.')
+        com_file.close()
+        return modularity,coverage
+    
+    def communities_property_hist(self,property_id):
+        """properties histogram in inter-communities"""
+        community_members = [list(x) for x in communityx.greedy_modularity_communities(self.G)]
+        proprety_arr = self.array(property_id)
+        communities_property_list = []
+        
+        for com_members_list in community_members:
+            property_list = [ proprety_arr[agent] for agent in com_members_list]
+            communities_property_list.append(property_list)
+        
+        fig, ax = plt.subplots(nrows=1,ncols=1)
+        ax.hist(communities_property_list,alpha=0.5)
+        ax.set_title('%s in community'%(property_id))
+        plt.savefig(self.path + 'inter_com_%s'%(property_id))
 
-class Analysis: #XXX
-    
-    def __init__(self,number_agent,total_time,size,a_matrix,path,*args,**kwargs):
+#        """Rich Agents in Communities"""
+#        for com_num in community_members:
+#            community_members_asset = [ self.a_matrix[agent].asset for agent in community_members[com_num] ]
+#            community_members[com_num] = [community_members[com_num],community_members_asset]
         
-        self.memory_size = size
-        self.a_matrix = a_matrix
-        self.N = number_agent
-        self.T = total_time
-        self.path = path
-        
-#        if string =='from_file': #load from file
-#            current_path = os.getcwd()
-#            path = '\\runned_files\\N%d_T%d_memory_size%d\\'%(self.N,self.T,self.memory_size)
-#            
-#            title = kwargs.get('file_title','Agents.pkl')
-#            with open(current_path+path+title,'rb') as agent_file:
-#                self.a_matrix = pickle.load(agent_file)
-#                
-#        if string =='in_memory': #file already ran and A[i]s are available
-#            self.a_matrix = args[0]
-        
-#        self.G = self.graph_construction('trans_number',num_transaction)
+#        richest_in_coms = []
+#        for com_num in community_members:
+##            richest_in_coms = community_members[com_num][0][ np.argsort(community_members[com_num][1])[0] ]
+#            richest_index = np.where(community_members[com_num][1] == max(community_members[com_num][1]))[0][0]
+#            richest_in_coms.append(community_members[com_num][0][richest_index])
+#        return  richest_in_coms
         return
-    
+    pass
+
+class Graph_related_tools():
     def graph_construction(self,graph_type,num_transaction,boolean=True,**kwargs):
         G = nx.Graph()
         if graph_type == 'trans_number':
@@ -126,6 +166,199 @@ class Analysis: #XXX
             custom_node_attrs[node] = attr
         nx.draw_networkx_labels(self.G, pos_attrs, labels=custom_node_attrs,font_size=8)
         return
+    
+    def topology_chars(self):
+
+        Gcc = sorted(nx.connected_components(self.G), key=len, reverse=True)
+        G0 = self.G.subgraph(Gcc[0])
+        H = nx.gnm_random_graph(self.G.number_of_nodes(),self.G.number_of_edges())
+        Hcc = sorted(nx.connected_components(H), key=len, reverse=True)
+        H0 = H.subgraph(Hcc[0])
+        cc = nx.average_clustering(self.G)
+        cc_r = nx.average_clustering(H)
+        asph = nx.average_shortest_path_length(G0)
+        asph_r = nx.average_shortest_path_length(H0)
+        sigma = (cc/cc_r) / (asph/asph_r)
+        omega = asph_r/asph - cc/cc_r
+        
+        title = 'Topological Charateristics.txt'
+        topol_file = open(self.path+title,'w')
+        topol_file.write('Size of the Giant Component is: '+str(G0.number_of_nodes())+' with '+str(G0.number_of_edges())+' edges'+'\n')
+        topol_file.write('Average Shortert Path Length'+'\n')
+        topol_file.write(str(asph)+'\n')
+        topol_file.write('Clustering Coeficient'+'\n')
+        topol_file.write(str(cc)+'\n')
+        topol_file.write('Small-Worldness Sigma'+'\n')
+        topol_file.write(str(sigma)+'\n')
+        topol_file.write('Small-Worldness Omega'+'\n')
+        topol_file.write(str(omega)+'\n')
+        topol_file.write('\n')
+        topol_file.write('The Corresponding Random Graph Has:'+'\n')
+        topol_file.write('Shortert Path Length: '+str(asph_r)+'\n')
+        topol_file.write('Clustering Coeficient: '+str(cc_r)+'\n'+'\n')
+        topol_file.write('A graph is commonly classified as small-world if Small-Worldness Sigma is bigger than 1. \n\n')
+        topol_file.write('The small-world coefficient Omega ranges between -1 and 1.\nValues close to 0 means the G features small-world characteristics.\nValues close to -1 means G has a lattice shape whereas values close to 1 means G is a random graph.')
+        topol_file.close()
+        return asph, cc, asph_r, cc_r, sigma, omega
+    
+    def rich_club(self,normalized=False):
+        if normalized:
+            Gcc = sorted(nx.connected_components(self.G), key=len, reverse=True)
+            G0 = self.G.subgraph(Gcc[0])
+            rich_club_coef = nx.rich_club_coefficient(G0,normalized=normalized)
+            title = 'Rich Club Normalized'
+        else:
+            rich_club_coef = nx.rich_club_coefficient(self.G,normalized=normalized)
+            title = 'Rich Club NonNormalized'
+        rc_array = np.zeros(len(rich_club_coef))
+        for i in np.arange(len(rich_club_coef)):
+            rc_array[i] = rich_club_coef[i]
+        plt.figure()
+        plt.plot(rc_array)
+        plt.title(title)
+        plt.savefig(self.path+title)
+        plt.close()
+        return rc_array
+    
+    def assortativity(self):
+        title = 'Assortativity.txt'
+        assort_file = open(self.path + title,'w')
+        i = 0
+        while i not in self.G.nodes():
+            i += 1
+        for attr in self.G.nodes(data=True)[i].keys():
+            assort_file.write('assortativity according to '+attr+' is: '+'\n')
+            assort_file.write(str(nx.attribute_assortativity_coefficient(self.G,attr))+'\n'+'\n')
+        assort_file.close()
+        return
+
+    
+    def friendship_point(self,num_transaction,sampling_time):
+        """ When we consider someone as friend
+        Or in other words: how many transactions one agent with an agent means that they are friends
+        """
+#        alpha = num_transaction[sampling_time:] / ((1 - explore_prob_arr[sampling_time:]) * self.N)
+#        T_eff = np.sum(alpha)
+#        beta = 1
+#        print('old friendship point',int(np.ceil(beta * T_eff / self.N)))
+        
+#        avg = np.average(num_transaction[sampling_time:])
+        avg = np.average(num_transaction)
+        sigma = np.sqrt(np.var(num_transaction))
+#        sigma = np.sqrt(np.var(num_transaction[sampling_time:]))
+        T_eff = self.T * (avg + 2*sigma)/self.N
+        beta = 1
+        self.friendship_num = int(np.ceil(beta * T_eff / self.N))
+        
+        print('friendship point:',self.friendship_num)
+        self.transaction_average = avg
+        print('average transaction',self.transaction_average)
+        return 
+    def graph_correlations(self):
+        nodes = self.G.nodes()
+        nodes_dict = dict(self.G.nodes(data=True))
+        i = 0
+        while i not in nodes:
+            i += 1
+        attributes = nodes_dict[i].keys()
+        length = len(attributes)
+        correlation = np.zeros((length,length))
+        attr_array = np.zeros((length,len(nodes_dict)))
+        attr_array_avg = np.zeros(length)
+        attr_index = 0
+        for attr in attributes:
+            i = 0
+            for n in nodes:
+                attr_array[attr_index,i] = nodes_dict[n][attr]
+                i += 1
+            attr_index += 1
+        attr_array_avg = np.average(attr_array,axis=1)
+        for i in np.arange(length):
+            for j in np.arange(length):
+                if j > i:
+                    numerator = np.sum( (attr_array[i,:]-attr_array_avg[i])*(attr_array[j,:]-attr_array_avg[j]))
+                    denominator = np.sqrt(np.sum( (attr_array[i,:]-attr_array_avg[i])**2 ) * np.sum( (attr_array[j,:]-attr_array_avg[j])**2 ) )
+                    correlation[i,j] = numerator / denominator
+                elif j < i:
+                    correlation[i,j] = correlation[j,i]
+                elif j==i:
+                    correlation[i,j] = 1
+        fig, ax = plt.subplots(nrows=1,ncols=1)
+        im = ax.imshow(correlation)
+        cbar = ax.figure.colorbar(im, ax=ax)
+        cbar.ax.set_ylabel('correlation', rotation=-90, va="bottom")
+        title = ''
+        for attr in attributes:
+            title += attr + ', '
+        plt.title(title)
+        plt.savefig(self.path + 'correlation in graph')
+        plt.close()
+        return
+
+    
+    def graph_related_chars(self,num_transaction,tracker):
+        path = self.path
+        try:
+            os.mkdir(path + '\\graph_related')
+        except:
+            print('exists')
+        dic = {'modul':[],'cover':[],'asph':[],'asph_r':[],'cc':[],'cc_r':[],'sigma':[],'omega':[],'rc':[]}
+        for i in np.arange(20):
+            try:
+                for arr in dic:
+                    dic[arr].append(0)
+                self.path = path + '\\graph_related' + '\\{0}, '.format(i)
+                self.graph_construction('trans_number',num_transaction,boolean=False,fpoint=i,tracker_obj=tracker)
+                self.draw_graph_weighted_colored('spring')
+                self.draw_graph_weighted_colored('kamada_kawai')
+                self.hist('degree')
+                self.hist_log_log('degree')
+                dic['modul'][i], dic['cover'][i] = self.community_detection()
+                dic['asph'][i], dic['cc'][i], dic['asph_r'][i], dic['cc_r'][i], dic['sigma'][i], dic['omega'][i] = self.topology_chars()
+                self.assortativity()
+                self.graph_correlations()
+                dic['rc'][i] = self.rich_club()
+            except:
+                print('cannot make more graphs',i)
+                break
+        
+        """Plot"""
+        self.plot_general(path,dic['modul'],title='GR Modularity Vs Friendship Point')
+        self.plot_general(path,dic['cover'],title='GR Coverage Vs Friendship Point')
+        self.plot_general(path,dic['sigma'],title='GR Smallworldness Sigma Vs Friendship Point')
+        self.plot_general(path,dic['omega'],title='GR Smallworldness Omega Vs Friendship Point')
+        self.plot_general(path,dic['cc'],second_array=dic['cc_r'],title='GR Clustering Coefficient Vs Friendship Point')
+        self.plot_general(path,dic['asph'],second_array=dic['asph_r'],title='GR Shortest Path Length Vs Friendship Point')
+        self.plot_general(path,np.array(dic['cc'])/np.array(dic['cc_r']),title='GR Clustering Coefficient Normalized Vs Friendship Point')
+        self.plot_general(path,np.array(dic['asph'])/np.array(dic['asph_r']),title='GR Shortest Path Length Normalized Vs Friendship Point')
+        self.plot_general(path,dic['rc'],indicator=False,title='GR Rich Club Vs Friendship Point')
+        return
+    pass
+
+
+class Analysis(Graph_related_tools,community_related_tools): #XXX
+    def __init__(self,number_agent,total_time,size,a_matrix,path,*args,**kwargs):
+        
+        self.memory_size = size
+        self.a_matrix = a_matrix
+        self.N = number_agent
+        self.T = total_time
+        self.path = path
+        
+#        if string =='from_file': #load from file
+#            current_path = os.getcwd()
+#            path = '\\runned_files\\N%d_T%d_memory_size%d\\'%(self.N,self.T,self.memory_size)
+#            
+#            title = kwargs.get('file_title','Agents.pkl')
+#            with open(current_path+path+title,'rb') as agent_file:
+#                self.a_matrix = pickle.load(agent_file)
+#                
+#        if string =='in_memory': #file already ran and A[i]s are available
+#            self.a_matrix = args[0]
+        
+#        self.G = self.graph_construction('trans_number',num_transaction)
+        return
+    
 
     def array(self,what_array):
         ref = {}
@@ -240,40 +473,7 @@ class Analysis: #XXX
         plt.savefig(self.path+title)
         plt.close()
         return
-    
-    def topology_chars(self):
 
-        Gcc = sorted(nx.connected_components(self.G), key=len, reverse=True)
-        G0 = self.G.subgraph(Gcc[0])
-        H = nx.gnm_random_graph(self.G.number_of_nodes(),self.G.number_of_edges())
-        Hcc = sorted(nx.connected_components(H), key=len, reverse=True)
-        H0 = H.subgraph(Hcc[0])
-        cc = nx.average_clustering(self.G)
-        cc_r = nx.average_clustering(H)
-        asph = nx.average_shortest_path_length(G0)
-        asph_r = nx.average_shortest_path_length(H0)
-        sigma = (cc/cc_r) / (asph/asph_r)
-        omega = asph_r/asph - cc/cc_r
-        
-        title = 'Topological Charateristics.txt'
-        topol_file = open(self.path+title,'w')
-        topol_file.write('Size of the Giant Component is: '+str(G0.number_of_nodes())+' with '+str(G0.number_of_edges())+' edges'+'\n')
-        topol_file.write('Average Shortert Path Length'+'\n')
-        topol_file.write(str(asph)+'\n')
-        topol_file.write('Clustering Coeficient'+'\n')
-        topol_file.write(str(cc)+'\n')
-        topol_file.write('Small-Worldness Sigma'+'\n')
-        topol_file.write(str(sigma)+'\n')
-        topol_file.write('Small-Worldness Omega'+'\n')
-        topol_file.write(str(omega)+'\n')
-        topol_file.write('\n')
-        topol_file.write('The Corresponding Random Graph Has:'+'\n')
-        topol_file.write('Shortert Path Length: '+str(asph_r)+'\n')
-        topol_file.write('Clustering Coeficient: '+str(cc_r)+'\n'+'\n')
-        topol_file.write('A graph is commonly classified as small-world if Small-Worldness Sigma is bigger than 1. \n\n')
-        topol_file.write('The small-world coefficient Omega ranges between -1 and 1.\nValues close to 0 means the G features small-world characteristics.\nValues close to -1 means G has a lattice shape whereas values close to 1 means G is a random graph.')
-        topol_file.close()
-        return asph, cc, asph_r, cc_r, sigma, omega
 
     def agents_prob_sum(self):
         a_prob = self.array('probability')
@@ -323,18 +523,6 @@ class Analysis: #XXX
         plt.title(title)
         plt.savefig(self.path+title+'.png')
         plt.close()
-        return
-
-    def assortativity(self):
-        title = 'Assortativity.txt'
-        assort_file = open(self.path + title,'w')
-        i = 0
-        while i not in self.G.nodes():
-            i += 1
-        for attr in self.G.nodes(data=True)[i].keys():
-            assort_file.write('assortativity according to '+attr+' is: '+'\n')
-            assort_file.write(str(nx.attribute_assortativity_coefficient(self.G,attr))+'\n'+'\n')
-        assort_file.close()
         return 
     
     def money_vs_situation(self,path):
@@ -370,191 +558,6 @@ class Analysis: #XXX
         plt.savefig(self.path+title)
         plt.close()
         return
-    
-    def rich_club(self,normalized=False):
-        if normalized:
-            Gcc = sorted(nx.connected_components(self.G), key=len, reverse=True)
-            G0 = self.G.subgraph(Gcc[0])
-            rich_club_coef = nx.rich_club_coefficient(G0,normalized=normalized)
-            title = 'Rich Club Normalized'
-        else:
-            rich_club_coef = nx.rich_club_coefficient(self.G,normalized=normalized)
-            title = 'Rich Club NonNormalized'
-        rc_array = np.zeros(len(rich_club_coef))
-        for i in np.arange(len(rich_club_coef)):
-            rc_array[i] = rich_club_coef[i]
-        plt.figure()
-        plt.plot(rc_array)
-        plt.title(title)
-        plt.savefig(self.path+title)
-        plt.close()
-        return rc_array
-
-    
-    def friendship_point(self,num_transaction,sampling_time):
-        """ When we consider someone as friend
-        Or in other words: how many transactions one agent with an agent means that they are friends
-        """
-#        alpha = num_transaction[sampling_time:] / ((1 - explore_prob_arr[sampling_time:]) * self.N)
-#        T_eff = np.sum(alpha)
-#        beta = 1
-#        print('old friendship point',int(np.ceil(beta * T_eff / self.N)))
-        
-#        avg = np.average(num_transaction[sampling_time:])
-        avg = np.average(num_transaction)
-        sigma = np.sqrt(np.var(num_transaction))
-#        sigma = np.sqrt(np.var(num_transaction[sampling_time:]))
-        T_eff = self.T * (avg + 2*sigma)/self.N
-        beta = 1
-        self.friendship_num = int(np.ceil(beta * T_eff / self.N))
-        
-        print('friendship point:',self.friendship_num)
-        self.transaction_average = avg
-        print('average transaction',self.transaction_average)
-        return 
-
-    def community_detection(self):
-        """Community Detection"""
-        community_dict = community.best_partition(self.G)
-        partition2 = communityx.greedy_modularity_communities(self.G)
-        
-        """Modularity"""
-        modularity = community.modularity(community_dict,self.G,weight='asdfd')
-        coverage = communityx.coverage(self.G,partition2)
-        #corresponding random graph
-        H = nx.gnm_random_graph(self.G.number_of_nodes(),self.G.number_of_edges())
-        part = community.best_partition(H)
-        part2 = communityx.greedy_modularity_communities(H)
-        modularity_rand = community.modularity(part,H)
-        coverage_rand = communityx.coverage(H,part2)
-        
-        """Write File"""
-        title = 'Communities.txt'
-        com_file = open(self.path + title,'w')
-        com_file.write('Modularity:'+'\n')
-        com_file.write(str(modularity)+'\n')
-        com_file.write('Coverage'+'\n')
-        com_file.write(str(coverage)+'\n')
-        com_file.write('The corresponding random graph has modularity:'+'\n')
-        com_file.write(str(modularity_rand)+'\n')
-        com_file.write('The corresponding random graph has coverage:'+'\n')
-        com_file.write(str(coverage_rand))
-        com_file.write('\n')
-        com_file.write('number of communities:'+'\n')
-        com_file.write(str(len(partition2))+'\n')
-        com_file.write('\n')
-        com_file.write('The coverage of a partition is the ratio of the number of intra-community edges to the total number of edges in the graph.')
-        com_file.close()
-        return modularity,coverage
-    
-    def communities_property_hist(self,property_id):
-        """properties histogram in inter-communities"""
-        community_members = [list(x) for x in communityx.greedy_modularity_communities(self.G)]
-        proprety_arr = self.array(property_id)
-        communities_property_list = []
-        
-        for com_members_list in community_members:
-            property_list = [ proprety_arr[agent] for agent in com_members_list]
-            communities_property_list.append(property_list)
-        
-        fig, ax = plt.subplots(nrows=1,ncols=1)
-        ax.hist(communities_property_list,alpha=0.5)
-        ax.set_title('%s in community'%(property_id))
-        plt.savefig(self.path + 'inter_com_%s'%(property_id))
-
-#        """Rich Agents in Communities"""
-#        for com_num in community_members:
-#            community_members_asset = [ self.a_matrix[agent].asset for agent in community_members[com_num] ]
-#            community_members[com_num] = [community_members[com_num],community_members_asset]
-        
-#        richest_in_coms = []
-#        for com_num in community_members:
-##            richest_in_coms = community_members[com_num][0][ np.argsort(community_members[com_num][1])[0] ]
-#            richest_index = np.where(community_members[com_num][1] == max(community_members[com_num][1]))[0][0]
-#            richest_in_coms.append(community_members[com_num][0][richest_index])
-#        return  richest_in_coms
-        return
-
-
-    def graph_correlations(self):
-        nodes = self.G.nodes()
-        nodes_dict = dict(self.G.nodes(data=True))
-        i = 0
-        while i not in nodes:
-            i += 1
-        attributes = nodes_dict[i].keys()
-        length = len(attributes)
-        correlation = np.zeros((length,length))
-        attr_array = np.zeros((length,len(nodes_dict)))
-        attr_array_avg = np.zeros(length)
-        attr_index = 0
-        for attr in attributes:
-            i = 0
-            for n in nodes:
-                attr_array[attr_index,i] = nodes_dict[n][attr]
-                i += 1
-            attr_index += 1
-        attr_array_avg = np.average(attr_array,axis=1)
-        for i in np.arange(length):
-            for j in np.arange(length):
-                if j > i:
-                    numerator = np.sum( (attr_array[i,:]-attr_array_avg[i])*(attr_array[j,:]-attr_array_avg[j]))
-                    denominator = np.sqrt(np.sum( (attr_array[i,:]-attr_array_avg[i])**2 ) * np.sum( (attr_array[j,:]-attr_array_avg[j])**2 ) )
-                    correlation[i,j] = numerator / denominator
-                elif j < i:
-                    correlation[i,j] = correlation[j,i]
-                elif j==i:
-                    correlation[i,j] = 1
-        fig, ax = plt.subplots(nrows=1,ncols=1)
-        im = ax.imshow(correlation)
-        cbar = ax.figure.colorbar(im, ax=ax)
-        cbar.ax.set_ylabel('correlation', rotation=-90, va="bottom")
-        title = ''
-        for attr in attributes:
-            title += attr + ', '
-        plt.title(title)
-        plt.savefig(self.path + 'correlation in graph')
-        plt.close()
-        return
-
-    
-    def graph_related_chars(self,num_transaction,tracker):
-        path = self.path
-        try:
-            os.mkdir(path + '\\graph_related')
-        except:
-            print('exists')
-        dic = {'modul':[],'cover':[],'asph':[],'asph_r':[],'cc':[],'cc_r':[],'sigma':[],'omega':[],'rc':[]}
-        for i in np.arange(20):
-            try:
-                for arr in dic:
-                    dic[arr].append(0)
-                self.path = path + '\\graph_related' + '\\{0}, '.format(i)
-                self.graph_construction('trans_number',num_transaction,boolean=False,fpoint=i,tracker_obj=tracker)
-                self.draw_graph_weighted_colored('spring')
-                self.draw_graph_weighted_colored('kamada_kawai')
-                self.hist('degree')
-                self.hist_log_log('degree')
-                dic['modul'][i], dic['cover'][i] = self.community_detection()
-                dic['asph'][i], dic['cc'][i], dic['asph_r'][i], dic['cc_r'][i], dic['sigma'][i], dic['omega'][i] = self.topology_chars()
-                self.assortativity()
-                self.graph_correlations()
-                dic['rc'][i] = self.rich_club()
-            except:
-                print('cannot make more graphs',i)
-                break
-        
-        """Plot"""
-        self.plot_general(path,dic['modul'],title='GR Modularity Vs Friendship Point')
-        self.plot_general(path,dic['cover'],title='GR Coverage Vs Friendship Point')
-        self.plot_general(path,dic['sigma'],title='GR Smallworldness Sigma Vs Friendship Point')
-        self.plot_general(path,dic['omega'],title='GR Smallworldness Omega Vs Friendship Point')
-        self.plot_general(path,dic['cc'],second_array=dic['cc_r'],title='GR Clustering Coefficient Vs Friendship Point')
-        self.plot_general(path,dic['asph'],second_array=dic['asph_r'],title='GR Shortest Path Length Vs Friendship Point')
-        self.plot_general(path,np.array(dic['cc'])/np.array(dic['cc_r']),title='GR Clustering Coefficient Normalized Vs Friendship Point')
-        self.plot_general(path,np.array(dic['asph'])/np.array(dic['asph_r']),title='GR Shortest Path Length Normalized Vs Friendship Point')
-        self.plot_general(path,dic['rc'],indicator=False,title='GR Rich Club Vs Friendship Point')
-        return
 
     def plot_general(self,path,array,title='',second_array=None,indicator=True):
         plt.figure()
@@ -571,7 +574,7 @@ class Analysis: #XXX
         return
 
     
-class Tracker: #XXX
+class Tracker(): #XXX
     
     def __init__(self,number_agent,total_time,size,a_matrix):
         
