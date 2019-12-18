@@ -187,11 +187,12 @@ class Graph_related_tools(arrays_glossary):
 #        beta = 1
 #        print('old friendship point',int(np.ceil(beta * T_eff / self.N)))
         
-#        avg = np.average(num_transaction[sampling_time:])
-        avg = np.average(num_transaction)
-        sigma = np.sqrt(np.var(num_transaction))
-#        sigma = np.sqrt(np.var(num_transaction[sampling_time:]))
-        T_eff = self.T * (avg + 2*sigma)/self.N
+        avg = np.average(num_transaction[sampling_time:])
+#        avg = np.average(num_transaction)
+#        sigma = np.sqrt(np.var(num_transaction))
+        sigma = np.sqrt(np.var(num_transaction[sampling_time:]))
+#        T_eff = self.T * (avg + 2*sigma)/self.N
+        T_eff = sampling_time * (avg + 2*sigma)/self.N
         beta = 1
         self.friendship_num = int(np.ceil(beta * T_eff / self.N))
         
@@ -254,7 +255,7 @@ class Graph_related_tools(arrays_glossary):
                 for arr in dic:
                     dic[arr].append(0)
                 self.path = path + '\\graph_related' + '\\{0}, '.format(i)
-                self.graph_construction('trans_number',num_transaction,boolean=False,fpoint=i,tracker_obj=tracker)
+                self.graph_construction('trans_number',num_transaction,boolean=False,fpoint=i,sample_time_trans=tracker.sample_time_trans)
                 self.draw_graph_weighted_colored('spring')
                 self.draw_graph_weighted_colored('kamada_kawai')
                 self.hist('degree')
@@ -266,6 +267,7 @@ class Graph_related_tools(arrays_glossary):
                 dic['rc'][i] = self.rich_club()
             except:
                 print('cannot make more graphs',i)
+                self.path = path
                 break
         
         """Plot"""
