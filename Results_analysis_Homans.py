@@ -10,7 +10,7 @@ import Analysis_Tools_Homans
 import networkx as nx
 import os
 import matplotlib.animation as animation
-
+import graph_tools_glossary
 
 N = 100
 T = N*10 + 500
@@ -29,7 +29,9 @@ with open(path+'Agents.pkl','rb') as agent_file:
 
 with open(path + 'Tracker.pkl','rb') as tracker_file:
     tracker = pickle.load(tracker_file)
-
+""""""
+tool = graph_tools_glossary.Graph_related_tools(1200,N,a_matrix)
+tool.graph_construction('trans_number',num_transaction_tot,sample_time_trans = tracker.sample_time_trans)
 """ Plots""" 
 analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,a_matrix,path)
 analyse.graph_construction('trans_number',num_transaction_tot,sample_time_trans = tracker.sample_time_trans)
@@ -68,8 +70,8 @@ analyse.topology_chars()
 analyse.rich_club(normalized=False)
 analyse.assortativity()
 
-agent = 0
-tracker.trans_time_visualizer(agent,'Transaction Time Tracker')
+#agent = 0
+#tracker.trans_time_visualizer(agent,'Transaction Time Tracker')
 tracker.valuability()
 
 for prop in ['money','asset','approval']:
