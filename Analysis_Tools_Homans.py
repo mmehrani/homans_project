@@ -10,10 +10,10 @@ import os
 import community
 import matplotlib.animation as animation
 from networkx.algorithms import community as communityx
-
 from  graph_tools_glossary import Graph_related_tools,Community_related_tools
+from agents_properties_tools import arrays_glossary
 
-class properties_alteration():
+class properties_alteration(arrays_glossary):
     def property_evolution(self,property_id):
         ref = {'money':self.agents_money,
                'approval':self.agents_approval,
@@ -24,13 +24,13 @@ class properties_alteration():
         fig2, (ax3,ax4) = plt.subplots(nrows=2,ncols=1)
         
         ax1.title.set_text('last&first ' + property_id + ' vs situation')
-        ax1.scatter(self._array('situation'),property_arr[0,:],c='r')
+        ax1.scatter(self.array('situation'),property_arr[0,:],c='r')
         
         for t in np.arange(1,self.T,self.T-1,dtype = int):
-            ax1.scatter(self._array('situation'),property_arr[t,:])
+            ax1.scatter(self.array('situation'),property_arr[t,:])
         
         ax2.title.set_text(property_id + ' growth vs situation')
-        ax2.scatter(self._array('situation'),property_arr[self.T-1,:] - property_arr[0,:])
+        ax2.scatter(self.array('situation'),property_arr[self.T-1,:] - property_arr[0,:])
         
         ax3.title.set_text('initial vs last'+property_id)
         ax3.scatter(property_arr[0,:],property_arr[self.T-1,:])
@@ -74,7 +74,7 @@ class properties_alteration():
         survey_ref = {'money':self.agents_money,
                       'approval':self.agents_approval,
                       'asset':self.agents_asset}
-        base_ref = { base_property_id:self._array(base_property_id)}
+        base_ref = { base_property_id:self.array(base_property_id)}
         
         for key in survey_ref.keys():
             base_ref['initial_'+ key] = survey_ref[key][0,:]
@@ -144,107 +144,8 @@ class Analysis(Graph_related_tools,Community_related_tools): #XXX
         self.N = number_agent
         self.T = total_time
         self.path = path
-        
-#        if string =='from_file': #load from file
-#            current_path = os.getcwd()
-#            path = '\\runned_files\\N%d_T%d_memory_size%d\\'%(self.N,self.T,self.memory_size)
-#            
-#            title = kwargs.get('file_title','Agents.pkl')
-#            with open(current_path+path+title,'rb') as agent_file:
-#                self.a_matrix = pickle.load(agent_file)
-#                
-#        if string =='in_memory': #file already ran and A[i]s are available
-#            self.a_matrix = args[0]
-        
-#        self.G = self.graph_construction('trans_number',num_transaction)
         return
-    
 
-    def array(self,what_array):
-        ref = {}
-        
-        if what_array == 'degree':
-            ref[what_array] = [self.G.degree(n) for n in self.G.nodes()]
-            return ref[what_array]
-        
-        if what_array == 'money':
-            ref[what_array] = np.zeros(self.N)
-            for i in np.arange(self.N):
-                ref[what_array][i] = self.a_matrix[i].money
-            return ref[what_array]
-
-        if what_array == 'approval':
-            ref[what_array] = np.zeros(self.N)
-            for i in np.arange(self.N):
-                ref[what_array][i] = self.a_matrix[i].approval
-            return ref[what_array]
-
-        if what_array == 'worth_ratio':
-            ref[what_array] = np.zeros(self.N)
-            for i in np.arange(self.N):
-                ref[what_array][i] = self.a_matrix[i].worth_ratio
-            return ref[what_array]
-        
-        if what_array == 'neighbor':
-            ref[what_array] = np.zeros((self.N,self.N))
-            for i in np.arange(self.N):
-                ref[what_array][i] = self.a_matrix[i].neighbor
-            return ref[what_array]
-        
-        if what_array == 'value':
-            ref[what_array] = np.zeros((self.N,self.N))
-            for i in np.arange(self.N):
-                for j in self.a_matrix[i].active_neighbor.keys():
-                    if self.a_matrix[i].neighbor[j] < self.memory_size:
-                        where = self.a_matrix[i].neighbor[j]-1 #last value in memory
-                    else:
-                        where = self.memory_size-1
-                    ref[what_array][i,j] = self.a_matrix[i].value[j, where ]
-            return ref[what_array]
-            
-        if what_array == 'time':
-            ref[what_array] = np.zeros((self.N,self.N,self.memory_size))
-            for i in np.arange(self.N):
-                for j in np.arange(self.N):
-                    if self.a_matrix[i].neighbor[j] != 0:
-                        ref[what_array][i,j] = self.a_matrix[i].time[j]
-                        #ref[what_array][i,j] = self.a_matrix[i].value[j]
-                    else:
-                        ref[what_array][i,j] = -1
-            return ref[what_array]
-        
-        if what_array == 'probability':
-            ref[what_array] = np.zeros((self.N,self.N))
-            for i in np.arange(self.N):
-                for j in self.a_matrix[i].active_neighbor.keys():
-                    ref[what_array][i,j] = self.a_matrix[i].active_neighbor[j]
-            return ref[what_array]
-
-        if what_array == 'utility':
-            ref[what_array] = np.zeros((self.N,self.N))
-            for i in np.arange(self.N):
-                for j in self.a_matrix[i].active_neighbor.keys():
-                    ref[what_array][i,j] = self.a_matrix[i].active_neighbor[j] * self.a_matrix[j].active_neighbor[i]
-            return ref[what_array]
-        
-        if what_array == 'others_feeling_for_agent':
-            ref[what_array] = np.zeros(self.N)
-            for i in np.arange(self.N):
-                ref[what_array] += self.a_matrix[i].feeling[:]
-            return ref[what_array]/np.sum(ref[what_array])
-        
-        if what_array == 'asset':
-            ref[what_array] = np.zeros(self.N)
-            for i in np.arange(self.N):
-                ref[what_array][i] = self.a_matrix[i].asset
-            return ref[what_array]
-        
-        if what_array == 'situation':
-            ref[what_array] = np.zeros(self.N)
-            for i in np.arange(self.N):
-                ref[what_array][i] = self.a_matrix[i].situation
-            return ref[what_array]
-    
     def hist(self,what_hist):
         plt.figure()
         if what_hist == 'value' or what_hist == 'probability' or what_hist == 'utility':
@@ -409,18 +310,18 @@ class Tracker(properties_alteration,hist_plot_tools): #XXX
     def get_list(self,get_list,t):
         
         if get_list == 'self_value':
-            self.self_value[t] = np.sum(self._array('value'),axis = 1)
+            self.self_value[t] = np.sum(self.array('value'),axis = 1)
         if get_list == 'valuable_to_others':
-            self.valuable_to_others[t] = np.sum(self._array('value'),axis = 0)
+            self.valuable_to_others[t] = np.sum(self.array('value'),axis = 0)
         if get_list == 'worth_ratio':
-            self.worth_ratio[t] = self._array('worth_ratio')
+            self.worth_ratio[t] = self.array('worth_ratio')
             
         if get_list == 'money':
-            self.agents_money[t] = self._array('money')
+            self.agents_money[t] = self.array('money')
         if get_list == 'asset':
-            self.agents_asset[t] = self._array('asset')
+            self.agents_asset[t] = self.array('asset')
         if get_list == 'approval':
-            self.agents_approval[t] = self._array('approval')
+            self.agents_approval[t] = self.array('approval')
         
         if get_list == 'sample_time_trans':
             self.sample_time_trans = np.zeros((self.N,self.N))
@@ -455,53 +356,6 @@ class Tracker(properties_alteration,hist_plot_tools): #XXX
         time = np.where(self.trans_time[:,x,y] >= self.friendship_num)[0][0]
         return int(time)
     
-    def _array(self,what_array):
-        ref = {}
-        
-        if what_array == 'value':
-            ref[what_array] = np.zeros((self.N,self.N))
-            for i in np.arange(self.N):
-                for j in np.arange(self.N):
-                    if self.a_matrix[i].neighbor[j] != 0:
-                        if self.a_matrix[i].neighbor[j] < self.memory_size:
-                            where = self.a_matrix[i].neighbor[j]-1 #last value in memory
-                        else:
-                            where = self.memory_size-1
-                        ref[what_array][i,j] = self.a_matrix[i].value[j, where ]
-                    else:
-                        ref[what_array][i,j] = 0
-            return ref[what_array]
-                    
-        if what_array == 'worth_ratio':
-            ref[what_array] = np.zeros(self.N)
-            for i in np.arange(self.N):
-                ref[what_array][i] = self.a_matrix[i].worth_ratio
-            return ref[what_array]
-        
-        if what_array == 'situation':
-            ref[what_array] = np.zeros(self.N)
-            for i in np.arange(self.N):
-                ref[what_array][i] = self.a_matrix[i].situation
-            return ref[what_array]
-        
-        if what_array == 'asset':
-            ref[what_array] = np.zeros(self.N)
-            for i in np.arange(self.N):
-                ref[what_array][i] = self.a_matrix[i].asset
-            return ref[what_array]
-        
-        if what_array == 'money':
-            ref[what_array] = np.zeros(self.N)
-            for i in np.arange(self.N):
-                ref[what_array][i] = self.a_matrix[i].money
-            return ref[what_array]
-        
-        if what_array == 'approval':
-            ref[what_array] = np.zeros(self.N)
-            for i in np.arange(self.N):
-                ref[what_array][i] = self.a_matrix[i].approval
-            return ref[what_array]
-    
     def index_in_arr(array,value):
         return np.where( array == value )[0][0]
     
@@ -513,7 +367,7 @@ class Tracker(properties_alteration,hist_plot_tools): #XXX
         
         fig, ax = plt.subplots(nrows=1,ncols=1)
         
-        sort_arr = self._array(sort_by)
+        sort_arr = self.array(sort_by)
 #        sort_arr_sorted = np.sort(sort_arr)
 #        x_label_list = ['%.2f'%(sort_arr_sorted[i]) for i in range(self.N) ]
 #        ax.set_xticklabels(x_label_list)
@@ -525,12 +379,10 @@ class Tracker(properties_alteration,hist_plot_tools): #XXX
         plt.savefig(self.path+title)
         plt.close()
         return
-    
 
-        
     def valuability(self):
         fig, ax = plt.subplots(nrows=1,ncols=1)
-        asset = self._array('asset')
+        asset = self.array('asset')
 #        asset_sort = np.sort(asset)
 #        x_label_list = np.array(['{0:.2f}'.format(asset_sort[int(self.N/5)*i]) for i in np.arange(5) ])
 #        x_label_list = np.concatenate(([0],x_label_list))
