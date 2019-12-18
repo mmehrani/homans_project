@@ -7,10 +7,8 @@ Created on Tue Dec 17 11:41:02 2019
 import networkx as nx
 import numpy as np
 import matplotlib.pyplot as plt
-import pickle
 import os
 import community
-import matplotlib.animation as animation
 from networkx.algorithms import community as communityx
 from agents_properties_tools import arrays_glossary
 
