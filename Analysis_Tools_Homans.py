@@ -2,16 +2,15 @@
 Created on Fri Sep 13 12:53:00 2019
 @author: Taha Enayat, Mohsen Mehrani
 """
+import sys
+sys.path.insert(1, '/homans_tools')
+
 import networkx as nx
 import numpy as np
 import matplotlib.pyplot as plt
-import pickle
-import os
-import community
-import matplotlib.animation as animation
-from networkx.algorithms import community as communityx
-from  graph_tools_glossary import Graph_related_tools,Community_related_tools
+from graph_tools_glossary import Graph_related_tools,Community_related_tools
 from agents_properties_tools import arrays_glossary
+
 
 class properties_alteration(arrays_glossary):
     def property_evolution(self,property_id):
