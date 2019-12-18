@@ -3,7 +3,8 @@ Created on Fri Sep 13 12:53:00 2019
 @author: Taha Enayat, Mohsen Mehrani
 """
 import sys
-sys.path.insert(1, '/homans_tools')
+import os
+sys.path.insert(1, os.getcwd() + '/homans_tools')
 
 import networkx as nx
 import numpy as np
