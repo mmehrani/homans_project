@@ -19,7 +19,7 @@ class Graph_related_tools(arrays_glossary):
         self.T = current_time #should be overrided in analysis class
         self.path = None
         return
-    def graph_construction(self,graph_type,num_transaction,boolean=True,**kwargs):
+    def graph_construction(self,graph_type,num_transaction,sample_time_trans,boolean=True,**kwargs):
 #        time = kwargs.get('time',self.T)
         G = nx.Graph()
         if graph_type == 'trans_number':
@@ -30,7 +30,7 @@ class Graph_related_tools(arrays_glossary):
                 sampling_time = int(self.T / 2)
                 
 #            trans_time = kwargs.get('trans_time',None)
-            sample_time_trans = kwargs.get('sample_time_trans',None)
+#            sample_time_trans = kwargs.get('sample_time_trans',None)
 #            tracker = Tracker(self.N,self.T,self.memory_size,self.a_matrix)
             if boolean:
                 self.friendship_point(num_transaction,sampling_time)
@@ -38,15 +38,15 @@ class Graph_related_tools(arrays_glossary):
             else:
                 self.friendship_num = kwargs.get('fpoint')
 #            if trans_time != None or sample_time_trans != None:
-            if type(sample_time_trans) != None:
-                for i in np.arange(self.N):
-                    for j in self.a_matrix[i].active_neighbor.keys():
+#            if type(sample_time_trans) != None:
+            for i in np.arange(self.N):
+                for j in self.a_matrix[i].active_neighbor.keys():
 #                        trans_last_value = tracker.trans_time[sampling_time,i,j]
 #                        trans_last_value = trans_time[sampling_time,i,j]
-                        trans_last_value = sample_time_trans[i,j]
+                    trans_last_value = sample_time_trans[i,j]
 #                        if True in (trans_time[sampling_time:,i,j] > (trans_last_value + self.friendship_num) ):
-                        if (self.a_matrix[i].neighbor[j] > (trans_last_value + self.friendship_num) ):
-                            G.add_edge(i,j)
+                    if (self.a_matrix[i].neighbor[j] > (trans_last_value + self.friendship_num) ):
+                        G.add_edge(i,j)
                         
         node_attr_dict = { i:{'situation':0,'money':0,'worth_ratio':0,'others_feeling':0} for i in G.nodes() }
         for i in G.nodes():
@@ -65,7 +65,7 @@ class Graph_related_tools(arrays_glossary):
 #        dynamic_graph = tracker.make_dynamic_trans_time_graph(constructed_graph)
 #        nx.write_gexf(dynamic_graph,self.path+'dynamic_%s_graph.gexf'%(graph_type))
         self.G = G
-        return
+        return G
     
     
     def draw_graph_weighted_colored(self,position='spring'):
@@ -187,13 +187,14 @@ class Graph_related_tools(arrays_glossary):
 #        beta = 1
 #        print('old friendship point',int(np.ceil(beta * T_eff / self.N)))
         
-        avg = np.average(num_transaction[sampling_time:])
-#        avg = np.average(num_transaction)
-#        sigma = np.sqrt(np.var(num_transaction))
-        sigma = np.sqrt(np.var(num_transaction[sampling_time:]))
+#        avg = np.average(num_transaction[sampling_time:])
+        avg = np.average(num_transaction) #num trans has been saved due to sampling time
+        sigma = np.sqrt(np.var(num_transaction))
+#        sigma = np.sqrt(np.var(num_transaction[sampling_time:]))
 #        T_eff = self.T * (avg + 2*sigma)/self.N
         T_eff = sampling_time * (avg + 2*sigma)/self.N
         beta = 1
+
         self.friendship_num = int(np.ceil(beta * T_eff / self.N))
         
         print('friendship point:',self.friendship_num)
