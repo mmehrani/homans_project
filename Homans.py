@@ -412,8 +412,8 @@ def save_it(version):
 # =============================================================================
 """Parameters"""#XXX
 
-N = 1000
-T = N*50
+N = 100
+T = N*10 + 500
 similarity = 0.05                   #how much this should be?
 memory_size = 10                    #contains the last memory_size number of transaction times
 transaction_percentage = 0.1        #percent of amount of money the first agent proposes from his asset 
@@ -462,15 +462,15 @@ p2_tracker = []
 #similarity_tracker = [ [] for _ in np.arange(N) ]
 asset_tracker = [ [] for _ in np.arange(N) ]
 
-"""initial neighboring"""
-#initial_neighbors = int(N/2)
-initial_neighbors = 20
-for i in np.arange(N):
-    init_arr = np.random.choice(np.arange(N)[np.arange(N) != i],size=initial_neighbors,replace=False)
-    for j in init_arr:
-        if len(A[i].active_neighbor) > initial_neighbors:
-            break #it is not precisly initial_neighbors number. it is bigger. but it doesn't matter.
-        transaction(i,j,1,init=True)
+#"""initial neighboring"""
+##initial_neighbors = int(N/2)
+#initial_neighbors = 20
+#for i in np.arange(N):
+#    init_arr = np.random.choice(np.arange(N)[np.arange(N) != i],size=initial_neighbors,replace=False)
+#    for j in init_arr:
+#        if len(A[i].active_neighbor) > initial_neighbors:
+#            break #it is not precisly initial_neighbors number. it is bigger. but it doesn't matter.
+#        transaction(i,j,1,init=True)
 
 # =============================================================================
 """Main"""
@@ -537,7 +537,7 @@ for t in np.arange(T)+1:#t goes from 1 to T
 print(datetime.now() - start_time)
 # =============================================================================
 """Write File"""
-version = 'test' #XXX
+version = 'friendship_point' #XXX
 path = save_it(version)
 # =============================================================================
 """Analysis and Measurements"""
