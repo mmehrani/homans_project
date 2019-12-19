@@ -187,11 +187,10 @@ class Graph_related_tools(arrays_glossary):
 #        beta = 1
 #        print('old friendship point',int(np.ceil(beta * T_eff / self.N)))
         
-        avg = np.average(num_transaction[sampling_time:])
-#        avg = np.average(num_transaction)
-#        sigma = np.sqrt(np.var(num_transaction))
-        sigma = np.sqrt(np.var(num_transaction[sampling_time:]))
-        print(sampling_time,num_transaction[sampling_time:],self.T)
+#        avg = np.average(num_transaction[sampling_time:])
+        avg = np.average(num_transaction) #num trans has been saved due to sampling time
+        sigma = np.sqrt(np.var(num_transaction))
+#        sigma = np.sqrt(np.var(num_transaction[sampling_time:]))
 #        T_eff = self.T * (avg + 2*sigma)/self.N
         T_eff = sampling_time * (avg + 2*sigma)/self.N
         beta = 1
