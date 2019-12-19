@@ -19,7 +19,7 @@ class Graph_related_tools(arrays_glossary):
         self.T = current_time #should be overrided in analysis class
         self.path = None
         return
-    def graph_construction(self,graph_type,num_transaction,boolean=True,sample_time_trans,**kwargs):
+    def graph_construction(self,graph_type,num_transaction,sample_time_trans,boolean=True,**kwargs):
 #        time = kwargs.get('time',self.T)
         G = nx.Graph()
         if graph_type == 'trans_number':
@@ -191,9 +191,11 @@ class Graph_related_tools(arrays_glossary):
 #        avg = np.average(num_transaction)
 #        sigma = np.sqrt(np.var(num_transaction))
         sigma = np.sqrt(np.var(num_transaction[sampling_time:]))
+        print(sampling_time,num_transaction[sampling_time:],self.T)
 #        T_eff = self.T * (avg + 2*sigma)/self.N
         T_eff = sampling_time * (avg + 2*sigma)/self.N
         beta = 1
+
         self.friendship_num = int(np.ceil(beta * T_eff / self.N))
         
         print('friendship point:',self.friendship_num)
