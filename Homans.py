@@ -373,9 +373,8 @@ def shift_memory(agent,index):
     agent.time[index] = np.concatenate((temp,[-1]))
     return
 # =============================================================================
-def save_it(version):
+def make_directories(version):
     current_path = os.getcwd()
-
     try:
         os.mkdir(current_path+'\\runned_files')
     except OSError:
@@ -390,6 +389,27 @@ def save_it(version):
         os.mkdir(current_path+'\\runned_files'+'\\N%d_T%d\\'%(N,T)+version)
     except OSError:
         print ("Creation of the directory failed")
+    return
+
+def reset_tracker():
+    return
+def save_it(version):
+    current_path = os.getcwd()
+#
+#    try:
+#        os.mkdir(current_path+'\\runned_files')
+#    except OSError:
+#        print ("runned_files already exists")
+#        
+#    try:
+#        os.mkdir(current_path+'\\runned_files'+'\\N%d_T%d'%(N,T))
+#    except OSError:
+#        print ("version already exists")
+#        
+#    try:
+#        os.mkdir(current_path+'\\runned_files'+'\\N%d_T%d\\'%(N,T)+version)
+#    except OSError:
+#        print ("Creation of the directory failed")
     
     path = 'runned_files'+'\\N%d_T%d\\'%(N,T)+version+'\\'
     
@@ -453,6 +473,7 @@ for i in np.arange(N):
     A[i]=Agent( money[i], approval[i], situation_arr[i]) 
 
 """trackers"""
+global tracker #made global to be reseted in related func
 tracker = Analysis_Tools_Homans.Tracker(N,T,memory_size,A)
 num_transaction_tot = np.zeros(T)
 num_explore = np.zeros(T)
