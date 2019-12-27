@@ -90,6 +90,7 @@ class properties_alteration(arrays_glossary):
         ax.set_title('correlation between '+survey_property_id+' growth'+' & '+base_property_id)
         fig.savefig(self.path + 'correlation between '+survey_property_id+' growth'+' & '+base_property_id)
         return
+    
     pass
 
 class hist_plot_tools():
@@ -136,7 +137,7 @@ class hist_plot_tools():
         return
     pass
 
-class Analysis(Graph_related_tools,Community_related_tools): #XXX
+class Analysis(Graph_related_tools): #XXX
     def __init__(self,number_agent,total_time,size,a_matrix,path,*args,**kwargs):
         
         self.memory_size = size

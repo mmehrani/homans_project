@@ -12,12 +12,109 @@ import community
 from networkx.algorithms import community as communityx
 from agents_properties_tools import arrays_glossary
 
-class Graph_related_tools(arrays_glossary):
-    def __init__(self,current_time,number_agent,a_matrix):
+
+class Community_related_tools():
+    
+    def community_division(self):
+        """
+        it just returns the community division subsets.
+        """
+        return communityx.greedy_modularity_communities(self.G)
+    
+    def community_detection(self):
+        """Community Detection"""
+        community_dict = community.best_partition(self.G)
+        partition2 = communityx.greedy_modularity_communities(self.G)
+        
+        """Modularity"""
+        modularity = community.modularity(community_dict,self.G,weight='asdfd')
+        coverage = communityx.coverage(self.G,partition2)
+        #corresponding random graph
+        H = nx.gnm_random_graph(self.G.number_of_nodes(),self.G.number_of_edges())
+        part = community.best_partition(H)
+        part2 = communityx.greedy_modularity_communities(H)
+        modularity_rand = community.modularity(part,H)
+        coverage_rand = communityx.coverage(H,part2)
+        
+        """Write File"""
+        title = 'Communities.txt'
+        com_file = open(self.path + title,'w')
+        com_file.write('Modularity:'+'\n')
+        com_file.write(str(modularity)+'\n')
+        com_file.write('Coverage'+'\n')
+        com_file.write(str(coverage)+'\n')
+        com_file.write('The corresponding random graph has modularity:'+'\n')
+        com_file.write(str(modularity_rand)+'\n')
+        com_file.write('The corresponding random graph has coverage:'+'\n')
+        com_file.write(str(coverage_rand))
+        com_file.write('\n')
+        com_file.write('number of communities:'+'\n')
+        com_file.write(str(len(partition2))+'\n')
+        com_file.write('\n')
+        com_file.write('The coverage of a partition is the ratio of the number of intra-community edges to the total number of edges in the graph.')
+        com_file.close()
+        return modularity,coverage
+    
+    def communities_property_hist(self,property_id):
+        """properties histogram in inter-communities"""
+        community_members = [list(x) for x in communityx.greedy_modularity_communities(self.G)]
+        proprety_arr = self.array(property_id)
+        communities_property_list = []
+        
+        for com_members_list in community_members:
+            property_list = [ proprety_arr[agent] for agent in com_members_list]
+            communities_property_list.append(property_list)
+        
+        fig, ax = plt.subplots(nrows=1,ncols=1)
+        ax.hist(communities_property_list,alpha=0.5)
+        ax.set_title('%s in community'%(property_id))
+        plt.savefig(self.path + 'inter_com_%s'%(property_id))
+
+#        """Rich Agents in Communities"""
+#        for com_num in community_members:
+#            community_members_asset = [ self.a_matrix[agent].asset for agent in community_members[com_num] ]
+#            community_members[com_num] = [community_members[com_num],community_members_asset]
+        
+#        richest_in_coms = []
+#        for com_num in community_members:
+##            richest_in_coms = community_members[com_num][0][ np.argsort(community_members[com_num][1])[0] ]
+#            richest_index = np.where(community_members[com_num][1] == max(community_members[com_num][1]))[0][0]
+#            richest_in_coms.append(community_members[com_num][0][richest_index])
+#        return  richest_in_coms
+        return
+    def communities_property_evolution(self,tracker,property_id):
+        """communities asset growth"""
+        survey_ref = {'money':tracker.agents_money,
+                      'approval':tracker.agents_approval,
+                      'asset':tracker.agents_asset}
+        survey_arr = survey_ref[property_id]
+        
+        community_dict = self.community_division()
+        community_dict = [list(x) for x in community_dict]
+        
+        communities_property_evolution_list = []
+        communities_property_evolution_list_err = []
+        for subset in community_dict:
+            total_evo_property = np.sum( survey_arr[:,subset] ,axis = 1)
+            var_evo_property = np.var( survey_arr[:,subset] ,axis = 1)
+            
+            communities_property_evolution_list.append(total_evo_property)
+            communities_property_evolution_list_err.append(var_evo_property)
+        
+        fig, ax = plt.subplots(nrows=1,ncols=1)
+        for i in range(len(communities_property_evolution_list)):
+            ax.errorbar(np.arange(self.T),communities_property_evolution_list[i],yerr = communities_property_evolution_list_err[i])
+        ax.set_title('%s evolution of communities'%(property_id))
+        plt.savefig(self.path + 'com_%s_evolution'%(property_id))
+        return
+    pass
+
+class Graph_related_tools(arrays_glossary,Community_related_tools):
+    def __init__(self,current_time,number_agent,a_matrix,**kwargs):
         self.a_matrix = a_matrix
         self.N = number_agent
         self.T = current_time #should be overrided in analysis class
-        self.path = None
+        self.path = kwargs.get('alter_path',None)
         return
     def graph_construction(self,graph_type,num_transaction,sample_time_trans,boolean=True,**kwargs):
 #        time = kwargs.get('time',self.T)
@@ -60,7 +157,7 @@ class Graph_related_tools(arrays_glossary):
         nx.set_node_attributes(G,node_attr_dict)
         
         if self.path != None:
-            nx.write_gexf(G,self.path+'%s_graph.gexf'%(graph_type))
+            nx.write_gexf(G,self.path+'%s_%d_graph.gexf'%(graph_type,self.T))
 #        constructed_graph = G
 #        dynamic_graph = tracker.make_dynamic_trans_time_graph(constructed_graph)
 #        nx.write_gexf(dynamic_graph,self.path+'dynamic_%s_graph.gexf'%(graph_type))
@@ -284,68 +381,5 @@ class Graph_related_tools(arrays_glossary):
         return
     pass
 
-class Community_related_tools():
-    
-    def community_detection(self):
-        """Community Detection"""
-        community_dict = community.best_partition(self.G)
-        partition2 = communityx.greedy_modularity_communities(self.G)
-        
-        """Modularity"""
-        modularity = community.modularity(community_dict,self.G,weight='asdfd')
-        coverage = communityx.coverage(self.G,partition2)
-        #corresponding random graph
-        H = nx.gnm_random_graph(self.G.number_of_nodes(),self.G.number_of_edges())
-        part = community.best_partition(H)
-        part2 = communityx.greedy_modularity_communities(H)
-        modularity_rand = community.modularity(part,H)
-        coverage_rand = communityx.coverage(H,part2)
-        
-        """Write File"""
-        title = 'Communities.txt'
-        com_file = open(self.path + title,'w')
-        com_file.write('Modularity:'+'\n')
-        com_file.write(str(modularity)+'\n')
-        com_file.write('Coverage'+'\n')
-        com_file.write(str(coverage)+'\n')
-        com_file.write('The corresponding random graph has modularity:'+'\n')
-        com_file.write(str(modularity_rand)+'\n')
-        com_file.write('The corresponding random graph has coverage:'+'\n')
-        com_file.write(str(coverage_rand))
-        com_file.write('\n')
-        com_file.write('number of communities:'+'\n')
-        com_file.write(str(len(partition2))+'\n')
-        com_file.write('\n')
-        com_file.write('The coverage of a partition is the ratio of the number of intra-community edges to the total number of edges in the graph.')
-        com_file.close()
-        return modularity,coverage
-    
-    def communities_property_hist(self,property_id):
-        """properties histogram in inter-communities"""
-        community_members = [list(x) for x in communityx.greedy_modularity_communities(self.G)]
-        proprety_arr = self.array(property_id)
-        communities_property_list = []
-        
-        for com_members_list in community_members:
-            property_list = [ proprety_arr[agent] for agent in com_members_list]
-            communities_property_list.append(property_list)
-        
-        fig, ax = plt.subplots(nrows=1,ncols=1)
-        ax.hist(communities_property_list,alpha=0.5)
-        ax.set_title('%s in community'%(property_id))
-        plt.savefig(self.path + 'inter_com_%s'%(property_id))
 
-#        """Rich Agents in Communities"""
-#        for com_num in community_members:
-#            community_members_asset = [ self.a_matrix[agent].asset for agent in community_members[com_num] ]
-#            community_members[com_num] = [community_members[com_num],community_members_asset]
-        
-#        richest_in_coms = []
-#        for com_num in community_members:
-##            richest_in_coms = community_members[com_num][0][ np.argsort(community_members[com_num][1])[0] ]
-#            richest_index = np.where(community_members[com_num][1] == max(community_members[com_num][1]))[0][0]
-#            richest_in_coms.append(community_members[com_num][0][richest_index])
-#        return  richest_in_coms
-        return
-    pass
 
