@@ -13,11 +13,14 @@ import matplotlib.animation as animation
 import graph_tools_glossary
 
 N = 100
-T = N*10 + 500
+T = 4000
 memory_size = 10
-version = 'friendship_point'
+opening_time_steps = 2000
+version = 'saving_issue'
+period_last_point = 2000
 current_path = os.getcwd()
 path = current_path + '\\runned_files'+'\\N%d_T%d\\'%(N,T)+version+'\\'
+path += '%d_%d'%(period_last_point - opening_time_steps,opening_time_steps)+'\\'
 
 """Open File"""
 with open(path+'Other_data.pkl','rb') as data_file:
