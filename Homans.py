@@ -393,8 +393,8 @@ def make_directories(version):
     return path
 
 def reset_objects():
-    explore_prob_array = np.zeros(saving_time_steps)
-    num_transaction_tot = np.zeros(saving_time_steps)
+#    explore_prob_array = np.zeros(saving_time_steps)
+#    num_transaction_tot = np.zeros(saving_time_steps)
     tracker = Analysis_Tools_Homans.Tracker(N,saving_time_steps,memory_size,A)
     return
 
@@ -466,8 +466,10 @@ global tracker #made global to be reseted in related func
 global num_transaction_tot,explore_prob_array,saving_time_steps
 
 saving_time_steps = 2000
-explore_prob_array = np.zeros(saving_time_steps)
-num_transaction_tot = np.zeros(saving_time_steps)
+#explore_prob_array = np.zeros(saving_time_steps)
+#num_transaction_tot = np.zeros(saving_time_steps)
+explore_prob_array = np.zeros(T)
+num_transaction_tot = np.zeros(T)
 
 tracker = Analysis_Tools_Homans.Tracker(N,saving_time_steps,memory_size,A)
 num_explore = np.zeros(T)
@@ -504,6 +506,8 @@ explores for new agent (expands his memory)"""
 for t in np.arange(T)+1:#t goes from 1 to T
     """computations"""
     print(t)
+    tau = t % saving_time_steps
+    
     shuffled_agents=np.arange(N)
     np.random.shuffle(shuffled_agents)
     for i in shuffled_agents:
@@ -535,21 +539,21 @@ for t in np.arange(T)+1:#t goes from 1 to T
     
     """trackers"""
     tracker.update_A(A)
-    tracker.get_list('self_value',t-1)
-    tracker.get_list('valuable_to_others',t-1)
-    tracker.get_list('correlation_mon',t-1)
-    tracker.get_list('correlation_situ',t-1)
-    tracker.get_list('money',t-1)
-    tracker.get_list('approval',t-1)
-    tracker.get_list('asset',t-1)
+    tracker.get_list('self_value',tau)
+    tracker.get_list('valuable_to_others',tau)
+    tracker.get_list('correlation_mon',tau)
+    tracker.get_list('correlation_situ',tau)
+    tracker.get_list('money',tau)
+    tracker.get_list('approval',tau)
+    tracker.get_list('asset',tau)
     if t>2:
-        tracker.get_list('worth_ratio',t-3)
+        tracker.get_list('worth_ratio',tau)
 #    if t > T-sampling_time:
 #        tracker.get_list('trans_time',t-1-(T-sampling_time))
-    if t-sampling_time >=0 and t-sampling_time % saving_time_steps == 0:
-        tracker.get_list('sample_time_trans',t)
+    if t-sampling_time >=0 and (t-sampling_time) % saving_time_steps == 0:
+        tracker.get_list('sample_time_trans',tau)
     
-    explore_prob_array[t-1] /= N
+    explore_prob_array[tau] /= N
     
     if t >= saving_time_steps and t % saving_time_steps == 0 :
         save_it(version,t)
