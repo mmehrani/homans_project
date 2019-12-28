@@ -384,38 +384,28 @@ def make_directories(version):
         os.mkdir(current_path+'\\runned_files'+'\\N%d_T%d'%(N,T))
     except OSError:
         print ("version already exists")
-        
+    
+    path = current_path+'\\runned_files'+'\\N%d_T%d\\'%(N,T)+version
     try:
-        os.mkdir(current_path+'\\runned_files'+'\\N%d_T%d\\'%(N,T)+version)
+        os.mkdir(path)
     except OSError:
         print ("Creation of the directory failed")
+    return path
+
+def reset_objects():
+    explore_prob_array = np.zeros(saving_time_steps)
+    num_transaction_tot = np.zeros(saving_time_steps)
+    tracker = Analysis_Tools_Homans.Tracker(N,saving_time_steps,memory_size,A)
     return
 
-def reset_tracker():
-    return
-def save_it(version):
+def save_it(version,t):
     current_path = os.getcwd()
-#
-#    try:
-#        os.mkdir(current_path+'\\runned_files')
-#    except OSError:
-#        print ("runned_files already exists")
-#        
-#    try:
-#        os.mkdir(current_path+'\\runned_files'+'\\N%d_T%d'%(N,T))
-#    except OSError:
-#        print ("version already exists")
-#        
-#    try:
-#        os.mkdir(current_path+'\\runned_files'+'\\N%d_T%d\\'%(N,T)+version)
-#    except OSError:
-#        print ("Creation of the directory failed")
+    path = current_path+'\\runned_files'+'\\N%d_T%d\\'%(N,T)+version+ '\\%d_%d\\'%(t-saving_time_steps,t)
     
-    path = 'runned_files'+'\\N%d_T%d\\'%(N,T)+version+'\\'
-    
-#    np.save(path+'num_transaction_tot.npy',num_transaction_tot[-sampling_time:])
-#    np.save(path+'explore_prob_array.npy',explore_prob_array)
-#    np.save(path+'trans_time_tracker.npy',tracker.trans_time[-sampling_time:])
+    try:
+        os.mkdir(path)
+    except OSError:
+        print ("Creation of the subdirectory failed")
     
     with open(path + 'Agents.pkl','wb') as agent_file:
         pickle.dump(A,agent_file,pickle.HIGHEST_PROTOCOL)
@@ -424,16 +414,16 @@ def save_it(version):
         pickle.dump(num_transaction_tot[-sampling_time:],data,pickle.HIGHEST_PROTOCOL)
 #        pickle.dump(tracker.trans_time[-sampling_time:] ,data,pickle.HIGHEST_PROTOCOL)
         pickle.dump(explore_prob_array,data,pickle.HIGHEST_PROTOCOL)
-        
     with open(path + 'Tracker.pkl','wb') as tracker_file:
         pickle.dump(tracker,tracker_file,pickle.HIGHEST_PROTOCOL)
         
+    reset_objects()        
     return path
 # =============================================================================
 """Parameters"""#XXX
 
 N = 100
-T = N*10 + 500
+T = 4000
 similarity = 0.05                   #how much this should be?
 memory_size = 10                    #contains the last memory_size number of transaction times
 transaction_percentage = 0.1        #percent of amount of money the first agent proposes from his asset 
@@ -468,14 +458,18 @@ approval = np.full(N,5.5)
 #risk_receptibility = np.random.random(N)*4*similarity
 
 A = np.zeros(N,dtype=object)
-explore_prob_array = np.zeros(T)
 for i in np.arange(N):
     A[i]=Agent( money[i], approval[i], situation_arr[i]) 
 
 """trackers"""
 global tracker #made global to be reseted in related func
-tracker = Analysis_Tools_Homans.Tracker(N,T,memory_size,A)
-num_transaction_tot = np.zeros(T)
+global num_transaction_tot,explore_prob_array,saving_time_steps
+
+saving_time_steps = 2000
+explore_prob_array = np.zeros(saving_time_steps)
+num_transaction_tot = np.zeros(saving_time_steps)
+
+tracker = Analysis_Tools_Homans.Tracker(N,saving_time_steps,memory_size,A)
 num_explore = np.zeros(T)
 p0_tracker = []
 p1_tracker = []
@@ -493,6 +487,10 @@ asset_tracker = [ [] for _ in np.arange(N) ]
 #            break #it is not precisly initial_neighbors number. it is bigger. but it doesn't matter.
 #        transaction(i,j,1,init=True)
 
+# =============================================================================
+"""preparing for writing files"""
+version = 'saving_issue' #XXX
+path = make_directories(version)
 # =============================================================================
 """Main"""
 
@@ -544,24 +542,26 @@ for t in np.arange(T)+1:#t goes from 1 to T
     tracker.get_list('money',t-1)
     tracker.get_list('approval',t-1)
     tracker.get_list('asset',t-1)
-    
     if t>2:
         tracker.get_list('worth_ratio',t-3)
 #    if t > T-sampling_time:
 #        tracker.get_list('trans_time',t-1-(T-sampling_time))
-    if t == T-sampling_time:
+    if t-sampling_time >=0 and t-sampling_time % saving_time_steps == 0:
         tracker.get_list('sample_time_trans',t)
-
+    
     explore_prob_array[t-1] /= N
+    
+    if t >= saving_time_steps and t % saving_time_steps == 0 :
+        save_it(version,t)
 
 
 print(datetime.now() - start_time)
 # =============================================================================
 """Write File"""
-version = 'friendship_point' #XXX
-path = save_it(version)
+#version = 'friendship_point' #XXX
+#path = save_it(version)
 # =============================================================================
-"""Analysis and Measurements"""
+"""Analysis and Measurements""" #XXX
 shutil.copyfile(os.getcwd()+'\\Homans.py',path+'\\Homans.py')
 shutil.copyfile(os.getcwd()+'\\Analysis_Tools_Homans.py',path+'\\Analysis_Tools_Homans.py')
 shutil.copyfile(os.getcwd()+'\\Results_analysis_Homans.py',path+'\\Results_analysis_Homans.py')
