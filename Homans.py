@@ -385,7 +385,7 @@ def make_directories(version):
     except OSError:
         print ("version already exists")
     
-    path = current_path+'\\runned_files'+'\\N%d_T%d\\'%(N,T)+version
+    path = current_path+'\\runned_files'+'\\N%d_T%d\\'%(N,T)+version+'\\'
     try:
         os.mkdir(path)
     except OSError:
@@ -411,7 +411,7 @@ def save_it(version,t):
         pickle.dump(A,agent_file,pickle.HIGHEST_PROTOCOL)
         
     with open(path + 'Other_data.pkl','wb') as data:
-        pickle.dump(num_transaction_tot[-sampling_time:],data,pickle.HIGHEST_PROTOCOL)
+        pickle.dump(num_transaction_tot[t-saving_time_steps-1:t-1],data,pickle.HIGHEST_PROTOCOL) #should save the midway num_trans
 #        pickle.dump(tracker.trans_time[-sampling_time:] ,data,pickle.HIGHEST_PROTOCOL)
         pickle.dump(explore_prob_array,data,pickle.HIGHEST_PROTOCOL)
     with open(path + 'Tracker.pkl','wb') as tracker_file:
@@ -423,7 +423,7 @@ def save_it(version,t):
 """Parameters"""#XXX
 
 N = 100
-T = 4000
+T = 1000
 similarity = 0.05                   #how much this should be?
 memory_size = 10                    #contains the last memory_size number of transaction times
 transaction_percentage = 0.1        #percent of amount of money the first agent proposes from his asset 
@@ -438,7 +438,7 @@ beta = 0.3                          #in long-term effect of the frequency of tra
 param = 2                           #a normalizing factor in assigning the acceptance probability. It normalizes difference of money of both sides
 lamda = 0                           # how much one agent relies on his last worth_ratio and how much relies on current transaction's worth_ratio
 if T >= 1000:
-    sampling_time = 1000
+    sampling_time = 100
 else:
     sampling_time = int(T / 2)
 
@@ -465,7 +465,7 @@ for i in np.arange(N):
 global tracker #made global to be reseted in related func
 global num_transaction_tot,explore_prob_array,saving_time_steps
 
-saving_time_steps = 2000
+saving_time_steps = 200
 #explore_prob_array = np.zeros(saving_time_steps)
 #num_transaction_tot = np.zeros(saving_time_steps)
 explore_prob_array = np.zeros(T)
@@ -556,15 +556,13 @@ for t in np.arange(T)+1:#t goes from 1 to T
     explore_prob_array[tau] /= N
     
     if t >= saving_time_steps and t % saving_time_steps == 0 :
-        save_it(version,t)
+        save_it(version,t) #Write File
 
 
 print(datetime.now() - start_time)
 # =============================================================================
 """Write File"""
-#version = 'friendship_point' #XXX
-#path = save_it(version)
-# =============================================================================
+
 """Analysis and Measurements""" #XXX
 shutil.copyfile(os.getcwd()+'\\Homans.py',path+'\\Homans.py')
 shutil.copyfile(os.getcwd()+'\\Analysis_Tools_Homans.py',path+'\\Analysis_Tools_Homans.py')
