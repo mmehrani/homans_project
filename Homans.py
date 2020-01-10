@@ -423,7 +423,7 @@ def save_it(version,t):
 """Parameters"""#XXX
 
 N = 100
-T = 1000
+T = 500
 similarity = 0.05                   #how much this should be?
 memory_size = 10                    #contains the last memory_size number of transaction times
 transaction_percentage = 0.1        #percent of amount of money the first agent proposes from his asset 
@@ -437,10 +437,9 @@ alpha = 1                           #in short-term effect of the frequency of tr
 beta = 0.3                          #in long-term effect of the frequency of transaction
 param = 2                           #a normalizing factor in assigning the acceptance probability. It normalizes difference of money of both sides
 lamda = 0                           # how much one agent relies on his last worth_ratio and how much relies on current transaction's worth_ratio
-if T >= 1000:
-    sampling_time = 100
-else:
-    sampling_time = int(T / 2)
+sampling_time = 2000
+if sampling_time > T:
+    sampling_time = T
 
 """Initial Condition"""
 
@@ -465,7 +464,9 @@ for i in np.arange(N):
 global tracker #made global to be reseted in related func
 global num_transaction_tot,explore_prob_array,saving_time_steps
 
-saving_time_steps = 200
+saving_time_steps = 2000
+if saving_time_steps > sampling_time:
+    saving_time_steps = sampling_time
 #explore_prob_array = np.zeros(saving_time_steps)
 #num_transaction_tot = np.zeros(saving_time_steps)
 explore_prob_array = np.zeros(T)
@@ -491,7 +492,7 @@ asset_tracker = [ [] for _ in np.arange(N) ]
 
 # =============================================================================
 """preparing for writing files"""
-version = 'saving_issue' #XXX
+version = 'test2' #XXX
 path = make_directories(version)
 # =============================================================================
 """Main"""
@@ -548,8 +549,8 @@ for t in np.arange(T)+1:#t goes from 1 to T
     tracker.get_list('asset',tau)
     if t>2:
         tracker.get_list('worth_ratio',tau)
-#    if t > T-sampling_time:
-#        tracker.get_list('trans_time',t-1-(T-sampling_time))
+#    if tau > saving_time_steps - sampling_time:
+#        tracker.get_list('trans_time',tau)
     if t-sampling_time >=0 and (t-sampling_time) % saving_time_steps == 0:
         tracker.get_list('sample_time_trans',tau)
     
@@ -561,9 +562,7 @@ for t in np.arange(T)+1:#t goes from 1 to T
 
 print(datetime.now() - start_time)
 # =============================================================================
-"""Write File"""
-
-"""Analysis and Measurements""" #XXX
+"""Analysis and Measurements"""
 shutil.copyfile(os.getcwd()+'\\Homans.py',path+'\\Homans.py')
 shutil.copyfile(os.getcwd()+'\\Analysis_Tools_Homans.py',path+'\\Analysis_Tools_Homans.py')
 shutil.copyfile(os.getcwd()+'\\Results_analysis_Homans.py',path+'\\Results_analysis_Homans.py')
