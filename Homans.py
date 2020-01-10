@@ -411,7 +411,7 @@ def save_it(version,t):
         pickle.dump(A,agent_file,pickle.HIGHEST_PROTOCOL)
         
     with open(path + 'Other_data.pkl','wb') as data:
-        pickle.dump(num_transaction_tot[t-saving_time_steps-1:t-1],data,pickle.HIGHEST_PROTOCOL) #should save the midway num_trans
+        pickle.dump(num_transaction_tot[t-sampling_time-1:t-1],data,pickle.HIGHEST_PROTOCOL) #should save the midway num_trans
 #        pickle.dump(tracker.trans_time[-sampling_time:] ,data,pickle.HIGHEST_PROTOCOL)
         pickle.dump(explore_prob_array,data,pickle.HIGHEST_PROTOCOL)
     with open(path + 'Tracker.pkl','wb') as tracker_file:
