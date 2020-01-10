@@ -292,7 +292,7 @@ class Tracker(properties_alteration,hist_plot_tools): #XXX
         """Trackers"""
         self.self_value = np.zeros((self.T,self.N))
         self.valuable_to_others = np.zeros((self.T,self.N))
-        self.worth_ratio = np.zeros((self.T-2,self.N))
+        self.worth_ratio = np.zeros((self.T,self.N))
 #        self.trans_time = np.ones((sampling_time,self.N,self.N))
         self.correlation_mon = np.zeros(self.T)
         self.correlation_situ = np.zeros(self.T)
