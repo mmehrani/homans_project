@@ -13,14 +13,15 @@ import matplotlib.animation as animation
 import graph_tools_glossary
 
 N = 100
-T = 4000
+T = 500
 memory_size = 10
-opening_time_steps = 2000
-version = 'saving_issue'
-period_last_point = 2000
+initial_time = 0
+time_step = 500
+version = 'test2'
 current_path = os.getcwd()
 path = current_path + '\\runned_files'+'\\N%d_T%d\\'%(N,T)+version+'\\'
-path += '%d_%d'%(period_last_point - opening_time_steps,period_last_point)+'\\'
+path += '%d_%d'%(initial_time, initial_time + time_step)+'\\'
+#path += '%d_%d'%(period_last_point - opening_time_steps,period_last_point)+'\\'
 
 """Open File"""
 with open(path+'Other_data.pkl','rb') as data_file:
@@ -45,7 +46,7 @@ analyse.graph_correlations()
 #dynamic_graph = tracker.make_dynamic_trans_time_graph(constructed_graph)
 #nx.write_gexf(dynamic_graph,path+'dynamic_trans_number_graph.gexf')
 
-tracker.get_path(path)
+tracker.get_path(path) #essential
 tracker.valuability()
 tracker.plot_general(explore_prob_arr,title='Average Exploration Probability')
 
@@ -73,8 +74,10 @@ analyse.topology_chars()
 analyse.rich_club(normalized=False)
 analyse.assortativity()
 
-#agent = 0
-#tracker.trans_time_visualizer(agent,'Transaction Time Tracker')
+#size = 10
+#for rand_agent in np.random.choice(np.arange(N),size=size,replace=False):
+#    agent = rand_agent
+#    tracker.trans_time_visualizer(agent,'Transaction Time Tracker')
 tracker.valuability()
 
 for prop in ['money','asset','approval']:
