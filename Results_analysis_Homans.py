@@ -20,7 +20,7 @@ version = 'saving_issue'
 period_last_point = 2000
 current_path = os.getcwd()
 path = current_path + '\\runned_files'+'\\N%d_T%d\\'%(N,T)+version+'\\'
-path += '%d_%d'%(period_last_point - opening_time_steps,opening_time_steps)+'\\'
+path += '%d_%d'%(period_last_point - opening_time_steps,period_last_point)+'\\'
 
 """Open File"""
 with open(path+'Other_data.pkl','rb') as data_file:
