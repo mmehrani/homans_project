@@ -37,8 +37,8 @@ class properties_alteration(arrays_glossary):
         ax4.title.set_text(property_id+' growth')
         ax4.scatter(property_arr[0,:],property_arr[self.T-1,:] - property_arr[0,:])
         
-        fig1.savefig(self.path + property_id + ' growth vs situation')
-        fig2.savefig(self.path + 'initial vs last'+property_id)
+        fig1.savefig(self.path + 'P ' + property_id + ' growth vs situation')
+        fig2.savefig(self.path + 'P ' + 'initial vs last'+property_id)
         return
     
     def correlation_money_situation(self):
@@ -109,9 +109,13 @@ class hist_plot_tools():
         plt.close()
         return
     
-    def plot_general(self,array,title=''):
+    def plot_general(self,array,title='',**kwargs):
         plt.figure()
         plt.plot(array)
+        explore = kwargs.get('explore',False)
+        if explore:
+            N = kwargs.get('N',100)
+            plt.ylim(0,1.05*N)
         plt.title(title)
         plt.savefig(self.path+title)
         plt.close()
@@ -137,7 +141,7 @@ class hist_plot_tools():
         return
     pass
 
-class Analysis(Graph_related_tools): #XXX
+class Analysis(Graph_related_tools,properties_alteration): #XXX
     def __init__(self,number_agent,total_time,size,a_matrix,path,*args,**kwargs):
         
         self.memory_size = size
@@ -149,7 +153,8 @@ class Analysis(Graph_related_tools): #XXX
 
     def hist(self,what_hist):
         plt.figure()
-        if what_hist == 'value' or what_hist == 'probability' or what_hist == 'utility':
+        dic = {'value','probability','utility','neighbor'}
+        if what_hist in dic:
             plt.hist(self.array(what_hist).flatten(),bins=50)
         else:
             plt.hist(self.array(what_hist),bins=15)
@@ -278,21 +283,25 @@ class Analysis(Graph_related_tools): #XXX
     
 class Tracker(properties_alteration,hist_plot_tools): #XXX
     
-    def __init__(self,number_agent,total_time,size,a_matrix):
+    def __init__(self,number_agent,total_time,size,a_matrix,boolean=False):
         
         self.a_matrix = a_matrix
         self.T = total_time
         self.memory_size = size
         self.N = number_agent
-        self.sampling_time = 2000
-        if self.sampling_time > self.T:
-            self.sampling_time = self.T
+#        self.sampling_time = 2000
+#        if self.sampling_time > self.T:
+#            self.sampling_time = self.T
+        self.saving_time_step = 100
+        self.boolean = boolean
 
         """Trackers"""
         self.self_value = np.zeros((self.T,self.N))
         self.valuable_to_others = np.zeros((self.T,self.N))
-        self.worth_ratio = np.zeros((self.T,self.N))
-#        self.trans_time = np.zeros((self.sampling_time,self.N,self.N))
+        self.worth_ratio = np.zeros((self.T-2,self.N))
+        if self.boolean:
+            self.trans_time = np.zeros((self.saving_time_step,self.N,self.N))
+        self.sample_time_trans = np.zeros((self.N,self.N))
         self.correlation_mon = np.zeros(self.T)
         self.correlation_situ = np.zeros(self.T)
         self.agents_money  = np.zeros((self.T,self.N))
@@ -324,13 +333,12 @@ class Tracker(properties_alteration,hist_plot_tools): #XXX
             self.agents_approval[t] = self.array('approval')
         
         if get_list == 'sample_time_trans':
-            self.sample_time_trans = np.zeros((self.N,self.N))
             for i in np.arange(self.N):
                 self.sample_time_trans[i,:] = np.copy(self.a_matrix[i].neighbor)
                 
-#        if get_list == 'trans_time':
-#            for i in np.arange(self.N):
-#                self.trans_time[t,i,:] = np.copy(self.a_matrix[i].neighbor)
+        if get_list == 'trans_time':
+            for i in np.arange(self.N):
+                self.trans_time[t,i,:] = np.copy(self.a_matrix[i].neighbor)
                 
         if get_list == 'correlation_mon':
             self.correlation_mon[t] = self.correlation_money_situation()
@@ -364,7 +372,7 @@ class Tracker(properties_alteration,hist_plot_tools): #XXX
         """
         it will show each node transaction transcript.
         """
-        sort_by = kwargs.get('sorting_feature','situation')
+#        sort_by = kwargs.get('sorting_feature','situation')
         
         fig, ax = plt.subplots(nrows=1,ncols=1)
         
@@ -375,9 +383,11 @@ class Tracker(properties_alteration,hist_plot_tools): #XXX
         
 #        im = ax.imshow(self.trans_time[:,agent_to_watch,np.argsort(sort_arr)].astype(float),aspect='auto')
         agent_trans_time = self.trans_time[:,agent_to_watch,:].astype(float)
-        show_arr = np.zeros((self.sampling_time-1,self.N))
-        for t in np.arange(self.sampling_time-1):
+        show_arr = np.zeros((self.saving_time_step-1,self.N))
+        for t in np.arange(self.saving_time_step-1):
             show_arr[t] = agent_trans_time[t+1,:] - agent_trans_time[t,:]
+#        print('trans time',np.size(agent_trans_time[:,0]))
+#        print('show arr',np.size(show_arr[:,0]))
         im = ax.imshow(show_arr,aspect='auto')
 
         cbar = ax.figure.colorbar(im, ax=ax)

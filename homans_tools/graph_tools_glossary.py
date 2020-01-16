@@ -120,11 +120,11 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
 #        time = kwargs.get('time',self.T)
         G = nx.Graph()
         if graph_type == 'trans_number':
-#            sampling_time = kwargs.get('sampling_time',0)
-            if self.T >= 1000:
-                sampling_time = 1000
-            else:
-                sampling_time = int(self.T / 2)
+            sampling_time = kwargs.get('sampling_time',2000)
+        
+#            sampling_time = 80
+#            if sampling_time > self.T:
+#                sampling_time = self.T
                 
 #            trans_time = kwargs.get('trans_time',None)
 #            sample_time_trans = kwargs.get('sample_time_trans',None)
@@ -142,7 +142,7 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
 #                        trans_last_value = trans_time[sampling_time,i,j]
                     trans_last_value = sample_time_trans[i,j]
 #                        if True in (trans_time[sampling_time:,i,j] > (trans_last_value + self.friendship_num) ):
-                    if (self.a_matrix[i].neighbor[j] > (trans_last_value + self.friendship_num) ):
+                    if (self.a_matrix[i].neighbor[j] >= (trans_last_value + self.friendship_num) ):
                         G.add_edge(i,j)
                         
         node_attr_dict = { i:{'situation':0,'money':0,'worth_ratio':0,'others_feeling':0} for i in G.nodes() }
@@ -289,7 +289,7 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
         sigma = np.sqrt(np.var(num_transaction))
 #        sigma = np.sqrt(np.var(num_transaction[sampling_time:]))
 #        T_eff = self.T * (avg + 2*sigma)/self.N
-        T_eff = sampling_time * (avg + 2*sigma)/self.N
+        T_eff = sampling_time * (avg + 1*sigma)/self.N
         beta = 1
 
         self.friendship_num = int(np.ceil(beta * T_eff / self.N))
@@ -348,7 +348,7 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
         except:
             print('exists')
         dic = {'modul':[],'cover':[],'asph':[],'asph_r':[],'cc':[],'cc_r':[],'sigma':[],'omega':[],'rc':[]}
-        for i in np.arange(20):
+        for i in np.arange(20)+1:
             try:
                 for arr in dic:
                     dic[arr].append(0)
