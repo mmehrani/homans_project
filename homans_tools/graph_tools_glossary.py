@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Tue Dec 17 11:41:02 2019
 
@@ -62,7 +61,7 @@ class Community_related_tools():
         com_file.close()
         return modularity,coverage
     
-    def communities_property_hist(self,property_id):
+    def communities_property_hist(self,property_id,boolean=True):
         """properties histogram in inter-communities"""
         community_members = [list(x) for x in communityx.greedy_modularity_communities(self.G)]
         proprety_arr = self.array(property_id)
@@ -72,11 +71,12 @@ class Community_related_tools():
             property_list = [ proprety_arr[agent] for agent in com_members_list]
             communities_property_list.append(property_list)
         
-        fig, ax = plt.subplots(nrows=1,ncols=1)
-        ax.hist(communities_property_list,alpha=0.5)
-        ax.set_title('%s in community'%(property_id))
-        plt.savefig(self.path + 'C inter community %s'%(property_id))
-        plt.close()
+        if boolean:
+            fig, ax = plt.subplots(nrows=1,ncols=1)
+            ax.hist(communities_property_list,alpha=0.5)
+            ax.set_title('%s in community'%(property_id))
+            plt.savefig(self.path + 'C inter community %s'%(property_id))
+            plt.close()
         
         property_sum=[];property_mean=[];property_var=[];
         for com_prop_list in communities_property_list:
@@ -93,18 +93,8 @@ class Community_related_tools():
         plt.title('{} in community'.format(property_id))
         plt.savefig(self.path + 'C community overal {}'.format(property_id))
         plt.close()
-#        """Rich Agents in Communities"""
-#        for com_num in community_members:
-#            community_members_asset = [ self.a_matrix[agent].asset for agent in community_members[com_num] ]
-#            community_members[com_num] = [community_members[com_num],community_members_asset]
-        
-#        richest_in_coms = []
-#        for com_num in community_members:
-##            richest_in_coms = community_members[com_num][0][ np.argsort(community_members[com_num][1])[0] ]
-#            richest_index = np.where(community_members[com_num][1] == max(community_members[com_num][1]))[0][0]
-#            richest_in_coms.append(community_members[com_num][0][richest_index])
-#        return  richest_in_coms
         return
+    
     def communities_property_evolution(self,tracker,property_id):
         """communities asset growth"""
         survey_ref = {'money':tracker.agents_money,
@@ -370,20 +360,7 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
         except:
             print('exists')
         dic = {'modul':[],'cover':[],'asph':[],'asph_r':[],'cc':[],'cc_r':[],'sigma':[],'omega':[],'rc':[]}
-#        for i in np.arange(20)+1:
-#            try:
-#                for arr in dic:
-#                    dic[arr].append(0)
-#        i = 0
-#        while self.G.number_of_nodes() != 0:
-#            i += 1
-#            try:
-#                self.path = path + '\\graph_related' + '\\{0}, '.format(i)
-#                self.graph_construction('trans_number',num_transaction,boolean=False,fpoint=i,sample_time_trans=tracker.sample_time_trans)
-#                self.draw_graph_weighted_colored('spring')
-#                self.draw_graph_weighted_colored('kamada_kawai')
-#            except: 
-#                print('graph')
+
         local1 = -1; local2 = -1; local3 = -1
         for i in np.arange(20)+1:
             print('i =',i)
@@ -425,11 +402,11 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
                 dic['rc'].append(0)
                 dic['rc'][local3] = self.rich_club()
             except: print('rich club')
-#            except:
-#                print('cannot make more graphs',i)
-#                self.path = path
-#                break
-        print(dic)
+            try:
+                for prop in ['money','asset','approval','worth_ratio']:
+                    self.communities_property_hist(prop,boolean=False)
+            except: print('property hist')
+
         self.path = path
         """Plot"""
         self.plot_general(path,dic['modul'],title='GR Modularity Vs Friendship Point')
