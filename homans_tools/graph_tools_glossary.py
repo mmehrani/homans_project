@@ -341,6 +341,45 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
         return
 
     
+#    def graph_related_chars(self,num_transaction,tracker):
+#        path = self.path
+#        try:
+#            os.mkdir(path + '\\graph_related')
+#        except:
+#            print('exists')
+#        dic = {'modul':[],'cover':[],'asph':[],'asph_r':[],'cc':[],'cc_r':[],'sigma':[],'omega':[],'rc':[]}
+#        for i in np.arange(20)+1:
+#            try:
+#                for arr in dic:
+#                    dic[arr].append(0)
+#                self.path = path + '\\graph_related' + '\\{0}, '.format(i)
+#                self.graph_construction('trans_number',num_transaction,boolean=False,fpoint=i,sample_time_trans=tracker.sample_time_trans)
+#                self.draw_graph_weighted_colored('spring')
+#                self.draw_graph_weighted_colored('kamada_kawai')
+#                self.hist('degree')
+#                self.hist_log_log('degree')
+#                dic['modul'][i], dic['cover'][i] = self.community_detection()
+#                dic['asph'][i], dic['cc'][i], dic['asph_r'][i], dic['cc_r'][i], dic['sigma'][i], dic['omega'][i] = self.topology_chars()
+#                self.assortativity()
+#                self.graph_correlations()
+#                dic['rc'][i] = self.rich_club()
+#            except:
+#                print('cannot make more graphs',i)
+#                self.path = path
+#                break
+#        
+#        """Plot"""
+#        self.plot_general(path,dic['modul'],title='GR Modularity Vs Friendship Point')
+#        self.plot_general(path,dic['cover'],title='GR Coverage Vs Friendship Point')
+#        self.plot_general(path,dic['sigma'],title='GR Smallworldness Sigma Vs Friendship Point')
+#        self.plot_general(path,dic['omega'],title='GR Smallworldness Omega Vs Friendship Point')
+#        self.plot_general(path,dic['cc'],second_array=dic['cc_r'],title='GR Clustering Coefficient Vs Friendship Point')
+#        self.plot_general(path,dic['asph'],second_array=dic['asph_r'],title='GR Shortest Path Length Vs Friendship Point')
+#        self.plot_general(path,np.array(dic['cc'])/np.array(dic['cc_r']),title='GR Clustering Coefficient Normalized Vs Friendship Point')
+#        self.plot_general(path,np.array(dic['asph'])/np.array(dic['asph_r']),title='GR Shortest Path Length Normalized Vs Friendship Point')
+#        self.plot_general(path,dic['rc'],indicator=False,title='GR Rich Club Vs Friendship Point')
+#        return
+    
     def graph_related_chars(self,num_transaction,tracker):
         path = self.path
         try:
@@ -348,26 +387,67 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
         except:
             print('exists')
         dic = {'modul':[],'cover':[],'asph':[],'asph_r':[],'cc':[],'cc_r':[],'sigma':[],'omega':[],'rc':[]}
+#        for i in np.arange(20)+1:
+#            try:
+#                for arr in dic:
+#                    dic[arr].append(0)
+#        i = 0
+#        while self.G.number_of_nodes() != 0:
+#            i += 1
+#            try:
+#                self.path = path + '\\graph_related' + '\\{0}, '.format(i)
+#                self.graph_construction('trans_number',num_transaction,boolean=False,fpoint=i,sample_time_trans=tracker.sample_time_trans)
+#                self.draw_graph_weighted_colored('spring')
+#                self.draw_graph_weighted_colored('kamada_kawai')
+#            except: 
+#                print('graph')
+        local1 = -1; local2 = -1; local3 = -1
         for i in np.arange(20)+1:
+            print('i =',i)
+            self.path = path + '\\graph_related' + '\\{0}, '.format(i)
+            self.graph_construction('trans_number',num_transaction,boolean=False,fpoint=i,sample_time_trans=tracker.sample_time_trans)
+            if self.G.number_of_nodes() == 0:
+                print('cannot make more graphs')
+                break
+            self.draw_graph_weighted_colored('spring')
+            self.draw_graph_weighted_colored('kamada_kawai')
             try:
-                for arr in dic:
-                    dic[arr].append(0)
-                self.path = path + '\\graph_related' + '\\{0}, '.format(i)
-                self.graph_construction('trans_number',num_transaction,boolean=False,fpoint=i,sample_time_trans=tracker.sample_time_trans)
-                self.draw_graph_weighted_colored('spring')
-                self.draw_graph_weighted_colored('kamada_kawai')
                 self.hist('degree')
                 self.hist_log_log('degree')
-                dic['modul'][i], dic['cover'][i] = self.community_detection()
-                dic['asph'][i], dic['cc'][i], dic['asph_r'][i], dic['cc_r'][i], dic['sigma'][i], dic['omega'][i] = self.topology_chars()
+            except: print('degree hist')
+            try:
+                local1 += 1
+                dic['modul'].append(0)
+                dic['cover'].append(0)
+                dic['modul'][local1], dic['cover'][local1] = self.community_detection()
+            except: print('community detection')
+            try:
+                local2 += 1
+                dic['asph'].append(0)
+                dic['cc'].append(0)
+                dic['asph_r'].append(0)
+                dic['cc_r'].append(0)
+                dic['sigma'].append(0)
+                dic['omega'].append(0)
+                dic['asph'][local2], dic['cc'][local2], dic['asph_r'][local2], dic['cc_r'][local2], dic['sigma'][local2], dic['omega'][local2] = self.topology_chars()
+            except: print('topology chars')
+            try:
                 self.assortativity()
+            except: print('assortativity')
+            try:
                 self.graph_correlations()
-                dic['rc'][i] = self.rich_club()
-            except:
-                print('cannot make more graphs',i)
-                self.path = path
-                break
-        
+            except: print('correlations')
+            try:
+                local3 += 1
+                dic['rc'].append(0)
+                dic['rc'][local3] = self.rich_club()
+            except: print('rich club')
+#            except:
+#                print('cannot make more graphs',i)
+#                self.path = path
+#                break
+        print(dic)
+        self.path = path
         """Plot"""
         self.plot_general(path,dic['modul'],title='GR Modularity Vs Friendship Point')
         self.plot_general(path,dic['cover'],title='GR Coverage Vs Friendship Point')
@@ -379,6 +459,7 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
         self.plot_general(path,np.array(dic['asph'])/np.array(dic['asph_r']),title='GR Shortest Path Length Normalized Vs Friendship Point')
         self.plot_general(path,dic['rc'],indicator=False,title='GR Rich Club Vs Friendship Point')
         return
+    
     pass
 
 
