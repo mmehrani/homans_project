@@ -113,6 +113,7 @@ analyse.community_detection()
 
 for prop in ['money','asset','approval','worth_ratio']:
     analyse.communities_property_hist(prop)
-    
+#    analyse.communities_property_evolution(tracker,prop)
+
 plt.close('all')
 
