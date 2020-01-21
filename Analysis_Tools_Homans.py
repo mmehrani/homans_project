@@ -283,7 +283,7 @@ class Analysis(Graph_related_tools,properties_alteration): #XXX
     
 class Tracker(properties_alteration,hist_plot_tools): #XXX
     
-    def __init__(self,number_agent,total_time,size,a_matrix,boolean=False):
+    def __init__(self,number_agent,total_time,size,a_matrix,boolean=False,*args,**kwargs):
         
         self.a_matrix = a_matrix
         self.T = total_time
@@ -292,15 +292,18 @@ class Tracker(properties_alteration,hist_plot_tools): #XXX
 #        self.sampling_time = 2000
 #        if self.sampling_time > self.T:
 #            self.sampling_time = self.T
-        self.saving_time_step = 100
-        self.boolean = boolean
-
+#        self.boolean = boolean
+        self.boolean, self.saving_time_step = kwargs.get('to_save_last_trans',[False,None])
+        self.saving_time_step = kwargs.get('saving_time_step',self.saving_time_step)
+        
         """Trackers"""
         self.self_value = np.zeros((self.T,self.N))
         self.valuable_to_others = np.zeros((self.T,self.N))
         self.worth_ratio = np.zeros((self.T-2,self.N))
+        
         if self.boolean:
             self.trans_time = np.zeros((self.saving_time_step,self.N,self.N))
+        
         self.sample_time_trans = np.zeros((self.N,self.N))
         self.correlation_mon = np.zeros(self.T)
         self.correlation_situ = np.zeros(self.T)
