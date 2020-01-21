@@ -12,12 +12,17 @@ import os
 import matplotlib.animation as animation
 import graph_tools_glossary
 
-N = 100
-T = N*10 + 500
+N = 50
+T = 500
 memory_size = 10
-version = 'friendship_point'
+initial_time = 400
+time_step = 100
+sampling_time = 100
+version = 'test7'
 current_path = os.getcwd()
 path = current_path + '\\runned_files'+'\\N%d_T%d\\'%(N,T)+version+'\\'
+path += '%d_%d'%(initial_time, initial_time + time_step)+'\\'
+#path += '%d_%d'%(period_last_point - opening_time_steps,period_last_point)+'\\'
 
 """Open File"""
 with open(path+'Other_data.pkl','rb') as data_file:
@@ -30,11 +35,11 @@ with open(path+'Agents.pkl','rb') as agent_file:
 with open(path + 'Tracker.pkl','rb') as tracker_file:
     tracker = pickle.load(tracker_file)
 """"""
-tool = graph_tools_glossary.Graph_related_tools(1200,N,a_matrix)
-tool.graph_construction('trans_number',num_transaction_tot,sample_time_trans = tracker.sample_time_trans)
+#tool = graph_tools_glossary.Graph_related_tools(1200,N,a_matrix)
+#tool.graph_construction('trans_number',num_transaction_tot,sample_time_trans = tracker.sample_time_trans)
 """ Plots""" 
 analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,a_matrix,path)
-analyse.graph_construction('trans_number',num_transaction_tot,sample_time_trans = tracker.sample_time_trans)
+analyse.graph_construction('trans_number',num_transaction_tot,sampling_time = sampling_time,sample_time_trans = tracker.sample_time_trans)
 analyse.draw_graph_weighted_colored()
 analyse.graph_correlations()
 
@@ -42,24 +47,20 @@ analyse.graph_correlations()
 #dynamic_graph = tracker.make_dynamic_trans_time_graph(constructed_graph)
 #nx.write_gexf(dynamic_graph,path+'dynamic_trans_number_graph.gexf')
 
-tracker.get_path(path)
+tracker.get_path(path) #essential
 tracker.valuability()
-tracker.plot_general(explore_prob_arr,title='Average Exploration Probability')
+#tracker.plot_general(explore_prob_arr * N,title='Average Exploration Probability')#,explore=True)
+tracker.plot_general(num_transaction_tot,title='Number of Transaction')
 
-analyse.hist('money')
-analyse.hist_log_log('money')
-analyse.hist('approval')
-analyse.hist_log_log('approval')
 analyse.hist('degree')
 analyse.hist_log_log('degree')
-analyse.hist('value')
-analyse.hist_log_log('value')
-analyse.hist('probability')
-analyse.hist_log_log('probability')
-analyse.hist('utility')
-analyse.hist_log_log('utility')
-analyse.hist('asset')
-analyse.hist_log_log('asset')
+i=0
+array = np.zeros((7,N,N))
+for prop in ['money','approval','asset','utility','probability','neighbor','value']:
+    analyse.hist(prop)
+    analyse.hist_log_log(prop)
+    array[i] = analyse.array(prop)
+    i += 1
 
 analyse.money_vs_situation(path+'money_vs_situation')
 analyse.transaction_vs_asset()
@@ -70,8 +71,10 @@ analyse.topology_chars()
 analyse.rich_club(normalized=False)
 analyse.assortativity()
 
-#agent = 0
-#tracker.trans_time_visualizer(agent,'Transaction Time Tracker')
+size = 10
+for rand_agent in np.random.choice(np.arange(N),size=size,replace=False):
+    agent = rand_agent
+    tracker.trans_time_visualizer(agent,'Transaction Time Tracker')
 tracker.valuability()
 
 for prop in ['money','asset','approval']:
@@ -110,6 +113,7 @@ analyse.community_detection()
 
 for prop in ['money','asset','approval','worth_ratio']:
     analyse.communities_property_hist(prop)
-    
+#    analyse.communities_property_evolution(tracker,prop)
+
 plt.close('all')
 

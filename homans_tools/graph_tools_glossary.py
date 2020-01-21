@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Tue Dec 17 11:41:02 2019
 
@@ -12,8 +11,13 @@ import community
 from networkx.algorithms import community as communityx
 from agents_properties_tools import arrays_glossary
 
+import matplotlib.cm as cm
+import matplotlib.colors as col
 
 class Community_related_tools():
+    
+#    def __init__(self):
+#        self.partition = communityx.greedy_modularity_communities(self.G)
     
     def community_division(self):
         """
@@ -24,11 +28,13 @@ class Community_related_tools():
     def community_detection(self):
         """Community Detection"""
         community_dict = community.best_partition(self.G)
-        partition2 = communityx.greedy_modularity_communities(self.G)
+#        partition2 = self.partition
+        partition2 = self.community_division()
         
         """Modularity"""
-        modularity = community.modularity(community_dict,self.G,weight='asdfd')
+        modularity = community.modularity(community_dict,self.G)
         coverage = communityx.coverage(self.G,partition2)
+        
         #corresponding random graph
         H = nx.gnm_random_graph(self.G.number_of_nodes(),self.G.number_of_edges())
         part = community.best_partition(H)
@@ -55,7 +61,7 @@ class Community_related_tools():
         com_file.close()
         return modularity,coverage
     
-    def communities_property_hist(self,property_id):
+    def communities_property_hist(self,property_id,boolean=True):
         """properties histogram in inter-communities"""
         community_members = [list(x) for x in communityx.greedy_modularity_communities(self.G)]
         proprety_arr = self.array(property_id)
@@ -65,23 +71,30 @@ class Community_related_tools():
             property_list = [ proprety_arr[agent] for agent in com_members_list]
             communities_property_list.append(property_list)
         
-        fig, ax = plt.subplots(nrows=1,ncols=1)
-        ax.hist(communities_property_list,alpha=0.5)
-        ax.set_title('%s in community'%(property_id))
-        plt.savefig(self.path + 'inter_com_%s'%(property_id))
-
-#        """Rich Agents in Communities"""
-#        for com_num in community_members:
-#            community_members_asset = [ self.a_matrix[agent].asset for agent in community_members[com_num] ]
-#            community_members[com_num] = [community_members[com_num],community_members_asset]
+        if boolean:
+            fig, ax = plt.subplots(nrows=1,ncols=1)
+            ax.hist(communities_property_list,alpha=0.5)
+            ax.set_title('%s in community'%(property_id))
+            plt.savefig(self.path + 'C inter community %s'%(property_id))
+            plt.close()
         
-#        richest_in_coms = []
-#        for com_num in community_members:
-##            richest_in_coms = community_members[com_num][0][ np.argsort(community_members[com_num][1])[0] ]
-#            richest_index = np.where(community_members[com_num][1] == max(community_members[com_num][1]))[0][0]
-#            richest_in_coms.append(community_members[com_num][0][richest_index])
-#        return  richest_in_coms
+        property_sum=[];property_mean=[];property_var=[];
+        for com_prop_list in communities_property_list:
+            summ = sum(com_prop_list)
+            mean = sum(com_prop_list) / len(com_prop_list)
+            var = np.sqrt( sum( (com_prop_list - mean)**2 ) / len(com_prop_list) )
+            property_sum.append(summ)
+            property_mean.append(mean)
+            property_var.append(var)
+        
+        cmap = cm.ScalarMappable()
+        plt.figure()
+        plt.bar( property_mean, property_sum, width=property_var, alpha=0.5, color= cmap.to_rgba(np.arange(len(property_sum))) )
+        plt.title('{} in community'.format(property_id))
+        plt.savefig(self.path + 'C community overal {}'.format(property_id))
+        plt.close()
         return
+    
     def communities_property_evolution(self,tracker,property_id):
         """communities asset growth"""
         survey_ref = {'money':tracker.agents_money,
@@ -105,7 +118,7 @@ class Community_related_tools():
         for i in range(len(communities_property_evolution_list)):
             ax.errorbar(np.arange(self.T),communities_property_evolution_list[i],yerr = communities_property_evolution_list_err[i])
         ax.set_title('%s evolution of communities'%(property_id))
-        plt.savefig(self.path + 'com_%s_evolution'%(property_id))
+        plt.savefig(self.path + 'C community %s evolution'%(property_id))
         return
     pass
 
@@ -120,11 +133,11 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
 #        time = kwargs.get('time',self.T)
         G = nx.Graph()
         if graph_type == 'trans_number':
-#            sampling_time = kwargs.get('sampling_time',0)
-            if self.T >= 1000:
-                sampling_time = 1000
-            else:
-                sampling_time = int(self.T / 2)
+            sampling_time = kwargs.get('sampling_time',2000)
+        
+#            sampling_time = 80
+#            if sampling_time > self.T:
+#                sampling_time = self.T
                 
 #            trans_time = kwargs.get('trans_time',None)
 #            sample_time_trans = kwargs.get('sample_time_trans',None)
@@ -142,7 +155,7 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
 #                        trans_last_value = trans_time[sampling_time,i,j]
                     trans_last_value = sample_time_trans[i,j]
 #                        if True in (trans_time[sampling_time:,i,j] > (trans_last_value + self.friendship_num) ):
-                    if (self.a_matrix[i].neighbor[j] > (trans_last_value + self.friendship_num) ):
+                    if (self.a_matrix[i].neighbor[j] >= (trans_last_value + self.friendship_num) ):
                         G.add_edge(i,j)
                         
         node_attr_dict = { i:{'situation':0,'money':0,'worth_ratio':0,'others_feeling':0} for i in G.nodes() }
@@ -289,7 +302,7 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
         sigma = np.sqrt(np.var(num_transaction))
 #        sigma = np.sqrt(np.var(num_transaction[sampling_time:]))
 #        T_eff = self.T * (avg + 2*sigma)/self.N
-        T_eff = sampling_time * (avg + 2*sigma)/self.N
+        T_eff = sampling_time * (avg + 1*sigma)/self.N
         beta = 1
 
         self.friendship_num = int(np.ceil(beta * T_eff / self.N))
@@ -339,7 +352,6 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
         plt.savefig(self.path + 'correlation in graph')
         plt.close()
         return
-
     
     def graph_related_chars(self,num_transaction,tracker):
         path = self.path
@@ -348,26 +360,54 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
         except:
             print('exists')
         dic = {'modul':[],'cover':[],'asph':[],'asph_r':[],'cc':[],'cc_r':[],'sigma':[],'omega':[],'rc':[]}
-        for i in np.arange(20):
+
+        local1 = -1; local2 = -1; local3 = -1
+        for i in np.arange(20)+1:
+            print('i =',i)
+            self.path = path + '\\graph_related' + '\\{0}, '.format(i)
+            self.graph_construction('trans_number',num_transaction,boolean=False,fpoint=i,sample_time_trans=tracker.sample_time_trans)
+            if self.G.number_of_nodes() == 0:
+                print('cannot make more graphs')
+                break
+            self.draw_graph_weighted_colored('spring')
+            self.draw_graph_weighted_colored('kamada_kawai')
             try:
-                for arr in dic:
-                    dic[arr].append(0)
-                self.path = path + '\\graph_related' + '\\{0}, '.format(i)
-                self.graph_construction('trans_number',num_transaction,boolean=False,fpoint=i,sample_time_trans=tracker.sample_time_trans)
-                self.draw_graph_weighted_colored('spring')
-                self.draw_graph_weighted_colored('kamada_kawai')
                 self.hist('degree')
                 self.hist_log_log('degree')
-                dic['modul'][i], dic['cover'][i] = self.community_detection()
-                dic['asph'][i], dic['cc'][i], dic['asph_r'][i], dic['cc_r'][i], dic['sigma'][i], dic['omega'][i] = self.topology_chars()
+            except: print('degree hist')
+            try:
+                local1 += 1
+                dic['modul'].append(0)
+                dic['cover'].append(0)
+                dic['modul'][local1], dic['cover'][local1] = self.community_detection()
+            except: print('community detection')
+            try:
+                local2 += 1
+                dic['asph'].append(0)
+                dic['cc'].append(0)
+                dic['asph_r'].append(0)
+                dic['cc_r'].append(0)
+                dic['sigma'].append(0)
+                dic['omega'].append(0)
+                dic['asph'][local2], dic['cc'][local2], dic['asph_r'][local2], dic['cc_r'][local2], dic['sigma'][local2], dic['omega'][local2] = self.topology_chars()
+            except: print('topology chars')
+            try:
                 self.assortativity()
+            except: print('assortativity')
+            try:
                 self.graph_correlations()
-                dic['rc'][i] = self.rich_club()
-            except:
-                print('cannot make more graphs',i)
-                self.path = path
-                break
-        
+            except: print('correlations')
+            try:
+                local3 += 1
+                dic['rc'].append(0)
+                dic['rc'][local3] = self.rich_club()
+            except: print('rich club')
+            try:
+                for prop in ['money','asset','approval','worth_ratio']:
+                    self.communities_property_hist(prop,boolean=False)
+            except: print('property hist')
+
+        self.path = path
         """Plot"""
         self.plot_general(path,dic['modul'],title='GR Modularity Vs Friendship Point')
         self.plot_general(path,dic['cover'],title='GR Coverage Vs Friendship Point')
@@ -379,6 +419,7 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
         self.plot_general(path,np.array(dic['asph'])/np.array(dic['asph_r']),title='GR Shortest Path Length Normalized Vs Friendship Point')
         self.plot_general(path,dic['rc'],indicator=False,title='GR Rich Club Vs Friendship Point')
         return
+    
     pass
 
 

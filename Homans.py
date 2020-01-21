@@ -5,12 +5,10 @@ Created on Mon Aug 12 10:12:03 2019
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
-#import networkx as nx
 import winsound
 import pickle
 import Analysis_Tools_Homans
 import os
-import matplotlib.animation as animation
 import shutil
 
 
@@ -58,24 +56,6 @@ class Agent():
         self.n_average = self.n_avg['approval'] / self.n_avg['money']
         return self.n_average
 
-#    def neighbor_average(self):
-#        
-#        self.n_avg = 0
-#        for j in self.active_neighbor.keys():
-#            self.n_avg += A[j].approval / A[j].money
-#        self.n_avg += self.approval / self.money
-#        self.n_avg /= len(self.active_neighbor) + 1
-#        return self.n_avg
-
-
-#    def neighbor_average(self):
-#        
-#        worth = 0
-#        for k in self.active_neighbor.keys():
-#            worth += A[k].worth_ratio
-#        worth /= len(self.active_neighbor)
-#        return worth
-    
     def probability(self,neighbor,t):
         '''calculates probability for choosing each neighbor
         utility = value * acceptance_probability
@@ -373,9 +353,8 @@ def shift_memory(agent,index):
     agent.time[index] = np.concatenate((temp,[-1]))
     return
 # =============================================================================
-def save_it(version):
+def make_directories(version):
     current_path = os.getcwd()
-
     try:
         os.mkdir(current_path+'\\runned_files')
     except OSError:
@@ -385,35 +364,46 @@ def save_it(version):
         os.mkdir(current_path+'\\runned_files'+'\\N%d_T%d'%(N,T))
     except OSError:
         print ("version already exists")
-        
+    
+    path = current_path+'\\runned_files'+'\\N%d_T%d\\'%(N,T)+version+'\\'
     try:
-        os.mkdir(current_path+'\\runned_files'+'\\N%d_T%d\\'%(N,T)+version)
+        os.mkdir(path)
     except OSError:
         print ("Creation of the directory failed")
+    return path
+
+def save_it(version,t,boolean):
+    global tracker
+    current_path = os.getcwd()
+    path = current_path+'\\runned_files'+'\\N%d_T%d\\'%(N,T)+version+ '\\%d_%d\\'%(t-saving_time_step,t)
     
-    path = 'runned_files'+'\\N%d_T%d\\'%(N,T)+version+'\\'
-    
-#    np.save(path+'num_transaction_tot.npy',num_transaction_tot[-sampling_time:])
-#    np.save(path+'explore_prob_array.npy',explore_prob_array)
-#    np.save(path+'trans_time_tracker.npy',tracker.trans_time[-sampling_time:])
+    try:
+        os.mkdir(path)
+    except OSError:
+        print ("Creation of the subdirectory failed")
     
     with open(path + 'Agents.pkl','wb') as agent_file:
         pickle.dump(A,agent_file,pickle.HIGHEST_PROTOCOL)
         
     with open(path + 'Other_data.pkl','wb') as data:
-        pickle.dump(num_transaction_tot[-sampling_time:],data,pickle.HIGHEST_PROTOCOL)
-#        pickle.dump(tracker.trans_time[-sampling_time:] ,data,pickle.HIGHEST_PROTOCOL)
+        pickle.dump(num_transaction_tot[t-1-sampling_time:t-1],data,pickle.HIGHEST_PROTOCOL) #should save the midway num_trans
         pickle.dump(explore_prob_array,data,pickle.HIGHEST_PROTOCOL)
+#        pickle.dump(tracker.trans_time[-sampling_time:] ,data,pickle.HIGHEST_PROTOCOL)
         
     with open(path + 'Tracker.pkl','wb') as tracker_file:
         pickle.dump(tracker,tracker_file,pickle.HIGHEST_PROTOCOL)
         
+#    t_before = tracker.agents_money
+    tracker = Analysis_Tools_Homans.Tracker(N,saving_time_step,memory_size,A,to_save_last_trans=[boolean,saving_time_step])  
+#    t_after = tracker.agents_money
+#    print('before',t_before)
+#    print('after',t_after)
     return path
 # =============================================================================
 """Parameters"""#XXX
 
-N = 100
-T = N*10 + 500
+N = 50
+T = 500
 similarity = 0.05                   #how much this should be?
 memory_size = 10                    #contains the last memory_size number of transaction times
 transaction_percentage = 0.1        #percent of amount of money the first agent proposes from his asset 
@@ -427,10 +417,9 @@ alpha = 1                           #in short-term effect of the frequency of tr
 beta = 0.3                          #in long-term effect of the frequency of transaction
 param = 2                           #a normalizing factor in assigning the acceptance probability. It normalizes difference of money of both sides
 lamda = 0                           # how much one agent relies on his last worth_ratio and how much relies on current transaction's worth_ratio
-if T >= 1000:
-    sampling_time = 1000
-else:
-    sampling_time = int(T / 2)
+sampling_time = 100
+if sampling_time > T:
+    sampling_time = T
 
 """Initial Condition"""
 
@@ -448,13 +437,22 @@ approval = np.full(N,5.5)
 #risk_receptibility = np.random.random(N)*4*similarity
 
 A = np.zeros(N,dtype=object)
-explore_prob_array = np.zeros(T)
 for i in np.arange(N):
     A[i]=Agent( money[i], approval[i], situation_arr[i]) 
 
 """trackers"""
-tracker = Analysis_Tools_Homans.Tracker(N,T,memory_size,A)
+global tracker #made global to be reseted in related func
+global num_transaction_tot,explore_prob_array,saving_time_step
+
+saving_time_step = 100
+if saving_time_step < sampling_time:
+    saving_time_step = sampling_time
+#explore_prob_array = np.zeros(saving_time_step)
+#num_transaction_tot = np.zeros(saving_time_step)
+explore_prob_array = np.zeros(T)
 num_transaction_tot = np.zeros(T)
+
+tracker = Analysis_Tools_Homans.Tracker(N,saving_time_step,memory_size,A)
 num_explore = np.zeros(T)
 p0_tracker = []
 p1_tracker = []
@@ -473,6 +471,10 @@ asset_tracker = [ [] for _ in np.arange(N) ]
 #        transaction(i,j,1,init=True)
 
 # =============================================================================
+"""preparing for writing files""" #XXX
+version = 'test7'
+path = make_directories(version)
+# =============================================================================
 """Main"""
 
 """choose one agent
@@ -485,6 +487,8 @@ explores for new agent (expands his memory)"""
 for t in np.arange(T)+1:#t goes from 1 to T
     """computations"""
     print(t)
+    tau = (t-1) % saving_time_step
+    
     shuffled_agents=np.arange(N)
     np.random.shuffle(shuffled_agents)
     for i in shuffled_agents:
@@ -516,29 +520,36 @@ for t in np.arange(T)+1:#t goes from 1 to T
     
     """trackers"""
     tracker.update_A(A)
-    tracker.get_list('self_value',t-1)
-    tracker.get_list('valuable_to_others',t-1)
-    tracker.get_list('correlation_mon',t-1)
-    tracker.get_list('correlation_situ',t-1)
-    tracker.get_list('money',t-1)
-    tracker.get_list('approval',t-1)
-    tracker.get_list('asset',t-1)
-    
+    tracker.get_list('self_value',tau)
+    tracker.get_list('valuable_to_others',tau)
+    tracker.get_list('correlation_mon',tau)
+    tracker.get_list('correlation_situ',tau)
+    tracker.get_list('money',tau)
+    tracker.get_list('approval',tau)
+    tracker.get_list('asset',tau)
     if t>2:
-        tracker.get_list('worth_ratio',t-3)
-#    if t > T-sampling_time:
-#        tracker.get_list('trans_time',t-1-(T-sampling_time))
-    if t == T-sampling_time:
-        tracker.get_list('sample_time_trans',t)
-
+        tracker.get_list('worth_ratio',tau-2)
+#    if t - sampling_time >=0 and (t - sampling_time) % saving_time_step == 0:
+    if tau == saving_time_step - sampling_time:
+        tracker.get_list('sample_time_trans',tau)
+    
     explore_prob_array[t-1] /= N
+    
+    if t % saving_time_step == 0 or t == 1:
+        boolean = False
+    if t % saving_time_step == 0 and t >= saving_time_step:
+        if t >= T - saving_time_step:
+            boolean = True
+        save_it(version,t,boolean) #Write File
+#    if boolean and tau > saving_time_step - sampling_time:
+    tau_prime = (tau+1) % saving_time_step
+    if boolean and t >= T - saving_time_step:
+        tracker.get_list('trans_time',tau_prime)
+        print('tau',tau_prime)
+
 
 
 print(datetime.now() - start_time)
-# =============================================================================
-"""Write File"""
-version = 'friendship_point' #XXX
-path = save_it(version)
 # =============================================================================
 """Analysis and Measurements"""
 shutil.copyfile(os.getcwd()+'\\Homans.py',path+'\\Homans.py')
@@ -547,8 +558,10 @@ shutil.copyfile(os.getcwd()+'\\Results_analysis_Homans.py',path+'\\Results_analy
 
 tracker.get_path(path)
 
-analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,A,path)
-analyse.graph_construction('trans_number',num_transaction_tot,sample_time_trans = tracker.sample_time_trans)
+#analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,A,path)
+#analyse.graph_construction('trans_number',num_transaction_tot,sample_time_trans = tracker.sample_time_trans)
+tracker.plot_general(explore_prob_array * N,title='Average Exploration Probability',explore=True,N=N)
+tracker.plot_general(num_transaction_tot,title='Number of Transaction')
 
 plt.figure()
 plt.plot(p0_tracker[::2])
