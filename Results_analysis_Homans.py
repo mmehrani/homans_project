@@ -12,7 +12,7 @@ import os
 import matplotlib.animation as animation
 import graph_tools_glossary
 
-N = 50
+N = 70
 T = 500
 memory_size = 10
 initial_time = 400
@@ -106,14 +106,14 @@ anim = animation.FuncAnimation(fig,animate,frames=20, interval=1000, blit=True)
 anim.save(path+'probability.gif', writer='imagemagick')
 plt.close()
 
-analyse.graph_related_chars(num_transaction_tot,tracker)
+analyse.graph_related_chars(num_transaction_tot,tracker,sampling_time)
 
 """ community isomorphism investigation"""
 analyse.community_detection()
 
 for prop in ['money','asset','approval','worth_ratio']:
     analyse.communities_property_hist(prop)
-#    analyse.communities_property_evolution(tracker,prop)
+    analyse.communities_property_evolution(tracker,prop)
 
 plt.close('all')
 
