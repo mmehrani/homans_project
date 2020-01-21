@@ -353,7 +353,7 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
         plt.close()
         return
     
-    def graph_related_chars(self,num_transaction,tracker):
+    def graph_related_chars(self,num_transaction,tracker,sampling_time):
         path = self.path
         try:
             os.mkdir(path + '\\graph_related')
@@ -365,9 +365,10 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
         for i in np.arange(20)+1:
             print('i =',i)
             self.path = path + '\\graph_related' + '\\{0}, '.format(i)
-            self.graph_construction('trans_number',num_transaction,boolean=False,fpoint=i,sample_time_trans=tracker.sample_time_trans)
+            self.graph_construction('trans_number',num_transaction,boolean=False,fpoint=i,sampling_time=sampling_time,sample_time_trans=tracker.sample_time_trans)
             if self.G.number_of_nodes() == 0:
                 print('cannot make more graphs')
+                self.graph_construction('trans_number',num_transaction,sampling_time=sampling_time,sample_time_trans=tracker.sample_time_trans)
                 break
             self.draw_graph_weighted_colored('spring')
             self.draw_graph_weighted_colored('kamada_kawai')
@@ -403,7 +404,7 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
                 dic['rc'][local3] = self.rich_club()
             except: print('rich club')
             try:
-                for prop in ['money','asset','approval','worth_ratio']:
+                for prop in ['money','asset','approval','worth_ratio','situation']:
                     self.communities_property_hist(prop,boolean=False)
             except: print('property hist')
 
