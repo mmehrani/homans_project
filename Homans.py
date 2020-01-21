@@ -394,7 +394,7 @@ def save_it(version,t,boolean):
         pickle.dump(tracker,tracker_file,pickle.HIGHEST_PROTOCOL)
         
 #    t_before = tracker.agents_money
-    tracker = Analysis_Tools_Homans.Tracker(N,saving_time_step,memory_size,A,boolean)  
+    tracker = Analysis_Tools_Homans.Tracker(N,saving_time_step,memory_size,A,to_save_last_trans=[boolean,saving_time_step])  
 #    t_after = tracker.agents_money
 #    print('before',t_before)
 #    print('after',t_after)
