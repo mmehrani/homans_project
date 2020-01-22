@@ -17,7 +17,8 @@ import matplotlib.colors as col
 class Community_related_tools():
     
 #    def __init__(self):
-#        self.partition = communityx.greedy_modularity_communities(self.G)
+#        self.modularity_communities = None
+#        self.best_parts = None
     
     def community_division(self):
         """
@@ -25,11 +26,25 @@ class Community_related_tools():
         """
         return communityx.greedy_modularity_communities(self.G)
     
+    def assign_communities(self):
+        """
+        assigned communities to be calculated just once for a graph in all analysis funcs.
+        """
+        self.modularity_communities = communityx.greedy_modularity_communities(self.G)
+        community_members = [list(x) for x in self.modularity_communities]
+        com_dict = {}
+        for i,com in enumerate(community_members):
+            for node in com:
+                com_dict[node] = i
+
+        self.best_parts = com_dict
+        return
+    
     def community_detection(self):
         """Community Detection"""
-        community_dict = community.best_partition(self.G)
+        community_dict = self.best_parts
 #        partition2 = self.partition
-        partition2 = self.community_division()
+        partition2 = self.modularity_communities
         
         """Modularity"""
         modularity = community.modularity(community_dict,self.G)
@@ -63,7 +78,7 @@ class Community_related_tools():
     
     def communities_property_hist(self,property_id,boolean=True):
         """properties histogram in inter-communities"""
-        community_members = [list(x) for x in communityx.greedy_modularity_communities(self.G)]
+        community_members = [list(x) for x in self.modularity_communities]
         proprety_arr = self.array(property_id)
         communities_property_list = []
         
@@ -175,6 +190,7 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
 #        dynamic_graph = tracker.make_dynamic_trans_time_graph(constructed_graph)
 #        nx.write_gexf(dynamic_graph,self.path+'dynamic_%s_graph.gexf'%(graph_type))
         self.G = G
+        self.assign_communities()
         return G
     
     
@@ -183,7 +199,7 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
         print("Size of G is:", self.G.number_of_nodes())
 #        edgewidth = [ d['weight'] for (u,v,d) in self.G.edges(data=True)]
 #        color = [ self.a_matrix[u].situation for u in self.G.nodes()]
-        color = list(community.best_partition(self.G).values())
+        color = list(self.best_parts.values())
 #        size = [self.a_matrix[u].asset*10 for u in self.G.nodes()]
 #        size = [ self.a_matrix[u].situation*150 for u in self.G.nodes()]
         size = [ self.a_matrix[u].worth_ratio*150 for u in self.G.nodes()]
