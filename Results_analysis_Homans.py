@@ -11,6 +11,7 @@ import networkx as nx
 import os
 import matplotlib.animation as animation
 import graph_tools_glossary
+import sys
 
 N = 70
 T = 500
@@ -19,10 +20,15 @@ initial_time = 400
 time_step = 100
 sampling_time = 100
 version = 'test7'
+
+pd = {'win32':'\\', 'linux':'/'}
+if sys.platform.startswith('win32'):
+    plat = 'win32'
+elif sys.platform.startswith('linux'):
+    plat = 'linux'
 current_path = os.getcwd()
-path = current_path + '\\runned_files'+'\\N%d_T%d\\'%(N,T)+version+'\\'
-path += '%d_%d'%(initial_time, initial_time + time_step)+'\\'
-#path += '%d_%d'%(period_last_point - opening_time_steps,period_last_point)+'\\'
+path = current_path +pd[plat]+'runned_files'+pd[plat]+'N%d_T%d'%(N,T)+pd[plat]+version+pd[plat]
+path += '%d_%d'%(initial_time, initial_time + time_step)+pd[plat]
 
 """Open File"""
 with open(path+'Other_data.pkl','rb') as data_file:
@@ -113,7 +119,7 @@ analyse.community_detection()
 
 for prop in ['money','asset','approval','worth_ratio']:
     analyse.communities_property_hist(prop)
-    analyse.communities_property_evolution(tracker,prop)
+#    analyse.communities_property_evolution(tracker,prop)
 
 plt.close('all')
 

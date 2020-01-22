@@ -10,9 +10,13 @@ import os
 import community
 from networkx.algorithms import community as communityx
 from agents_properties_tools import arrays_glossary
-
 import matplotlib.cm as cm
-import matplotlib.colors as col
+import sys
+pd = {'win32':'\\', 'linux':'/'}
+if sys.platform.startswith('win32'):
+    plat = 'win32'
+elif sys.platform.startswith('linux'):
+    plat = 'linux'
 
 class Community_related_tools():
     
@@ -356,7 +360,7 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
     def graph_related_chars(self,num_transaction,tracker,sampling_time):
         path = self.path
         try:
-            os.mkdir(path + '\\graph_related')
+            os.mkdir(path + pd[plat]+'graph_related')
         except:
             print('exists')
         dic = {'modul':[],'cover':[],'asph':[],'asph_r':[],'cc':[],'cc_r':[],'sigma':[],'omega':[],'rc':[]}
@@ -364,7 +368,7 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
         local1 = -1; local2 = -1; local3 = -1
         for i in np.arange(20)+1:
             print('i =',i)
-            self.path = path + '\\graph_related' + '\\{0}, '.format(i)
+            self.path = path + pd[plat]+'graph_related' + pd[plat]+'{0}, '.format(i)
             self.graph_construction('trans_number',num_transaction,boolean=False,fpoint=i,sampling_time=sampling_time,sample_time_trans=tracker.sample_time_trans)
             if self.G.number_of_nodes() == 0:
                 print('cannot make more graphs')
