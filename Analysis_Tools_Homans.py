@@ -4,7 +4,12 @@ Created on Fri Sep 13 12:53:00 2019
 """
 import sys
 import os
-sys.path.insert(1, os.getcwd() + '/homans_tools')
+pd = {'win32':'\\', 'linux':'/'}
+if sys.platform.startswith('win32'):
+    plat = 'win32'
+elif sys.platform.startswith('linux'):
+    plat = 'linux'
+sys.path.insert(1, os.getcwd() + pd[plat]+'homans_tools')
 
 import networkx as nx
 import numpy as np

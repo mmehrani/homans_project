@@ -10,7 +10,12 @@ import pickle
 import Analysis_Tools_Homans
 import os
 import shutil
-
+import sys
+pd = {'win32':'\\', 'linux':'/'}
+if sys.platform.startswith('win32'):
+    plat = 'win32'
+elif sys.platform.startswith('linux'):
+    plat = 'linux'
 
 start_time = datetime.now()
 
@@ -356,16 +361,16 @@ def shift_memory(agent,index):
 def make_directories(version):
     current_path = os.getcwd()
     try:
-        os.mkdir(current_path+'\\runned_files')
+        os.mkdir(current_path+pd[plat]+'runned_files')
     except OSError:
         print ("runned_files already exists")
         
     try:
-        os.mkdir(current_path+'\\runned_files'+'\\N%d_T%d'%(N,T))
+        os.mkdir(current_path+pd[plat]+'runned_files'+pd[plat]+'N%d_T%d'%(N,T))
     except OSError:
         print ("version already exists")
     
-    path = current_path+'\\runned_files'+'\\N%d_T%d\\'%(N,T)+version+'\\'
+    path = current_path+pd[plat]+'runned_files'+pd[plat]+'N%d_T%d'%(N,T)+pd[plat]+version+pd[plat]
     try:
         os.mkdir(path)
     except OSError:
@@ -375,7 +380,7 @@ def make_directories(version):
 def save_it(version,t,boolean):
     global tracker
     current_path = os.getcwd()
-    path = current_path+'\\runned_files'+'\\N%d_T%d\\'%(N,T)+version+ '\\%d_%d\\'%(t-saving_time_step,t)
+    path = current_path+pd[plat]+'runned_files'+pd[plat]+'N%d_T%d'%(N,T)+pd[plat]+version+ pd[plat]+'%d_%d'%(t-saving_time_step,t)+pd[plat]
     
     try:
         os.mkdir(path)
