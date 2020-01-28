@@ -13,13 +13,13 @@ import matplotlib.animation as animation
 import graph_tools_glossary
 import sys
 
-N = 70
-T = 500
+N = 300
+T = 60000
 memory_size = 10
-initial_time = 400
-time_step = 100
-sampling_time = 100
-version = 'test7'
+initial_time = 40000
+time_step = 10000
+sampling_time = 1000
+version = '1_basic_run'
 
 pd = {'win32':'\\', 'linux':'/'}
 if sys.platform.startswith('win32'):
@@ -77,10 +77,11 @@ analyse.topology_chars()
 analyse.rich_club(normalized=False)
 analyse.assortativity()
 
-size = 10
-for rand_agent in np.random.choice(np.arange(N),size=size,replace=False):
-    agent = rand_agent
-    tracker.trans_time_visualizer(agent,'Transaction Time Tracker')
+if initial_time == T - time_step:
+    size = 10
+    for rand_agent in np.random.choice(np.arange(N),size=size,replace=False):
+        agent = rand_agent
+        tracker.trans_time_visualizer(agent,'Transaction Time Tracker')
 tracker.valuability()
 
 for prop in ['money','asset','approval']:
@@ -93,6 +94,7 @@ tracker.correlation_growth_situation('approval','situation')
 tracker.correlation_growth_situation('money','initial_money')
 tracker.correlation_growth_situation('asset','initial_asset')
 tracker.correlation_growth_situation('approval','initial_approval')
+plt.close('all')
 
 tracker.plot('self_value',title='Self Value')
 tracker.plot('valuable_to_others',title='How Much Valuable to Others')
@@ -112,14 +114,13 @@ anim = animation.FuncAnimation(fig,animate,frames=20, interval=1000, blit=True)
 anim.save(path+'probability.gif', writer='imagemagick')
 plt.close()
 
-analyse.graph_related_chars(num_transaction_tot,tracker,sampling_time)
-
-""" community isomorphism investigation"""
 analyse.community_detection()
 
 for prop in ['money','asset','approval','worth_ratio']:
     analyse.communities_property_hist(prop)
 #    analyse.communities_property_evolution(tracker,prop)
+
+analyse.graph_related_chars(num_transaction_tot,tracker,sampling_time)
 
 plt.close('all')
 
