@@ -13,13 +13,13 @@ import matplotlib.animation as animation
 import graph_tools_glossary
 import sys
 
-N = 300
-T = 60000
+N = 50
+T = 500
 memory_size = 10
-initial_time = 40000
-time_step = 10000
-sampling_time = 1000
-version = '1_basic_run'
+initial_time = 0
+time_step = 500
+sampling_time = 500
+version = 'test8'
 
 pd = {'win32':'\\', 'linux':'/'}
 if sys.platform.startswith('win32'):
@@ -45,7 +45,7 @@ with open(path + 'Tracker.pkl','rb') as tracker_file:
 #tool.graph_construction('trans_number',num_transaction_tot,sample_time_trans = tracker.sample_time_trans)
 """ Plots""" 
 analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,a_matrix,path)
-analyse.graph_construction('trans_number',num_transaction_tot,sampling_time = sampling_time,sample_time_trans = tracker.sample_time_trans)
+analyse.graph_construction('trans_number',num_transaction_tot, sampling_time=sampling_time, sample_time_trans=tracker.sample_time_trans)
 analyse.draw_graph_weighted_colored()
 analyse.graph_correlations()
 
@@ -77,7 +77,8 @@ analyse.topology_chars()
 analyse.rich_club(normalized=False)
 analyse.assortativity()
 
-if initial_time == T - time_step:
+#if initial_time == T - time_step:
+if True:
     size = 10
     for rand_agent in np.random.choice(np.arange(N),size=size,replace=False):
         agent = rand_agent

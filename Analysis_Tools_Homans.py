@@ -288,7 +288,7 @@ class Analysis(Graph_related_tools,properties_alteration): #XXX
     
 class Tracker(properties_alteration,hist_plot_tools): #XXX
     
-    def __init__(self,number_agent,total_time,size,a_matrix,boolean=False,*args,**kwargs):
+    def __init__(self,number_agent,total_time,size,a_matrix,trans_saving_time_interval,saving_time_step,boolean=False,*args,**kwargs):
         
         self.a_matrix = a_matrix
         self.T = total_time
@@ -298,16 +298,18 @@ class Tracker(properties_alteration,hist_plot_tools): #XXX
 #        if self.sampling_time > self.T:
 #            self.sampling_time = self.T
 #        self.boolean = boolean
-        self.boolean, self.saving_time_step = kwargs.get('to_save_last_trans',[False,None])
-        self.saving_time_step = kwargs.get('saving_time_step',self.saving_time_step)
+#        self.boolean, self.saving_time_step = kwargs.get('to_save_last_trans',[False,None])
+#        self.saving_time_step = kwargs.get('saving_time_step',self.saving_time_step)
+        self.saving_time_step = saving_time_step
+        self.trans_saving_time_interval = trans_saving_time_interval
         
         """Trackers"""
         self.self_value = np.zeros((self.T,self.N))
         self.valuable_to_others = np.zeros((self.T,self.N))
         self.worth_ratio = np.zeros((self.T-2,self.N))
         
-        if self.boolean:
-            self.trans_time = np.zeros((self.saving_time_step,self.N,self.N))
+#        if self.boolean:
+        self.trans_time = np.zeros((self.trans_saving_time_interval,self.N,self.N))
         
         self.sample_time_trans = np.zeros((self.N,self.N))
         self.correlation_mon = np.zeros(self.T)
@@ -391,8 +393,8 @@ class Tracker(properties_alteration,hist_plot_tools): #XXX
         
 #        im = ax.imshow(self.trans_time[:,agent_to_watch,np.argsort(sort_arr)].astype(float),aspect='auto')
         agent_trans_time = self.trans_time[:,agent_to_watch,:].astype(float)
-        show_arr = np.zeros((self.saving_time_step-1,self.N))
-        for t in np.arange(self.saving_time_step-1):
+        show_arr = np.zeros((self.trans_saving_time_interval-1,self.N))
+        for t in np.arange(self.trans_saving_time_interval-1):
             show_arr[t] = agent_trans_time[t+1,:] - agent_trans_time[t,:]
 #        print('trans time',np.size(agent_trans_time[:,0]))
 #        print('show arr',np.size(show_arr[:,0]))

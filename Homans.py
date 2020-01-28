@@ -377,7 +377,7 @@ def make_directories(version):
         print ("Creation of the directory failed")
     return path
 
-def save_it(version,t,boolean):
+def save_it(version,t):
     global tracker
     current_path = os.getcwd()
     path = current_path+pd[plat]+'runned_files'+pd[plat]+'N%d_T%d'%(N,T)+pd[plat]+version+ pd[plat]+'%d_%d'%(t-saving_time_step,t)+pd[plat]
@@ -391,7 +391,7 @@ def save_it(version,t,boolean):
         pickle.dump(A,agent_file,pickle.HIGHEST_PROTOCOL)
         
     with open(path + 'Other_data.pkl','wb') as data:
-        pickle.dump(num_transaction_tot[t-1-sampling_time:t-1],data,pickle.HIGHEST_PROTOCOL) #should save the midway num_trans
+        pickle.dump(num_transaction_tot[t-sampling_time:t],data,pickle.HIGHEST_PROTOCOL) #should save the midway num_trans
         pickle.dump(explore_prob_array,data,pickle.HIGHEST_PROTOCOL)
 #        pickle.dump(tracker.trans_time[-sampling_time:] ,data,pickle.HIGHEST_PROTOCOL)
         
@@ -399,7 +399,7 @@ def save_it(version,t,boolean):
         pickle.dump(tracker,tracker_file,pickle.HIGHEST_PROTOCOL)
         
 #    t_before = tracker.agents_money
-    tracker = Analysis_Tools_Homans.Tracker(N,saving_time_step,memory_size,A,to_save_last_trans=[boolean,saving_time_step])  
+#    tracker = Analysis_Tools_Homans.Tracker(N,saving_time_step,memory_size,A,to_save_last_trans=[boolean,saving_time_step])  
 #    t_after = tracker.agents_money
 #    print('before',t_before)
 #    print('after',t_after)
@@ -407,8 +407,8 @@ def save_it(version,t,boolean):
 # =============================================================================
 """Parameters"""#XXX
 
-N = 300
-T = 20000
+N = 50
+T = 500
 similarity = 0.05                   #how much this should be?
 memory_size = 10                    #contains the last memory_size number of transaction times
 transaction_percentage = 0.1        #percent of amount of money the first agent proposes from his asset 
@@ -422,25 +422,27 @@ alpha = 1                           #in short-term effect of the frequency of tr
 beta = 0.3                          #in long-term effect of the frequency of transaction
 param = 2                           #a normalizing factor in assigning the acceptance probability. It normalizes difference of money of both sides
 lamda = 0                           # how much one agent relies on his last worth_ratio and how much relies on current transaction's worth_ratio
-sampling_time = 2000
-saving_time_step = 10000
-initial_for_trans_time = 10000
+sampling_time = 500
+saving_time_step = 500
+initial_for_trans_time = 100
+trans_saving_interval = 100
+version = 'test8'
 if sampling_time > T:
     sampling_time = T
 if saving_time_step < sampling_time:
     saving_time_step = sampling_time
-version = '1_basic_run'
 
 """Initial Condition"""
 
 situation_arr = np.random.random(N) #randomly distributed
-#money = np.full(N,2)
+money = np.full(N,5.5)
 #money = np.round(np.random.normal(loc=5.5,scale=1,size=N),decimals=3)
 #money = 1 + situation_arr * 2
 #money = np.zeros(N)
-money = np.round(np.random.rand(N) * 9 + 1 ,decimals=3)
+#money = np.round(np.random.rand(N) * 9 + 1 ,decimals=3)
 #money = np.round(situation_arr[:] * 9 + 1 ,decimals=3)
-approval = np.full(N,5.5)
+#approval = np.full(N,5.5)
+approval = np.round(np.random.rand(N) * 9 + 1 ,decimals=3)
 #approval = 1 + situation_arr * 2
 #approval = np.round(situation_arr[:] * 9 + 1 ,decimals=3)
 #approval = np.round(11 - money[:],decimals=3)
@@ -459,7 +461,7 @@ for i in np.arange(N):
 explore_prob_array = np.zeros(T)
 num_transaction_tot = np.zeros(T)
 
-tracker = Analysis_Tools_Homans.Tracker(N,saving_time_step,memory_size,A)
+tracker = Analysis_Tools_Homans.Tracker(N,T,memory_size,A,trans_saving_interval,saving_time_step)
 num_explore = np.zeros(T)
 p0_tracker = []
 p1_tracker = []
@@ -478,7 +480,7 @@ asset_tracker = [ [] for _ in np.arange(N) ]
 #        transaction(i,j,1,init=True)
 
 # =============================================================================
-"""preparing for writing files""" #XXX
+"""preparing for writing files"""
 path = make_directories(version)
 # =============================================================================
 """Main"""
@@ -544,16 +546,23 @@ for t in np.arange(T)+1:#t goes from 1 to T
     if t % saving_time_step == 0 or t == 1:
         boolean = False
     if t % saving_time_step == 0 and t >= saving_time_step:
+        save_it(version,t) #Write File
+        print('****',t)
 #        if t >= T - saving_time_step:
-        if t == initial_for_trans_time:
-            boolean = True
-        else:
-            boolean = False
-        save_it(version,t,boolean) #Write File
-    tau_prime = (tau+1) % saving_time_step
+#        if t == initial_for_trans_time:
+#            boolean = True
+#        else:
+#            boolean = False
+#    tau_prime = (tau+1) % saving_time_step
+
+    if t >= initial_for_trans_time and t < initial_for_trans_time + trans_saving_interval:
+        boolean = True
+    else:
+        boolean = False
 #    if boolean and t >= T - saving_time_step:
-    if boolean and t >= T - saving_time_step:
-        tracker.get_list('trans_time',tau_prime)
+    t_prime = t - initial_for_trans_time
+    if boolean:
+        tracker.get_list('trans_time',t_prime)
 
 
 

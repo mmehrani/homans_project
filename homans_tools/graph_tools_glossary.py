@@ -78,7 +78,7 @@ class Community_related_tools():
         com_file.write('\n')
         com_file.write('The coverage of a partition is the ratio of the number of intra-community edges to the total number of edges in the graph.')
         com_file.close()
-        return modularity,coverage
+        return modularity,coverage,modularity_rand,coverage_rand
     
     def communities_property_hist(self,property_id,boolean=True):
         """properties histogram in inter-communities"""
@@ -322,7 +322,7 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
         sigma = np.sqrt(np.var(num_transaction))
 #        sigma = np.sqrt(np.var(num_transaction[sampling_time:]))
 #        T_eff = self.T * (avg + 2*sigma)/self.N
-        T_eff = sampling_time * (avg + 1*sigma)/self.N
+        T_eff = sampling_time * (avg + 2*sigma)/self.N
         beta = 1
 
         self.friendship_num = int(np.ceil(beta * T_eff / self.N))
@@ -379,7 +379,7 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
             os.mkdir(path + pd[plat]+'graph_related')
         except:
             print('exists')
-        dic = {'modul':[],'cover':[],'asph':[],'asph_r':[],'cc':[],'cc_r':[],'sigma':[],'omega':[],'rc':[]}
+        dic = {'modul':[],'cover':[],'asph':[],'asph_r':[],'cc':[],'cc_r':[],'sigma':[],'omega':[],'rc':[],'cover_r':[],'modul_r':[]}
 
         local1 = -1; local2 = -1; local3 = -1
         for i in np.arange(20)+1:
@@ -400,7 +400,9 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
                 local1 += 1
                 dic['modul'].append(0)
                 dic['cover'].append(0)
-                dic['modul'][local1], dic['cover'][local1] = self.community_detection()
+                dic['modul_r'].append(0)
+                dic['cover_r'].append(0)
+                dic['modul'][local1], dic['cover'][local1],dic['modul_r'][local1], dic['cover_r'][local1] = self.community_detection()
             except: print('community detection')
             try:
                 local2 += 1
@@ -430,8 +432,8 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
 
         self.path = path
         """Plot"""
-        self.plot_general(path,dic['modul'],title='GR Modularity Vs Friendship Point')
-        self.plot_general(path,dic['cover'],title='GR Coverage Vs Friendship Point')
+        self.plot_general(path,dic['modul'],second_array=dic['modul_r'],title='GR Modularity Vs Friendship Point')
+        self.plot_general(path,dic['cover'],second_array=dic['cover_r'],title='GR Coverage Vs Friendship Point')
         self.plot_general(path,dic['sigma'],title='GR Smallworldness Sigma Vs Friendship Point')
         self.plot_general(path,dic['omega'],title='GR Smallworldness Omega Vs Friendship Point')
         self.plot_general(path,dic['cc'],second_array=dic['cc_r'],title='GR Clustering Coefficient Vs Friendship Point')
