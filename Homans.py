@@ -80,8 +80,9 @@ class Agent():
 #        p0 = value * prob0_magnify_factor 
         p0 = value * prob0_magnify_factor + 1
         p1 = self.frequency_to_probability(neighbor,t) * prob1_magnify_factor - (prob1_magnify_factor -1)
-        p2 = np.exp(self.feeling[neighbor]) * prob2_magnify_factor - (prob2_magnify_factor -1)
 #        p1 = 1.0
+        p2 = np.exp(self.feeling[neighbor]) * prob2_magnify_factor - (prob2_magnify_factor -1)
+#        p2 = 1.0
         
         p0_tracker.append(p0)
         p1_tracker.append(p1)
@@ -210,6 +211,8 @@ def transaction(index1,index2,t,init=False):
             acceptance_thr = 1
         else: acceptance_thr = 0
         acceptance = acceptance_worth * acceptance_thr * acceptance_asset * acceptance_util
+        
+        acceptance_manager([acceptance_worth, acceptance_thr, acceptance_asset, acceptance_util],index1,t)
     
     if acceptance:   #transaction accepts
         num_transaction_tot[t-1] += 1
@@ -270,6 +273,12 @@ def transaction(index1,index2,t,init=False):
         
     return acceptance
 
+# =============================================================================
+def acceptance_manager(accept_list,agent,t):
+    dic_value = conditions_glossary_dict[tuple(accept_list)]
+    rejection_agent[agent,dic_value] += 1
+    rejection_time[t-1,dic_value] += 1
+    return
 # =============================================================================
 def explore(index,t):
     '''choose another agent which is not in his memory
@@ -380,7 +389,7 @@ def make_directories(version):
 def save_it(version,t):
     global tracker
     current_path = os.getcwd()
-    path = current_path+pd[plat]+'runned_files'+pd[plat]+'N%d_T%d'%(N,T)+pd[plat]+version+ pd[plat]+'%d_%d'%(t-saving_time_step,t)+pd[plat]
+    path = current_path+pd[plat]+'runned_files'+pd[plat]+'N%d_T%d'%(N,T)+pd[plat]+version+ pd[plat]+'0_%d'%(t)+pd[plat]
     
     try:
         os.mkdir(path)
@@ -393,6 +402,7 @@ def save_it(version,t):
     with open(path + 'Other_data.pkl','wb') as data:
         pickle.dump(num_transaction_tot[t-sampling_time:t],data,pickle.HIGHEST_PROTOCOL) #should save the midway num_trans
         pickle.dump(explore_prob_array,data,pickle.HIGHEST_PROTOCOL)
+        pickle.dump(rejection_agent,data,pickle.HIGHEST_PROTOCOL)
 #        pickle.dump(tracker.trans_time[-sampling_time:] ,data,pickle.HIGHEST_PROTOCOL)
         
     with open(path + 'Tracker.pkl','wb') as tracker_file:
@@ -407,8 +417,8 @@ def save_it(version,t):
 # =============================================================================
 """Parameters"""#XXX
 
-N = 50
-T = 500
+N = 100
+T = 20000
 similarity = 0.05                   #how much this should be?
 memory_size = 10                    #contains the last memory_size number of transaction times
 transaction_percentage = 0.1        #percent of amount of money the first agent proposes from his asset 
@@ -422,11 +432,11 @@ alpha = 1                           #in short-term effect of the frequency of tr
 beta = 0.3                          #in long-term effect of the frequency of transaction
 param = 2                           #a normalizing factor in assigning the acceptance probability. It normalizes difference of money of both sides
 lamda = 0                           # how much one agent relies on his last worth_ratio and how much relies on current transaction's worth_ratio
-sampling_time = 500
-saving_time_step = 500
-initial_for_trans_time = 100
-trans_saving_interval = 100
-version = 'test8'
+sampling_time = 2000
+saving_time_step = 10000
+initial_for_trans_time = 0
+trans_saving_interval = 4000
+version = '1_basic_run'
 if sampling_time > T:
     sampling_time = T
 if saving_time_step < sampling_time:
@@ -460,6 +470,11 @@ for i in np.arange(N):
 #num_transaction_tot = np.zeros(saving_time_step)
 explore_prob_array = np.zeros(T)
 num_transaction_tot = np.zeros(T)
+rejection_time = np.zeros((T,16))
+rejection_agent = np.zeros((N,16))
+binary = [0,1]
+conditions_glossary = [(x,y,z,w) for x in binary for y in binary for z in binary for w in binary]
+conditions_glossary_dict = { cond:x for cond,x in zip(conditions_glossary,range(16))}
 
 tracker = Analysis_Tools_Homans.Tracker(N,T,memory_size,A,trans_saving_interval,saving_time_step)
 num_explore = np.zeros(T)
@@ -535,9 +550,9 @@ for t in np.arange(T)+1:#t goes from 1 to T
     tracker.get_list('money',tau)
     tracker.get_list('approval',tau)
     tracker.get_list('asset',tau)
+    tracker.get_list('rejection',tau,array=rejection_time)
     if t>2:
         tracker.get_list('worth_ratio',tau-2)
-#    if t - sampling_time >=0 and (t - sampling_time) % saving_time_step == 0:
     if tau == saving_time_step - sampling_time:
         tracker.get_list('sample_time_trans',tau)
     
@@ -548,12 +563,6 @@ for t in np.arange(T)+1:#t goes from 1 to T
     if t % saving_time_step == 0 and t >= saving_time_step:
         save_it(version,t) #Write File
         print('****',t)
-#        if t >= T - saving_time_step:
-#        if t == initial_for_trans_time:
-#            boolean = True
-#        else:
-#            boolean = False
-#    tau_prime = (tau+1) % saving_time_step
 
     if t >= initial_for_trans_time and t < initial_for_trans_time + trans_saving_interval:
         boolean = True

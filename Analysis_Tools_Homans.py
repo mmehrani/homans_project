@@ -317,6 +317,7 @@ class Tracker(properties_alteration,hist_plot_tools): #XXX
         self.agents_money  = np.zeros((self.T,self.N))
         self.agents_asset  = np.zeros((self.T,self.N))
         self.agents_approval  = np.zeros((self.T,self.N))
+        self.rejection = np.zeros((4,self.T))
         
     def update_A(self,a_matrix):
         self.a_matrix = a_matrix
@@ -326,7 +327,7 @@ class Tracker(properties_alteration,hist_plot_tools): #XXX
         self.path = path
         return
         
-    def get_list(self,get_list,t):
+    def get_list(self,get_list,t,array=None):
         
         if get_list == 'self_value':
             self.self_value[t] = np.sum(self.array('value'),axis = 1)
@@ -354,6 +355,9 @@ class Tracker(properties_alteration,hist_plot_tools): #XXX
             self.correlation_mon[t] = self.correlation_money_situation()
         if get_list == 'correlation_situ':
             self.correlation_situ[t] = self.correlation_situation_situation()
+            
+        if get_list == 'reject':
+            self.rejection[t] = array
         
     def make_dynamic_trans_time_graph(self,graph):
         """

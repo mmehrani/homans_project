@@ -34,6 +34,7 @@ path += '%d_%d'%(initial_time, initial_time + time_step)+pd[plat]
 with open(path+'Other_data.pkl','rb') as data_file:
     num_transaction_tot = pickle.load(data_file)
     explore_prob_arr    = pickle.load(data_file)
+    rejection_agent     = pickle.load(data_file)
     
 with open(path+'Agents.pkl','rb') as agent_file:
     a_matrix = pickle.load(agent_file)
