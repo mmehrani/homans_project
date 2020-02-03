@@ -510,7 +510,7 @@ explores for new agent (expands his memory)"""
 for t in np.arange(T)+1:#t goes from 1 to T
     """computations"""
     print(t)
-    tau = (t-1) % saving_time_step
+    tau = (t-1)
     
     shuffled_agents=np.arange(N)
     np.random.shuffle(shuffled_agents)

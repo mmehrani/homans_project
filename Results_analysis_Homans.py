@@ -28,7 +28,7 @@ elif sys.platform.startswith('linux'):
     plat = 'linux'
 current_path = os.getcwd()
 path = current_path +pd[plat]+'runned_files'+pd[plat]+'N%d_T%d'%(N,T)+pd[plat]+version+pd[plat]
-path += '%d_%d'%(initial_time, initial_time + time_step)+pd[plat]
+path += '%d_%d'%(0, initial_time + time_step)+pd[plat]
 
 """Open File"""
 with open(path+'Other_data.pkl','rb') as data_file:
