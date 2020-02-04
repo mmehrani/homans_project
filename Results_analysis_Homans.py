@@ -13,13 +13,13 @@ import matplotlib.animation as animation
 import graph_tools_glossary
 import sys
 
-N = 50
-T = 500
+N = 100
+T = 1000
 memory_size = 10
 initial_time = 0
-time_step = 500
-sampling_time = 500
-version = 'test8'
+time_step = 1000
+sampling_time = 1000-1
+version = 'test'
 
 pd = {'win32':'\\', 'linux':'/'}
 if sys.platform.startswith('win32'):

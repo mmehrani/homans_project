@@ -16,7 +16,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from graph_tools_glossary import Graph_related_tools,Community_related_tools
 from agents_properties_tools import arrays_glossary
-
+import seaborn as sns
 
 class properties_alteration(arrays_glossary):
     def property_evolution(self,property_id):
@@ -105,43 +105,48 @@ class hist_plot_tools():
                'worth_ratio': self.worth_ratio,
                'correlation_mon': self.correlation_mon,
                'correlation_situ': self.correlation_situ}
-        plt.figure()
+#        plt.figure()
+        fig, ax = plt.subplots(1, 1)
         title = kwargs.get('title',what_array)
         alpha = kwargs.get('alpha',1)
-        plt.title(title)
-        plt.plot(ref[what_array],alpha=alpha)
-        plt.savefig(self.path+title)
+        ax.set_title(title)
+        ax.plot(ref[what_array],alpha=alpha)
+        fig.savefig(self.path+title)
         plt.close()
         return
     
     def plot_general(self,array,title='',**kwargs):
-        plt.figure()
-        plt.plot(array)
+        fig, ax = plt.subplots(1, 1)
+        ax.set_title(title)
+        ax.plot(array)
         explore = kwargs.get('explore',False)
         if explore:
             N = kwargs.get('N',100)
-            plt.ylim(0,1.05*N)
-        plt.title(title)
-        plt.savefig(self.path+title)
+            ax.set_ylim(0,1.05*N)
+#        plt.title(title)
+        fig.savefig(self.path+title)
         plt.close()
         return
     
     def hist_general(self,array,title=''):
-        plt.figure()
-        plt.hist(array)
-        plt.title(title)
-        plt.savefig(self.path+title)
+        fig, ax = plt.subplots(1, 1)
+        ax.set_title(title)
+        sns.distplot(array,ax = ax)
+#        plt.hist(array)
+        fig.savefig(self.path+title)
         plt.close()
         return
     
     def hist_log_log_general(self,array,title=''):
-        plt.figure()
-        plt.xscale('log')
-        plt.yscale('log')
+        fig, ax = plt.subplots(1, 1)
+        ax.set_xscale('log')
+        ax.set_yscale('log')
+        
         bins=np.logspace(np.log10(np.amin(array)),np.log10(np.amax(array)),20)
-        plt.hist(array,bins=bins)
-        plt.title(title+' Histogram log-log'+' N={} T={}'.format(self.N,self.T))
-        plt.savefig(self.path+title+' Histogram Log-Log')
+#        plt.hist(array,bins=bins)
+        sns.distplot(array,bins = bins,ax = ax)
+        ax.set_title(title)
+        fig.savefig(self.path+title+' Histogram Log-Log')
         plt.close()
         return
     pass
@@ -157,32 +162,39 @@ class Analysis(Graph_related_tools,properties_alteration): #XXX
         return
 
     def hist(self,what_hist):
-        plt.figure()
+        fig, ax = plt.subplots(1, 1)
         dic = {'value','probability','utility','neighbor'}
         if what_hist in dic:
-            plt.hist(self.array(what_hist).flatten(),bins=50)
+#            plt.hist(self.array(what_hist).flatten(),bins=50)
+            sns.distplot(self.array(what_hist).flatten(),ax = ax,bins=50)
         else:
-            plt.hist(self.array(what_hist),bins=15)
+#            plt.hist(self.array(what_hist),bins=15)
+            sns.distplot(self.array(what_hist),bins=15,ax = ax)
         title = what_hist+' histogram'
-        plt.title(title)
-        plt.savefig(self.path+title)
+#        plt.title(title)
+        ax.set_title(title)
+        fig.savefig(self.path+title)
         plt.close()
         return
     
     def hist_log_log(self,what_hist):
-        plt.figure()
+        fig, ax = plt.subplots(1, 1)
         plt.xscale('log')
         plt.yscale('log')
         array = self.array(what_hist)
         if what_hist == 'value' or what_hist == 'probability' or what_hist == 'utility':
             bins=np.logspace(np.log10(np.amin(array.flatten()[array.flatten()>0])),np.log10(np.amax(array.flatten()[array.flatten()>0])),20)
-            plt.hist(array.flatten(),bins=bins)
+#            plt.hist(array.flatten(),bins=bins)
+            sns.distplot(array.flatten(),bins=bins,ax = ax)
         else:
             bins=np.logspace(np.log10(np.amin(array)),np.log10(np.amax(array)),20)
-            plt.hist(array,bins=bins)
+#            plt.hist(array,bins=bins)
+            sns.distplot(array,bins=bins,ax=ax)
+            
         title = what_hist+' histogram log-log'
-        plt.title(title)
-        plt.savefig(self.path+title)
+        
+        ax.set_title(title)
+        fig.savefig(self.path+title)
         plt.close()
         return
 
