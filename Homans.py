@@ -417,8 +417,8 @@ def save_it(version,t):
 # =============================================================================
 """Parameters"""#XXX
 
-N = 100
-T = 20000
+N = 50
+T = 500
 similarity = 0.05                   #how much this should be?
 memory_size = 10                    #contains the last memory_size number of transaction times
 transaction_percentage = 0.1        #percent of amount of money the first agent proposes from his asset 
@@ -432,10 +432,10 @@ alpha = 1                           #in short-term effect of the frequency of tr
 beta = 0.3                          #in long-term effect of the frequency of transaction
 param = 2                           #a normalizing factor in assigning the acceptance probability. It normalizes difference of money of both sides
 lamda = 0                           # how much one agent relies on his last worth_ratio and how much relies on current transaction's worth_ratio
-sampling_time = 2000
-saving_time_step = 10000
+sampling_time = 500
+saving_time_step = 500
 initial_for_trans_time = 0
-trans_saving_interval = 4000
+trans_saving_interval = 500
 version = '1_basic_run'
 if sampling_time > T:
     sampling_time = T
@@ -473,8 +473,10 @@ num_transaction_tot = np.zeros(T)
 rejection_time = np.zeros((T,16))
 rejection_agent = np.zeros((N,16))
 binary = [0,1]
+
 conditions_glossary = [(x,y,z,w) for x in binary for y in binary for z in binary for w in binary]
 conditions_glossary_dict = { cond:x for cond,x in zip(conditions_glossary,range(16))}
+conditions_glossary_string = ['{0}'.format(x) for x in conditions_glossary]
 
 tracker = Analysis_Tools_Homans.Tracker(N,T,memory_size,A,trans_saving_interval,saving_time_step)
 num_explore = np.zeros(T)
@@ -550,7 +552,7 @@ for t in np.arange(T)+1:#t goes from 1 to T
     tracker.get_list('money',tau)
     tracker.get_list('approval',tau)
     tracker.get_list('asset',tau)
-    tracker.get_list('rejection',tau,array=rejection_time)
+    
     if t>2:
         tracker.get_list('worth_ratio',tau-2)
     if tau == saving_time_step - sampling_time:
@@ -561,6 +563,7 @@ for t in np.arange(T)+1:#t goes from 1 to T
     if t % saving_time_step == 0 or t == 1:
         boolean = False
     if t % saving_time_step == 0 and t >= saving_time_step:
+        tracker.get_list('rejection',tau,array=rejection_time)
         save_it(version,t) #Write File
         print('****',t)
 

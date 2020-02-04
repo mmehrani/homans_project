@@ -19,7 +19,7 @@ memory_size = 10
 initial_time = 0
 time_step = 500
 sampling_time = 500
-version = 'test8'
+version = '1_basic_run'
 
 pd = {'win32':'\\', 'linux':'/'}
 if sys.platform.startswith('win32'):
