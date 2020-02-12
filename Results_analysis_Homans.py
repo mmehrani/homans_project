@@ -13,13 +13,12 @@ import matplotlib.animation as animation
 import graph_tools_glossary
 import sys
 
-N = 50
-T = 500
-memory_size = 10
+
+from versions_glossary.normal import N,T,memory_size,saving_time_step,version
+
 initial_time = 0
 time_step = 500
 sampling_time = 500
-version = '1_basic_run'
 
 pd = {'win32':'\\', 'linux':'/'}
 if sys.platform.startswith('win32'):
@@ -28,7 +27,7 @@ elif sys.platform.startswith('linux'):
     plat = 'linux'
 current_path = os.getcwd()
 path = current_path +pd[plat]+'runned_files'+pd[plat]+'N%d_T%d'%(N,T)+pd[plat]+version+pd[plat]
-path += '%d_%d'%(0, initial_time + time_step)+pd[plat]
+path += '%d_%d'%(0, initial_time + saving_time_step)+pd[plat]
 
 """Open File"""
 with open(path+'Other_data.pkl','rb') as data_file:
