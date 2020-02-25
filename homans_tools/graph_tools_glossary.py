@@ -34,14 +34,17 @@ class Community_related_tools():
         """
         assigned communities to be calculated just once for a graph in all analysis funcs.
         """
+#        self.modularity_communities = communityx.greedy_modularity_communities(self.G)
+#        community_members = [list(x) for x in self.modularity_communities]
+#        com_dict = {}
+#        for i,com in enumerate(community_members):
+#            for node in com:
+#                com_dict[node] = i
+#
+#        self.best_parts = com_dict
+        
         self.modularity_communities = communityx.greedy_modularity_communities(self.G)
-        community_members = [list(x) for x in self.modularity_communities]
-        com_dict = {}
-        for i,com in enumerate(community_members):
-            for node in com:
-                com_dict[node] = i
-
-        self.best_parts = com_dict
+        self.best_parts = community.best_partition(self.G)
         return
     
     def community_detection(self):
@@ -74,7 +77,8 @@ class Community_related_tools():
         com_file.write(str(coverage_rand))
         com_file.write('\n')
         com_file.write('number of communities:'+'\n')
-        com_file.write(str(len(partition2))+'\n')
+#        com_file.write(str(len(partition2))+'\n')
+        com_file.write(str(max(self.best_parts.values())+1)+'\n')
         com_file.write('\n')
         com_file.write('The coverage of a partition is the ratio of the number of intra-community edges to the total number of edges in the graph.')
         com_file.close()
