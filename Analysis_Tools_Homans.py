@@ -95,6 +95,27 @@ class properties_alteration(arrays_glossary):
         ax.set_title('correlation between '+survey_property_id+' growth'+' & '+base_property_id)
         fig.savefig(self.path + 'correlation between '+survey_property_id+' growth'+' & '+base_property_id)
         return
+    def correlation_pairplots(self):
+        """
+        we need to know how do correlations among attributes changes over time.
+        """
+        # attributes = {'money':self.agents_money,'asset':self.agents_asset,'approval':self.agents_approval}
+        attributes = {0:self.agents_money,1:self.agents_asset,2:self.agents_approval}
+        attributes_name = {0:'money',1:'asset',2:'approval'}
+        fig,axes = plt.subplots(3,3)
+        (ax00,ax01,ax02),(ax10,ax11,ax12),(ax20,ax21,ax22) = axes
+        
+        for i in range(len(attributes)):
+            for j in range(len(attributes)):
+                axes[i,j].plot( [ np.corrcoef(attributes[i][x,:],attributes[j][x,:])[0,1] for x in range(self.T) ])
+                if j == 0:
+                    axes[i,j].set_ylabel( attributes_name[i] )
+                if i == len(attributes_name) - 1:
+                    axes[i,j].set_xlabel( attributes_name[j] )
+        fig.savefig(self.path + 'correlations pair plots versus time')
+        plt.close()
+        
+        return
     
     pass
 

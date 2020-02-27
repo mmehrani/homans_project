@@ -104,6 +104,7 @@ tracker.plot('worth_ratio',title='Worth_ratio Evolution by Time',alpha=1)
 tracker.plot('correlation_mon',title='Correlation of Money and Situation')
 tracker.plot('correlation_situ',title="Correlation of Situation and Neighbor's Situation")
 
+tracker.correlation_pairplots()
 
 fig, ax = plt.subplots(nrows=1,ncols=1)
 probability = analyse.array('probability')
