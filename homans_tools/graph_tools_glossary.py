@@ -354,25 +354,46 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
                 attr_array[attr_index,i] = nodes_dict[n][attr]
                 i += 1
             attr_index += 1
-        attr_array_avg = np.average(attr_array,axis=1)
-        for i in np.arange(length):
-            for j in np.arange(length):
-                if j > i:
-                    numerator = np.sum( (attr_array[i,:]-attr_array_avg[i])*(attr_array[j,:]-attr_array_avg[j]))
-                    denominator = np.sqrt(np.sum( (attr_array[i,:]-attr_array_avg[i])**2 ) * np.sum( (attr_array[j,:]-attr_array_avg[j])**2 ) )
-                    correlation[i,j] = numerator / denominator
-                elif j < i:
-                    correlation[i,j] = correlation[j,i]
-                elif j==i:
-                    correlation[i,j] = 1
+#        attr_array_avg = np.average(attr_array,axis=1)
+#        for i in np.arange(length):
+#            for j in np.arange(length):
+#                if j > i:
+#                    numerator = np.sum( (attr_array[i,:]-attr_array_avg[i])*(attr_array[j,:]-attr_array_avg[j]))
+#                    denominator = np.sqrt(np.sum( (attr_array[i,:]-attr_array_avg[i])**2 ) * np.sum( (attr_array[j,:]-attr_array_avg[j])**2 ) )
+#                    correlation[i,j] = numerator / denominator
+#                elif j < i:
+#                    correlation[i,j] = correlation[j,i]
+#                elif j==i:
+#                    correlation[i,j] = 1
+        correlation = np.corrcoef(attr_array)                
         fig, ax = plt.subplots(nrows=1,ncols=1)
         im = ax.imshow(correlation)
         cbar = ax.figure.colorbar(im, ax=ax)
         cbar.ax.set_ylabel('correlation', rotation=-90, va="bottom")
-        title = ''
-        for attr in attributes:
-            title += attr + ', '
-        plt.title(title)
+#        title = ''
+#        for attr in attributes:
+#            title += attr + ', '
+#        plt.title(title)
+        
+        attributes = list(attributes)
+        # We want to show all ticks...
+        ax.set_xticks(np.arange(len(attributes)))
+        ax.set_yticks(np.arange(len(attributes)))
+        # ... and label them with the respective list entries
+        ax.set_xticklabels(attributes)
+        ax.set_yticklabels(attributes)
+        
+        ax.set_ylim(-0.5,len(attributes)-0.5)
+        # Rotate the tick labels and set their alignment.
+        plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
+                 rotation_mode="anchor")
+        
+        # Loop over data dimensions and create text annotations.
+        for i in range(len(attributes)):
+            for j in range(len(attributes)):
+                text = ax.text(j, i, "%.2f"%(correlation[i, j]),
+                               ha="center", va="center", color="w")
+        fig.tight_layout()
         plt.savefig(self.path + 'correlation in graph')
         plt.close()
         return
