@@ -46,9 +46,11 @@ with open(path + 'Tracker.pkl','rb') as tracker_file:
 #tool.graph_construction('trans_number',num_transaction_tot,sample_time_trans = tracker.sample_time_trans)
 """ Plots""" 
 analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,a_matrix,path)
-analyse.graph_construction('trans_number',num_transaction_tot, sampling_time=sampling_time, sample_time_trans=tracker.sample_time_trans)
+main_graph = analyse.graph_construction('trans_number',num_transaction_tot, sampling_time=sampling_time, sample_time_trans=tracker.sample_time_trans)
 analyse.draw_graph_weighted_colored()
-analyse.graph_correlations()
+
+analyse.graph_correlations(all_nodes = False)
+analyse.graph_correlations(all_nodes = True)
 
 #constructed_graph = analyse.G
 #dynamic_graph = tracker.make_dynamic_trans_time_graph(constructed_graph)
@@ -104,6 +106,8 @@ tracker.plot('worth_ratio',title='Worth_ratio Evolution by Time',alpha=1)
 tracker.plot('correlation_mon',title='Correlation of Money and Situation')
 tracker.plot('correlation_situ',title="Correlation of Situation and Neighbor's Situation")
 
+tracker.correlation_pairplots(all_nodes = True)
+tracker.correlation_pairplots(present_nodes = main_graph.nodes())
 
 fig, ax = plt.subplots(nrows=1,ncols=1)
 probability = analyse.array('probability')
