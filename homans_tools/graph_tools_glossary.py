@@ -416,15 +416,15 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
     def graph_related_chars(self,num_transaction,tracker,sampling_time):
         path = self.path
         try:
-            os.mkdir(path + pd[plat]+'graph_related')
+            os.mkdir(path +'graph_related')
         except:
             print('exists')
-        dic = {'modul':[],'cover':[],'asph':[],'asph_r':[],'cc':[],'cc_r':[],'sigma':[],'omega':[],'rc':[],'cover_r':[],'modul_r':[]}
+        dic = {'modul':[],'cover':[],'asph':[],'asph_r':[],'cc':[],'cc_r':[],'sigma':[],'omega':[],'rc':[],'cover_r':[],'modul_r':[],'nsize':[],'esize':[]}
 
-        local1 = -1; local2 = -1; local3 = -1
+        local0,local1,local2,local3 = -1,-1,-1,-1
         for i in np.arange(20)+1:
             print('i =',i)
-            self.path = path + pd[plat]+'graph_related' + pd[plat]+'{0}, '.format(i)
+            self.path = path + 'graph_related' + pd[plat]+'{0}, '.format(i)
             self.graph_construction('trans_number',num_transaction,boolean=False,fpoint=i,sampling_time=sampling_time,sample_time_trans=tracker.sample_time_trans)
             if self.G.number_of_nodes() == 0:
                 print('cannot make more graphs')
@@ -432,6 +432,13 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
                 break
             self.draw_graph_weighted_colored('spring')
             self.draw_graph_weighted_colored('kamada_kawai')
+            try:
+                local0 += 1
+                dic['nsize'].append(0)
+                dic['esize'].append(0)
+                dic['nsize'][local0] = self.G.number_of_nodes()
+                dic['esize'][local0] = self.G.number_of_edges()
+            except: print('graph size')
             try:
                 self.hist('degree')
                 self.hist_log_log('degree')
@@ -481,6 +488,8 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
         self.plot_general(path,np.array(dic['cc'])/np.array(dic['cc_r']),title='GR Clustering Coefficient Normalized Vs Friendship Point')
         self.plot_general(path,np.array(dic['asph'])/np.array(dic['asph_r']),title='GR Shortest Path Length Normalized Vs Friendship Point')
         self.plot_general(path,dic['rc'],indicator=False,title='GR Rich Club Vs Friendship Point')
+        self.plot_general(path,dic['nsize'],title='GR Number of Nodes in Each Friendship Point')
+        self.plot_general(path,dic['esize'],title='GR Number of Edges in Each Friendship Point')
         return
     
     pass

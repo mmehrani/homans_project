@@ -119,7 +119,9 @@ class properties_alteration(arrays_glossary):
                     axes[i,j].set_ylabel( attributes_name[i] )
                 if i == len(attributes_name) - 1:
                     axes[i,j].set_xlabel( attributes_name[j] )
+                axes[i,j].set_ylim([-1.05,1.05])
                     
+#        plt.ylim(-1.05,1.05)
         fig.savefig(self.path + 'correlations pair plots versus time for '+status)
         plt.close()
         
@@ -188,28 +190,34 @@ class Analysis(Graph_related_tools,properties_alteration): #XXX
     def hist(self,what_hist):
         plt.figure()
         dic = {'value','probability','utility','neighbor'}
+        array = self.array(what_hist)
         if what_hist in dic:
-            plt.hist(self.array(what_hist).flatten(),bins=50)
+            array = array.flatten()[array.flatten()>0]
+            plt.hist(array,bins='auto')
         else:
-            plt.hist(self.array(what_hist),bins=15)
-        title = what_hist+' histogram'
+            plt.hist(array,bins='auto')
+        title = 'Histrogram of ' + what_hist
         plt.title(title)
         plt.savefig(self.path+title)
         plt.close()
         return
     
-    def hist_log_log(self,what_hist):
+    def hist_log_log(self,what_hist,semilog=False):
         plt.figure()
         plt.xscale('log')
-        plt.yscale('log')
+        title = 'Histogram log-log of ' + what_hist
+        if semilog == False:
+            plt.yscale('log')
+        else:
+            title = 'Histogram semi-log of ' + what_hist
         array = self.array(what_hist)
-        if what_hist == 'value' or what_hist == 'probability' or what_hist == 'utility':
-            bins=np.logspace(np.log10(np.amin(array.flatten()[array.flatten()>0])),np.log10(np.amax(array.flatten()[array.flatten()>0])),20)
+        if what_hist in ['value','probability','utility','neighbor']:
+            array = array.flatten()[array.flatten()>0]
+            bins=np.logspace(np.log10(np.amin(array)),np.log10(np.amax(array)),20)
             plt.hist(array.flatten(),bins=bins)
         else:
             bins=np.logspace(np.log10(np.amin(array)),np.log10(np.amax(array)),20)
             plt.hist(array,bins=bins)
-        title = what_hist+' histogram log-log'
         plt.title(title)
         plt.savefig(self.path+title)
         plt.close()
@@ -275,26 +283,26 @@ class Analysis(Graph_related_tools,properties_alteration): #XXX
         plt.close()
         return
     
-    def transaction_vs_asset(self):
+    def transaction_vs_property(self,what_prop):
         transaction = np.zeros(self.N)
-        asset = self.array('asset')
+        array = self.array(what_prop)
         for i in np.arange(self.N):
             transaction[i] = np.sum(self.a_matrix[i].neighbor)
         bins = 15
-        x = np.linspace(np.min(asset),np.max(asset),num=bins+1,endpoint=True)
+        x = np.linspace(np.min(array),np.max(array),num=bins+1,endpoint=True)
         width = x[1] - x[0]
         y = np.zeros(bins)
         for bin_index in np.arange(bins):
             counter = 0
             for i in np.arange(self.N):
-                if asset[i] < x[bin_index+1] and x[bin_index] < asset[i]:
+                if array[i] < x[bin_index+1] and x[bin_index] < array[i]:
                     y[bin_index] += transaction[i]
                     counter += 1
             if counter != 0:
-                y[bin_index] /= counter
+                y[bin_index] /= counter #normalization
         plt.figure()
         plt.bar(x[:-1] + width/2,y,width=width)
-        title = 'Transaction Vs Asset'
+        title = 'Transaction vs ' + what_prop
         plt.title(title)
         plt.savefig(self.path+title)
         plt.close()

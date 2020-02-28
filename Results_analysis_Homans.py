@@ -13,13 +13,13 @@ import matplotlib.animation as animation
 import graph_tools_glossary
 import sys
 
-N = 50
-T = 500
+N = 100
+T = 5000
 memory_size = 10
 initial_time = 0
-time_step = 500
-sampling_time = 500
-version = '1_basic_run'
+time_step = 5000
+sampling_time = 1000
+version = 'p0_only_appoval_const'
 
 pd = {'win32':'\\', 'linux':'/'}
 if sys.platform.startswith('win32'):
@@ -63,6 +63,7 @@ tracker.plot_general(num_transaction_tot,title='Number of Transaction')
 
 analyse.hist('degree')
 analyse.hist_log_log('degree')
+analyse.hist_log_log('neighbor',semilog=True)
 i=0
 array = np.zeros((7,N,N))
 for prop in ['money','approval','asset','utility','probability','neighbor','value']:
@@ -72,7 +73,9 @@ for prop in ['money','approval','asset','utility','probability','neighbor','valu
     i += 1
 
 analyse.money_vs_situation(path+'money_vs_situation')
-analyse.transaction_vs_asset()
+analyse.transaction_vs_property('asset')
+analyse.transaction_vs_property('money')
+analyse.transaction_vs_property('approval')
 #analyse.degree_vs_attr()
 analyse.num_of_transactions()
 analyse.community_detection()
@@ -127,6 +130,7 @@ for prop in ['money','asset','approval','worth_ratio']:
 #    analyse.communities_property_evolution(tracker,prop)
 
 analyse.graph_related_chars(num_transaction_tot,tracker,sampling_time)
+analyse.path = path
 
 plt.close('all')
 

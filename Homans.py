@@ -432,11 +432,11 @@ alpha = 1                           #in short-term effect of the frequency of tr
 beta = 0.3                          #in long-term effect of the frequency of transaction
 param = 2                           #a normalizing factor in assigning the acceptance probability. It normalizes difference of money of both sides
 lamda = 0                           # how much one agent relies on his last worth_ratio and how much relies on current transaction's worth_ratio
-sampling_time = 1500
+sampling_time = 1000
 saving_time_step = 5000
 initial_for_trans_time = 0
-trans_saving_interval = 5000
-version = 'p0_only_magnify_10'
+trans_saving_interval = 1000
+version = 'p0_only_appoval_const'
 if sampling_time > T:
     sampling_time = T
 if saving_time_step < sampling_time:
@@ -445,14 +445,14 @@ if saving_time_step < sampling_time:
 """Initial Condition"""
 
 situation_arr = np.random.random(N) #randomly distributed
-money = np.full(N,5.5)
+#money = np.full(N,5.5)
 #money = np.round(np.random.normal(loc=5.5,scale=1,size=N),decimals=3)
 #money = 1 + situation_arr * 2
 #money = np.zeros(N)
-#money = np.round(np.random.rand(N) * 9 + 1 ,decimals=3)
+money = np.round(np.random.rand(N) * 9 + 1 ,decimals=3)
 #money = np.round(situation_arr[:] * 9 + 1 ,decimals=3)
-#approval = np.full(N,5.5)
-approval = np.round(np.random.rand(N) * 9 + 1 ,decimals=3)
+approval = np.full(N,5.5)
+#approval = np.round(np.random.rand(N) * 9 + 1 ,decimals=3)
 #approval = 1 + situation_arr * 2
 #approval = np.round(situation_arr[:] * 9 + 1 ,decimals=3)
 #approval = np.round(11 - money[:],decimals=3)
