@@ -187,7 +187,7 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
             node_attr_dict[i]['money'] = float(self.a_matrix[i].money)
             node_attr_dict[i]['worth_ratio'] = float(self.a_matrix[i].worth_ratio)
             node_attr_dict[i]['approval'] = float(self.a_matrix[i].approval)
-            node_attr_dict[i]['others_feeling'] = float(self.array('others_feeling')[i])
+            node_attr_dict[i]['others_feeling'] = float(self.array('others_feeling_for_agent')[i])
             node_attr_dict[i]['asset'] = float(self.a_matrix[i].asset)
         
         nx.set_node_attributes(G,node_attr_dict)
@@ -336,23 +336,14 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
         print('average transaction',self.transaction_average)
         return 
     
-    def graph_correlations(self,all_nodes = False):
-        nodes = self.G.nodes()
+    def graph_correlations(self):
+        nodes = np.sort(self.G.nodes())
         nodes_dict = dict(self.G.nodes(data=True))
         i = 0
         while i not in nodes:
             i += 1
         attributes = nodes_dict[i].keys()
         length = len(attributes)
-        
-        if all_nodes == True:
-            nodes_not_in_graph = []
-            for node in range(self.N):
-                if node not in nodes:
-                    nodes = np.append(nodes,[[node]])
-                    nodes_dict[node] = {attr:self.array(attr)[node] for attr in attributes}
-                    
-        
         correlation = np.zeros((length,length))
         attr_array = np.zeros((length,len(nodes_dict)))
         attr_array_avg = np.zeros(length)
@@ -403,13 +394,7 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
                 text = ax.text(j, i, "%.2f"%(correlation[i, j]),
                                ha="center", va="center", color="w")
         fig.tight_layout()
-        
-        if all_nodes == True:
-            status = 'all nodes'
-        else:
-            status = 'graph nodes'
-            
-        plt.savefig(self.path + 'correlation in network ' + status)
+        plt.savefig(self.path + 'correlation in graph')
         plt.close()
         return
     
