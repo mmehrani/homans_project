@@ -57,7 +57,7 @@ class arrays_glossary():
                     ref[what_array][i,j] = self.a_matrix[i].active_neighbor[j] * self.a_matrix[j].active_neighbor[i]
             return ref[what_array]
         
-        if what_array == 'others_feeling_for_agent':
+        if what_array == 'others_feeling':
             ref[what_array] = np.zeros(self.N)
             for i in np.arange(self.N):
                 ref[what_array] += self.a_matrix[i].feeling[:]

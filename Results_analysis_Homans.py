@@ -48,7 +48,9 @@ with open(path + 'Tracker.pkl','rb') as tracker_file:
 analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,a_matrix,path)
 main_graph = analyse.graph_construction('trans_number',num_transaction_tot, sampling_time=sampling_time, sample_time_trans=tracker.sample_time_trans)
 analyse.draw_graph_weighted_colored()
-analyse.graph_correlations()
+
+analyse.graph_correlations(all_nodes = False)
+analyse.graph_correlations(all_nodes = True)
 
 #constructed_graph = analyse.G
 #dynamic_graph = tracker.make_dynamic_trans_time_graph(constructed_graph)
