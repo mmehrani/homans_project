@@ -132,5 +132,7 @@ for prop in ['money','asset','approval','worth_ratio']:
 analyse.graph_related_chars(num_transaction_tot,tracker,sampling_time)
 analyse.path = path
 
+tracker.rejection_history()
+
 plt.close('all')
 
