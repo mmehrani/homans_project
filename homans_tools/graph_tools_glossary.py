@@ -208,9 +208,10 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
 #        edgewidth = [ d['weight'] for (u,v,d) in self.G.edges(data=True)]
 #        color = [ self.a_matrix[u].situation for u in self.G.nodes()]
         color = list(self.best_parts.values())
-#        size = [self.a_matrix[u].asset*10 for u in self.G.nodes()]
+        size = [self.a_matrix[u].asset*15 for u in self.G.nodes()]
+#        size = [self.a_matrix[u].money*30 for u in self.G.nodes()]
 #        size = [ self.a_matrix[u].situation*150 for u in self.G.nodes()]
-        size = [ self.a_matrix[u].worth_ratio*150 for u in self.G.nodes()]
+#        size = [ self.a_matrix[u].worth_ratio*150 for u in self.G.nodes()]
         
         if position == 'spring':
             pos = nx.spring_layout(self.G)

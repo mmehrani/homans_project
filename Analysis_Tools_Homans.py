@@ -213,10 +213,10 @@ class Analysis(Graph_related_tools,properties_alteration): #XXX
         array = self.array(what_hist)
         if what_hist in ['value','probability','utility','neighbor']:
             array = array.flatten()[array.flatten()>0]
-            bins=np.logspace(np.log10(np.amin(array)),np.log10(np.amax(array)),20)
+            bins=np.logspace(np.log10(np.amin(array)),np.log10(np.amax(array)),15)
             plt.hist(array.flatten(),bins=bins)
         else:
-            bins=np.logspace(np.log10(np.amin(array)),np.log10(np.amax(array)),20)
+            bins=np.logspace(np.log10(np.amin(array)),np.log10(np.amax(array)),15)
             plt.hist(array,bins=bins)
         plt.title(title)
         plt.savefig(self.path+title)

@@ -194,14 +194,17 @@ def transaction(index1,index2,t,init=False):
             acceptance_util = 1
     
         if agent2.approval > 0.001 and agent2.approval - ( np.round(amount*worth_ratio1 + agreement_point,3) ) > 0.001:
-            if worth_ratio2 >= worth_ratio1:
-                acceptance_worth = 1
-            else:
-        #        acceptance_worth = 0
-                p = np.exp( -(worth_ratio1 - worth_ratio2)/normalization_factor )
-                acceptance_worth = np.random.choice([0,1],p=[1-p,p])
+            acceptance_neg = 1 #not negative checking acceptance
+        else: acceptance_neg = 0
+        
+#        if worth_ratio2 >= worth_ratio1:
+        if True:
+            acceptance_worth = 1
         else:
-            acceptance_worth = 0
+#            acceptance_worth = 0
+            p = np.exp( -(worth_ratio1 - worth_ratio2)/normalization_factor )
+            acceptance_worth = np.random.choice([0,1],p=[1-p,p])
+        acceptance_worth = acceptance_worth * acceptance_neg
         
         p = np.exp( -np.abs(agent1.asset - agent2.asset)/param )
         acceptance_asset = np.random.choice([0,1],p=[1-p,p])
@@ -432,11 +435,11 @@ alpha = 1                           #in short-term effect of the frequency of tr
 beta = 0.3                          #in long-term effect of the frequency of transaction
 param = 2                           #a normalizing factor in assigning the acceptance probability. It normalizes difference of money of both sides
 lamda = 0                           # how much one agent relies on his last worth_ratio and how much relies on current transaction's worth_ratio
-sampling_time = 1000
+sampling_time = 200
 saving_time_step = 5000
-initial_for_trans_time = 0
-trans_saving_interval = 1000
-version = 'p0_only_appoval_const'
+initial_for_trans_time = T - 1000
+trans_saving_interval = T
+version = 'Low_sampling_time'
 if sampling_time > T:
     sampling_time = T
 if saving_time_step < sampling_time:
