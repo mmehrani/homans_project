@@ -438,7 +438,7 @@ lamda = 0                           # how much one agent relies on his last wort
 sampling_time = 200
 saving_time_step = 5000
 initial_for_trans_time = T - 1000
-trans_saving_interval = T
+trans_saving_interval = 1000
 version = 'Low_sampling_time'
 if sampling_time > T:
     sampling_time = T
@@ -568,7 +568,6 @@ for t in np.arange(T)+1:#t goes from 1 to T
     if t % saving_time_step == 0 and t >= saving_time_step:
         tracker.get_list('rejection',tau,array=rejection_time)
         save_it(version,t) #Write File
-        print('****',t)
 
     if t >= initial_for_trans_time and t < initial_for_trans_time + trans_saving_interval:
         boolean = True

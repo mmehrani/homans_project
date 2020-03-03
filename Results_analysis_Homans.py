@@ -18,8 +18,8 @@ T = 5000
 memory_size = 10
 initial_time = 0
 time_step = 5000
-sampling_time = 1000
-version = 'p0_only_appoval_const'
+sampling_time = 200
+version = 'Low_sampling_time'
 
 pd = {'win32':'\\', 'linux':'/'}
 if sys.platform.startswith('win32'):
