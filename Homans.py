@@ -402,8 +402,8 @@ def explore(index,t):
                 chosen_neighbor_index = np.random.choice(agent_active_neighbor,p=list(agent.active_neighbor.values())) #Bias neighbor
                 situation = A[chosen_neighbor_index].situation
                 
-                if len(neighbors_of_neighbors) >= num_of_tries:
-                    arri_choice = np.random.choice(neighbors_of_neighbors,size=num_of_tries,replace=False)
+                if len(neighbors_of_neighbors) >= num_of_tries2:
+                    arri_choice = np.random.choice(neighbors_of_neighbors,size=num_of_tries2,replace=False)
                 else:
                     arri_choice = neighbors_of_neighbors
                 
@@ -436,36 +436,37 @@ def explore(index,t):
 #                            print('accepted')
                             counter_accept += 1
                             break
-            
+
                 #nobody is the right fit. He should loose his criteria OR find a random agent.
-                mask[agent_active_neighbor] = False
-                if np.size(mask[mask==True]) >= num_of_tries:
-                    arri_choice = np.random.choice(np.arange(N)[mask],size=num_of_tries,replace=False)
-                else:
-                    num_true_in_mask = np.size(mask[mask==True])
-                    arri_choice = np.random.choice(np.arange(N)[mask],size=num_true_in_mask,replace=False)
-                
-                for other_index in arri_choice:
-                    other_situation = A[other_index].situation
-                    if other_situation > (situation-similarity) and other_situation < (situation+similarity):
-                        
-                        other_agent = A[other_index]
-                        if len(other_agent.active_neighbor) != 0:
-                            nearest_choice = 1 #maximum possible situation difference
-                            for k in other_agent.active_neighbor.keys():
-                                diff_abs = np.abs(A[k].situation - self_similarity)
-                                if diff_abs < nearest_choice:
-                                    nearest_choice = diff_abs
-                                    nearest_choice_index = k
-                            p = other_agent.active_neighbor[nearest_choice_index]
-                            acceptance = np.random.choice([0,1],p=[1-p,p])
-    #                        acceptance = 1
-                            if acceptance == 1:
+                if other_index not in agent.active_neighbor:  #which means transaction has been accepted            
+                    mask[agent_active_neighbor] = False
+                    if np.size(mask[mask==True]) >= num_of_tries3:
+                        arri_choice = np.random.choice(np.arange(N)[mask],size=num_of_tries3,replace=False)
+                    else:
+                        num_true_in_mask = np.size(mask[mask==True])
+                        arri_choice = np.random.choice(np.arange(N)[mask],size=num_true_in_mask,replace=False)
+                    
+                    for other_index in arri_choice:
+                        other_situation = A[other_index].situation
+                        if other_situation > (situation-similarity) and other_situation < (situation+similarity):
+                            
+                            other_agent = A[other_index]
+                            if len(other_agent.active_neighbor) != 0:
+                                nearest_choice = 1 #maximum possible situation difference
+                                for k in other_agent.active_neighbor.keys():
+                                    diff_abs = np.abs(A[k].situation - self_similarity)
+                                    if diff_abs < nearest_choice:
+                                        nearest_choice = diff_abs
+                                        nearest_choice_index = k
+                                p = other_agent.active_neighbor[nearest_choice_index]
+                                acceptance = np.random.choice([0,1],p=[1-p,p])
+        #                        acceptance = 1
+                                if acceptance == 1:
+                                    transaction(index,other_index,t)
+                            else:
                                 transaction(index,other_index,t)
-                        else:
-                            transaction(index,other_index,t)
-                        if other_index in agent.active_neighbor:  #which means transaction has been accepted
-                            break
+                            if other_index in agent.active_neighbor:  #which means transaction has been accepted
+                                break
 
 
 
@@ -584,7 +585,9 @@ T = 5000
 similarity = 0.05                   #how much this should be?
 memory_size = 10                    #contains the last memory_size number of transaction times
 transaction_percentage = 0.1        #percent of amount of money the first agent proposes from his asset 
-num_of_tries = 20                   #in function explore()
+num_of_tries  = 20                   #in function explore()
+num_of_tries2 = 10                   #in function explore()
+num_of_tries3 = 5                   #in function explore()
 threshold_percentage =np.full(N,1)  #the maximum amount which the agent is willing to give
 normalization_factor = 1            #used in transaction(). what should be?
 prob0_magnify_factor = 1          #this is in probability() for changing value so that it can take advantage of arctan
@@ -593,12 +596,12 @@ prob2_magnify_factor = 1
 alpha = 1                           #in short-term effect of the frequency of transaction
 beta = 0.3                          #in long-term effect of the frequency of transaction
 param = 2                           #a normalizing factor in assigning the acceptance probability. It normalizes difference of money of both sides
-lamda = 0                           # how much one agent relies on his last worth_ratio and how much relies on current transaction's worth_ratio
-sampling_time = 1000
+lamda = 1                           # how much one agent relies on his last worth_ratio and how much relies on current transaction's worth_ratio
+sampling_time = 2000
 saving_time_step = T
 initial_for_trans_time = T - 1000
 trans_saving_interval = 1000
-version = 'new_explore_func'
+version = 'new_explore_func_WR_off_diff_num_of_tries'
 if sampling_time > T:
     sampling_time = T
 if saving_time_step < sampling_time:
