@@ -449,6 +449,25 @@ class Tracker(properties_alteration,hist_plot_tools): #XXX
         plt.savefig(self.path + title + ' agent {0}'.format(agent_to_watch))
         plt.close()
         return
+    
+    def rejection_history(self):
+        binary = [0,1]
+        conditions_glossary = [(x,y,z,w) for x in binary for y in binary for z in binary for w in binary]
+        conditions_glossary_dict = { cond:x for cond,x in zip(conditions_glossary,range(16))}
+        conditions_glossary_string = ['{0}'.format(x) for x in conditions_glossary]
+
+        total_rejection_cases = np.sum(self.rejection_time,axis = 0)
+        plt.figure(figsize=(16, 9))
+        plt.bar(conditions_glossary_string,total_rejection_cases)
+
+        for i,v in enumerate(total_rejection_cases):
+            plt.text( x = i , y = total_rejection_cases[i], s = str(int(total_rejection_cases[i])) , rotation = -90)
+        plt.xlabel('(acceptance_worth , acceptance_thr , acceptance_asset , acceptance_util)')
+        title = 'rejection history of all running time'
+        plt.title(title)
+        plt.savefig(self.path + title)
+        plt.close()
+        return
 
     def valuability(self):
         fig, ax = plt.subplots(nrows=1,ncols=1)
@@ -468,6 +487,7 @@ class Tracker(properties_alteration,hist_plot_tools): #XXX
         plt.savefig(self.path + title)
         plt.close()
         return
+    
     
 
 
