@@ -202,16 +202,28 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
         return G
     
     
-    def draw_graph_weighted_colored(self,position='spring'):
+    def draw_graph_weighted_colored(self,position='spring',nsize='asset',ncolor='community'):
         plt.figure()
         print("Size of G is:", self.G.number_of_nodes())
 #        edgewidth = [ d['weight'] for (u,v,d) in self.G.edges(data=True)]
 #        color = [ self.a_matrix[u].situation for u in self.G.nodes()]
-        color = list(self.best_parts.values())
-        size = [self.a_matrix[u].asset*15 for u in self.G.nodes()]
+#        color = list(self.best_parts.values())
+#        size = [self.a_matrix[u].asset*15 for u in self.G.nodes()]
 #        size = [self.a_matrix[u].money*30 for u in self.G.nodes()]
 #        size = [ self.a_matrix[u].situation*150 for u in self.G.nodes()]
 #        size = [ self.a_matrix[u].worth_ratio*150 for u in self.G.nodes()]
+        if nsize == 'asset':
+            size = [self.a_matrix[u].asset*15 for u in self.G.nodes()]
+        if nsize == 'money':
+            size = [self.a_matrix[u].money*30 for u in self.G.nodes()]
+        if nsize == 'approval':
+            size = [self.a_matrix[u].approval*30 for u in self.G.nodes()]
+        if ncolor =='community':
+            color = list(self.best_parts.values())
+        if ncolor =='situation':
+            color = [ self.a_matrix[u].situation for u in self.G.nodes()]
+        if ncolor =='worth_ratio':
+            color = [ self.a_matrix[u].worth_ratio for u in self.G.nodes()]
         
         if position == 'spring':
             pos = nx.spring_layout(self.G)
@@ -221,8 +233,7 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
 #        nx.draw(self.G, pos=pos, with_labels = True, node_size=100, font_size=8, width=np.array(edgewidth), node_color=s)
         nx.draw(self.G, pos=pos, with_labels = True, node_size=size, font_size=8, node_color=color, width=0.2)
 #        nx.draw(self.G, pos=pos, with_labels = True, node_size=150, font_size=8, width=np.array(edgewidth))
-#        plt.savefig(self.path+'graph'+' friedship number:'+str(self.friendship_num))
-        plt.savefig(self.path+'graph '+position+' - fpoint %d.png'%(self.friendship_num))
+        plt.savefig(self.path+'graph '+position+' fpoint=%d'%(self.friendship_num)+' s='+nsize+' c='+ncolor)
         plt.close()
         return
 
@@ -420,25 +431,28 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
             os.mkdir(path +'graph_related')
         except:
             print('exists')
-        dic = {'modul':[],'cover':[],'asph':[],'asph_r':[],'cc':[],'cc_r':[],'sigma':[],'omega':[],'rc':[],'cover_r':[],'modul_r':[],'nsize':[],'esize':[]}
+        dic = {'modul':[],'cover':[],'asph':[],'asph_r':[],'cc':[],'cc_r':[],'sigma':[],'omega':[],'rc':[],'cover_r':[],'modul_r':[],'nsize':[],'esize':[],'is_con':[]}
 
         local0,local1,local2,local3 = -1,-1,-1,-1
         for i in np.arange(20)+1:
             print('i =',i)
             self.path = path + 'graph_related' + pd[plat]+'{0}, '.format(i)
-            self.graph_construction('trans_number',num_transaction,boolean=False,fpoint=i,sampling_time=sampling_time,sample_time_trans=tracker.sample_time_trans)
-            if self.G.number_of_nodes() == 0:
-                print('cannot make more graphs')
-                self.graph_construction('trans_number',num_transaction,sampling_time=sampling_time,sample_time_trans=tracker.sample_time_trans)
-                break
-            self.draw_graph_weighted_colored('spring')
-            self.draw_graph_weighted_colored('kamada_kawai')
+            try:
+                self.graph_construction('trans_number',num_transaction,boolean=False,fpoint=i,sampling_time=sampling_time,sample_time_trans=tracker.sample_time_trans)
+                self.draw_graph_weighted_colored(position='spring',)
+                self.draw_graph_weighted_colored(position='spring',nsize='money',ncolor='situation')
+                self.draw_graph_weighted_colored(position='kamada_kawai')
+                self.draw_graph_weighted_colored(position='kamada_kawai',nsize='money',ncolor='situation')
+            except: break
             try:
                 local0 += 1
                 dic['nsize'].append(0)
                 dic['esize'].append(0)
+                dic['is_con'].append(0)
                 dic['nsize'][local0] = self.G.number_of_nodes()
                 dic['esize'][local0] = self.G.number_of_edges()
+                dic['is_con'][local0] = nx.is_connected(self.G)
+#                print(dic['is_con'])
             except: print('graph size')
             try:
                 self.hist('degree')
@@ -479,6 +493,7 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
             except: print('property hist')
 
         self.path = path
+        print(np.array(dic['is_con'],dtype=int)*self.N)
         """Plot"""
         self.plot_general(path,dic['modul'],second_array=dic['modul_r'],title='GR Modularity Vs Friendship Point')
         self.plot_general(path,dic['cover'],second_array=dic['cover_r'],title='GR Coverage Vs Friendship Point')
@@ -489,9 +504,10 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
         self.plot_general(path,np.array(dic['cc'])/np.array(dic['cc_r']),title='GR Clustering Coefficient Normalized Vs Friendship Point')
         self.plot_general(path,np.array(dic['asph'])/np.array(dic['asph_r']),title='GR Shortest Path Length Normalized Vs Friendship Point')
         self.plot_general(path,dic['rc'],indicator=False,title='GR Rich Club Vs Friendship Point')
-        self.plot_general(path,dic['nsize'],title='GR Number of Nodes in Each Friendship Point')
+        second_array = list(np.array(dic['is_con'],dtype=int)*self.N)
+        self.plot_general(path,dic['nsize'],second_array=second_array,title='GR Number of Nodes in Each Friendship Point')
         self.plot_general(path,dic['esize'],title='GR Number of Edges in Each Friendship Point')
-        return
+        return 
     
     pass
 
