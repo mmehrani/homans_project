@@ -17,9 +17,9 @@ N = 100
 T = 5000
 memory_size = 10
 initial_time = 0
-time_step = 5000
-sampling_time = 200
-version = 'Low_sampling_time'
+time_step = T
+sampling_time = 1000
+version = 'new_explore_func'
 
 pd = {'win32':'\\', 'linux':'/'}
 if sys.platform.startswith('win32'):
@@ -47,7 +47,11 @@ with open(path + 'Tracker.pkl','rb') as tracker_file:
 """ Plots""" 
 analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,a_matrix,path)
 main_graph = analyse.graph_construction('trans_number',num_transaction_tot, sampling_time=sampling_time, sample_time_trans=tracker.sample_time_trans)
-analyse.draw_graph_weighted_colored()
+
+for nsize in ['asset','money','approval']:
+    for ncolor in ['community','situation','worth_ratio']:
+        for position in ['spring','kamada_kawai']:
+            analyse.draw_graph_weighted_colored(position=position,nsize=nsize,ncolor=ncolor)
 
 analyse.graph_correlations(all_nodes = False)
 analyse.graph_correlations(all_nodes = True)
