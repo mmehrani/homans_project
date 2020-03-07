@@ -109,9 +109,9 @@ class properties_alteration(arrays_glossary):
             status = 'graph nodes'
             
         nodes_mask = [ node in present_nodes for node in range(self.N)]
-        attributes = {0:self.agents_money,1:self.agents_asset,2:self.agents_approval}
-        attributes_name = {0:'money',1:'asset',2:'approval'}
-        fig,axes = plt.subplots(3,3)
+        attributes = {0:self.agents_money,1:self.agents_asset,2:self.agents_approval,3:np.concatenate((self.worth_ratio[:2,:],self.worth_ratio), axis = 0)}
+        attributes_name = {0:'money',1:'asset',2:'approval',3:'worth_ratio'}
+        fig,axes = plt.subplots(nrows = 4,ncols = 4 , figsize = (16,9))
         
         for i in range(len(attributes)):
             for j in range(len(attributes)):
