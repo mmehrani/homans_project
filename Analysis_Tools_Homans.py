@@ -95,6 +95,7 @@ class properties_alteration(arrays_glossary):
         ax.set_title('correlation between '+survey_property_id+' growth'+' & '+base_property_id)
         fig.savefig(self.path + 'correlation between '+survey_property_id+' growth'+' & '+base_property_id)
         return
+    
     def correlation_pairplots(self,**kwargs):
         """
         we need to know how do correlations among attributes changes over time.

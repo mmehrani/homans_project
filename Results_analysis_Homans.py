@@ -18,8 +18,8 @@ T = 5000
 memory_size = 10
 initial_time = 0
 time_step = T
-sampling_time = 1000
-version = 'new_explore_func'
+sampling_time = 2000
+version = 'new_explore_func_WR_off_diff_num_of_tries'
 
 pd = {'win32':'\\', 'linux':'/'}
 if sys.platform.startswith('win32'):

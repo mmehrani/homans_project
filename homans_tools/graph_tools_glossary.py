@@ -320,9 +320,17 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
         for attr in self.G.nodes(data=True)[i].keys():
             assort_file.write('assortativity according to '+attr+' is: '+'\n')
             assort_file.write(str(nx.attribute_assortativity_coefficient(self.G,attr))+'\n'+'\n')
+        
+        community_members = [list(x) for x in self.modularity_communities]
+        for num,com in enumerate(community_members):
+            assort_file.write('community #{}:'.format(num)+'\n')
+            for attr in self.G.nodes(data=True)[i].keys():
+                assort_file.write('assortativity according to '+attr+' is: '+'\n')
+                assort_file.write(str(nx.attribute_assortativity_coefficient(self.G,attr,nodes = com))+'\n'+'\n')
+            
         assort_file.close()
         return
-
+    # def assortativity_of
     
     def friendship_point(self,num_transaction,sampling_time):
         """ When we consider someone as friend
