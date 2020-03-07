@@ -100,14 +100,25 @@ class properties_alteration(arrays_glossary):
         """
         we need to know how do correlations among attributes changes over time.
         """
-        all_nodes = kwargs.get('all_nodes',False)
-        if all_nodes == True:
-            present_nodes = range( self.N )
+        nodes_selection = kwargs.get('nodes_selection','all_nodes')
+        if nodes_selection == 'all_nodes':
+            present_nodes = range(self.N)
+            foldername = ''
             status = 'all nodes'
-        elif all_nodes == False:
-            present_nodes = kwargs.get('present_nodes',None)    
-            status = 'graph nodes'
             
+        elif nodes_selection == 'graph_nodes':
+            foldername = ''
+            status = 'graph nodes'
+            present_nodes = kwargs.get('present_nodes',None)
+            
+        elif nodes_selection.split('_')[0] == 'community': #community_nodes_# is the form
+            foldername = 'communities_attr_correlation'
+            present_nodes = kwargs.get('present_nodes',None)
+            status = 'community #{}'.format(nodes_selection.split('_')[2])
+            try:
+                os.mkdir(self.path + foldername)
+            except:
+                pass
         nodes_mask = [ node in present_nodes for node in range(self.N)]
         attributes = {0:self.agents_money,1:self.agents_asset,2:self.agents_approval,3:np.concatenate((self.worth_ratio[:2,:],self.worth_ratio), axis = 0)}
         attributes_name = {0:'money',1:'asset',2:'approval',3:'worth_ratio'}
@@ -123,11 +134,10 @@ class properties_alteration(arrays_glossary):
                 axes[i,j].set_ylim([-1.05,1.05])
                     
 #        plt.ylim(-1.05,1.05)
-        fig.savefig(self.path + 'correlations pair plots versus time for '+status)
+        fig.savefig( os.path.join( self.path,foldername,'correlations pair plots versus time for '+status))
         plt.close()
-        
         return
-    
+        
     pass
 
 class hist_plot_tools():
