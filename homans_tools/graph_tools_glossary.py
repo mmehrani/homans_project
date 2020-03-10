@@ -218,6 +218,9 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
             size = [self.a_matrix[u].money*30 for u in self.G.nodes()]
         if nsize == 'approval':
             size = [self.a_matrix[u].approval*30 for u in self.G.nodes()]
+        if nsize == 'degree':
+            size = np.array(list(self.G.degree))*5
+        
         if ncolor =='community':
             color = list(self.best_parts.values())
         if ncolor =='situation':
@@ -231,7 +234,7 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
             pos = nx.kamada_kawai_layout(self.G)
         
 #        nx.draw(self.G, pos=pos, with_labels = True, node_size=100, font_size=8, width=np.array(edgewidth), node_color=s)
-        nx.draw(self.G, pos=pos, with_labels = True, node_size=size, font_size=8, node_color=color, width=0.2)
+        nx.draw(self.G, pos=pos, with_labels = True, node_size=size, font_size=8, node_color=color, width=0.1)
 #        nx.draw(self.G, pos=pos, with_labels = True, node_size=150, font_size=8, width=np.array(edgewidth))
         plt.savefig(self.path+'graph '+position+' fpoint=%d'%(self.friendship_num)+' s='+nsize+' c='+ncolor)
         plt.close()
@@ -493,7 +496,6 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
             except: print('property hist')
 
         self.path = path
-        print(np.array(dic['is_con'],dtype=int)*self.N)
         """Plot"""
         self.plot_general(path,dic['modul'],second_array=dic['modul_r'],title='GR Modularity Vs Friendship Point')
         self.plot_general(path,dic['cover'],second_array=dic['cover_r'],title='GR Coverage Vs Friendship Point')

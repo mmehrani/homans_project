@@ -124,7 +124,44 @@ class properties_alteration(arrays_glossary):
 #        plt.ylim(-1.05,1.05)
         fig.savefig(self.path + 'correlations pair plots versus time for '+status)
         plt.close()
+        return
+    
+    def property_variation(self):
+        nei_approval_var = np.zeros(self.N)
+        nei_money_var = np.zeros(self.N)
+        nei_asset_var = np.zeros(self.N)
         
+        for agent in np.arange(self.N):
+            nei_approval = [self.a_matrix[j].approval for j in self.a_matrix[agent].active_neighbor]
+            nei_money = [self.a_matrix[j].money for j in self.a_matrix[agent].active_neighbor]
+            nei_asset = [self.a_matrix[j].asset for j in self.a_matrix[agent].active_neighbor]
+            
+            nei_approval_var[agent] = np.var(nei_approval)
+            nei_money_var[agent] = np.var(nei_money)
+            nei_asset_var[agent] = np.var(nei_asset)
+        
+        nei_approval_var = np.sqrt(nei_approval_var[~np.isnan(nei_approval_var)])
+        nei_money_var = np.sqrt(nei_money_var[~np.isnan(nei_money_var)])
+        nei_asset_var = np.sqrt(nei_asset_var[~np.isnan(nei_asset_var)])
+        
+        mean_approval_var = np.mean(nei_approval_var)
+        mean_money_var = np.mean(nei_money_var)
+        mean_asset_var = np.mean(nei_asset_var)
+        
+        print('approval',mean_approval_var)
+        print('money',mean_money_var)
+        print('asset',mean_asset_var)
+        
+        plt.figure()
+        plt.plot(nei_approval_var)
+        plt.plot(nei_money_var)
+        plt.plot(nei_asset_var)
+        plt.plot([0,self.N],[mean_approval_var,mean_approval_var])
+        plt.plot([0,self.N],[mean_money_var,mean_money_var])
+        plt.plot([0,self.N],[mean_asset_var,mean_asset_var])
+        plt.title("Standard Deviation of Agent's neighbor in Approval,Money,Asset ")
+        plt.savefig(self.path + 'SD '+'mean of approval={0:.3g} money={1:.3g} asset={2:.3g}.png'.format(mean_approval_var,mean_asset_var,mean_money_var))
+        plt.close()
         return
     
     pass
