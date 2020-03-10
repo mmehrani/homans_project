@@ -127,40 +127,69 @@ class properties_alteration(arrays_glossary):
         return
     
     def property_variation(self):
-        nei_approval_var = np.zeros(self.N)
-        nei_money_var = np.zeros(self.N)
-        nei_asset_var = np.zeros(self.N)
+        nei_approval_var,nei_money_var,nei_asset_var,nei_worth_var = np.zeros(self.N),np.zeros(self.N),np.zeros(self.N),np.zeros(self.N)
+        mean_approval,mean_money,mean_asset,mean_worth = np.zeros(self.N),np.zeros(self.N),np.zeros(self.N),np.zeros(self.N)
         
         for agent in np.arange(self.N):
             nei_approval = [self.a_matrix[j].approval for j in self.a_matrix[agent].active_neighbor]
             nei_money = [self.a_matrix[j].money for j in self.a_matrix[agent].active_neighbor]
             nei_asset = [self.a_matrix[j].asset for j in self.a_matrix[agent].active_neighbor]
+            nei_worth = [self.a_matrix[j].worth_ratio for j in self.a_matrix[agent].active_neighbor]
             
             nei_approval_var[agent] = np.var(nei_approval)
             nei_money_var[agent] = np.var(nei_money)
             nei_asset_var[agent] = np.var(nei_asset)
+            nei_worth_var[agent] = np.var(nei_worth)
+            
+            mean_approval[agent] = np.mean(nei_approval)
+            mean_money[agent] = np.mean(nei_money)
+            mean_asset[agent] = np.mean(nei_asset)
+            mean_worth[agent] = np.mean(nei_worth)
         
         nei_approval_var = np.sqrt(nei_approval_var[~np.isnan(nei_approval_var)])
         nei_money_var = np.sqrt(nei_money_var[~np.isnan(nei_money_var)])
         nei_asset_var = np.sqrt(nei_asset_var[~np.isnan(nei_asset_var)])
+        nei_worth_var = np.sqrt(nei_worth_var[~np.isnan(nei_worth_var)])
+        
+        mean_approval = mean_approval[~np.isnan(mean_approval)]
+        mean_money= mean_money[~np.isnan(mean_money)]
+        mean_asset= mean_asset[~np.isnan(mean_asset)]
+        mean_worth= mean_worth[~np.isnan(mean_worth)]
         
         mean_approval_var = np.mean(nei_approval_var)
         mean_money_var = np.mean(nei_money_var)
         mean_asset_var = np.mean(nei_asset_var)
+        mean_worth_var = np.mean(nei_worth_var)
         
-        print('approval',mean_approval_var)
-        print('money',mean_money_var)
-        print('asset',mean_asset_var)
+        mean_rel_approval = np.mean(nei_approval_var/mean_approval)
+        mean_rel_money = np.mean(nei_money_var/mean_money)
+        mean_rel_asset = np.mean(nei_asset_var/mean_asset)
+        mean_rel_worth = np.mean(nei_worth_var/mean_worth)
         
         plt.figure()
         plt.plot(nei_approval_var)
         plt.plot(nei_money_var)
         plt.plot(nei_asset_var)
+        plt.plot(nei_worth_var)
         plt.plot([0,self.N],[mean_approval_var,mean_approval_var])
         plt.plot([0,self.N],[mean_money_var,mean_money_var])
         plt.plot([0,self.N],[mean_asset_var,mean_asset_var])
-        plt.title("Standard Deviation of Agent's neighbor in Approval,Money,Asset ")
-        plt.savefig(self.path + 'SD '+'mean of approval={0:.3g} money={1:.3g} asset={2:.3g}.png'.format(mean_approval_var,mean_asset_var,mean_money_var))
+        plt.plot([0,self.N],[mean_worth_var,mean_worth_var])
+        plt.title("Standard Deviation of Agent's Neighbor in Approval,Money,Asset,WR")
+        plt.savefig(self.path + 'SD '+'mean approval={0:.3g} money={1:.3g} asset={2:.3g} WR={3:.3g}.png'.format(mean_approval_var,mean_asset_var,mean_money_var,mean_worth_var))
+        plt.close()
+        
+        plt.figure()
+        plt.plot(nei_approval_var/mean_approval)
+        plt.plot(nei_money_var/mean_money)
+        plt.plot(nei_asset_var/mean_asset)
+        plt.plot(nei_worth_var/mean_worth)
+        plt.plot([0,self.N],[mean_rel_approval,mean_rel_approval])
+        plt.plot([0,self.N],[mean_rel_money,mean_rel_money])
+        plt.plot([0,self.N],[mean_rel_asset,mean_rel_asset])
+        plt.plot([0,self.N],[mean_rel_worth,mean_rel_worth])
+        plt.title("Relative Standard Deviation of Neighbors in Approval,Money,Asset,WR")
+        plt.savefig(self.path + 'SDR '+'mean approval={0:.3g} money={1:.3g} asset={2:.3g} WR={3:.3g}.png'.format(mean_rel_approval,mean_rel_asset,mean_rel_money,mean_rel_worth))
         plt.close()
         return
     
