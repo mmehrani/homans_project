@@ -583,16 +583,16 @@ def save_it(version,t):
 """Parameters"""#XXX
 
 N = 100
-T = 5000
+T = 2000
 similarity = 0.05                   #how much this should be?
 memory_size = 10                    #contains the last memory_size number of transaction times
 transaction_percentage = 0.1        #percent of amount of money the first agent proposes from his asset 
-num_of_tries  = 3                   #in function explore()
-num_of_tries2 = 2                   #in function explore()
+num_of_tries  = 5                   #in function explore()
+num_of_tries2 = 5                   #in function explore()
 num_of_tries3 = 1                   #in function explore()
 threshold_percentage =np.full(N,1)  #the maximum amount which the agent is willing to give
 normalization_factor = 1            #used in transaction(). what should be?
-prob0_magnify_factor = 1          #this is in probability() for changing value so that it can take advantage of arctan
+prob0_magnify_factor = 10           #this is in probability() for changing value so that it can take advantage of arctan
 prob1_magnify_factor = 2
 prob2_magnify_factor = 1
 alpha = 1                           #in short-term effect of the frequency of transaction
@@ -603,7 +603,7 @@ sampling_time = 1000
 saving_time_step = T
 initial_for_trans_time = T - 1000
 trans_saving_interval = 1000
-version = 'acceptances_off_new_explore_correct'
+version = '98.12.21_test'
 if sampling_time > T:
     sampling_time = T
 if saving_time_step < sampling_time:

@@ -89,10 +89,12 @@ class Community_related_tools():
         community_members = [list(x) for x in self.modularity_communities]
         proprety_arr = self.array(property_id)
         communities_property_list = []
+        community_no = []
         
         for com_members_list in community_members:
             property_list = [ proprety_arr[agent] for agent in com_members_list]
             communities_property_list.append(property_list)
+            community_no.append(len(com_members_list))
         
         if boolean:
             fig, ax = plt.subplots(nrows=1,ncols=1)
@@ -101,7 +103,7 @@ class Community_related_tools():
             plt.savefig(self.path + 'C inter community %s'%(property_id))
             plt.close()
         
-        property_sum=[];property_mean=[];property_var=[];
+        property_sum,property_mean,property_var = [],[],[]
         for com_prop_list in communities_property_list:
             summ = sum(com_prop_list)
             mean = sum(com_prop_list) / len(com_prop_list)
@@ -109,10 +111,11 @@ class Community_related_tools():
             property_sum.append(summ)
             property_mean.append(mean)
             property_var.append(var)
-        
+            
         cmap = cm.ScalarMappable()
         plt.figure()
-        plt.bar( property_mean, property_sum, width=property_var, alpha=0.5, color= cmap.to_rgba(np.arange(len(property_sum))) )
+#        plt.bar( property_mean, property_sum, width=property_var, alpha=0.5, color= cmap.to_rgba(np.arange(len(property_sum))) )
+        plt.bar( property_mean, community_no, width=property_var, alpha=0.5, color= cmap.to_rgba(np.arange(len(property_sum))) )
         plt.title('{} in community'.format(property_id))
         plt.savefig(self.path + 'C community overal {}'.format(property_id))
         plt.close()
@@ -193,7 +196,7 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
         nx.set_node_attributes(G,node_attr_dict)
         
         if self.path != None:
-            nx.write_gexf(G,self.path+'%s_%d_graph.gexf'%(graph_type,self.T))
+            nx.write_gexf(G,self.path+'Gephi graph T={0} sampling_time={1}.gexf'.format(self.T,sampling_time))
 #        constructed_graph = G
 #        dynamic_graph = tracker.make_dynamic_trans_time_graph(constructed_graph)
 #        nx.write_gexf(dynamic_graph,self.path+'dynamic_%s_graph.gexf'%(graph_type))
@@ -510,6 +513,43 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
         self.plot_general(path,dic['nsize'],second_array=second_array,title='GR Number of Nodes in Each Friendship Point')
         self.plot_general(path,dic['esize'],title='GR Number of Edges in Each Friendship Point')
         return 
+    
+    def intercommunity_links(self):
+        community_members = [list(x) for x in self.modularity_communities]
+        length = len(community_members)
+        edge_arr = np.zeros((length,length))
+        for com_num1,comm1 in enumerate(community_members):
+            for com_num2,comm2 in enumerate(community_members):
+                for mem1 in comm1:
+                    for mem2 in comm2:
+                        if self.G.has_edge(mem1,mem2):
+                            edge_arr[com_num1,com_num2] += 1
+        
+        for com_num1,comm1 in enumerate(community_members):
+            len1 = len(comm1)
+            for com_num2,comm2 in enumerate(community_members):
+                len2 = len(comm2)
+                if com_num1 == com_num2:
+                    edge_arr[com_num1,com_num2] /= len1 * (len1-1) / 2
+                if com_num1 < com_num2:
+                    edge_arr[com_num1,com_num2] /= len1 * len2 / 2
+                if com_num1 > com_num2:
+                    edge_arr[com_num1,com_num2] = edge_arr[com_num2,com_num1]
+        
+        fig, ax = plt.subplots(nrows=1,ncols=1)
+        im = ax.imshow(edge_arr)
+        cbar = ax.figure.colorbar(im, ax=ax)
+        cbar.ax.set_ylabel('Edge Ratio', rotation=-90, va="bottom")
+        
+        for i in np.arange(length):
+            for j in np.arange(length):
+                ax.text(j, i, "{:.2f}".format(edge_arr[i, j]),ha="center", va="center", color="w")
+        
+        title = 'Edge Distribution Inter and Intra Community'
+        plt.title(title)
+        plt.savefig(self.path + title)
+        plt.close()
+        return
     
     pass
 
