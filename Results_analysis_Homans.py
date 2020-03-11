@@ -18,6 +18,7 @@ T = 5000
 memory_size = 10
 initial_time = 0
 time_step = T
+
 sampling_time = 1000
 version = 'acceptances_off_new_explore_correct'
 
@@ -55,6 +56,7 @@ for nsize in ['asset','money','approval','degree']:
 
 analyse.graph_correlations(all_nodes = False)
 analyse.graph_correlations(all_nodes = True)
+
 
 #constructed_graph = analyse.G
 #dynamic_graph = tracker.make_dynamic_trans_time_graph(constructed_graph)
@@ -112,8 +114,17 @@ tracker.plot('worth_ratio',title='Worth_ratio Evolution by Time',alpha=1)
 tracker.plot('correlation_mon',title='Correlation of Money and Situation')
 tracker.plot('correlation_situ',title="Correlation of Situation and Neighbor's Situation")
 
-tracker.correlation_pairplots(all_nodes = True)
-tracker.correlation_pairplots(present_nodes = main_graph.nodes())
+# tracker.correlation_pairplots(all_nodes = True)
+# tracker.correlation_pairplots(present_nodes = main_graph.nodes())
+
+tracker.correlation_pairplots()
+tracker.correlation_pairplots(nodes_selection = 'graph_nodes', present_nodes = main_graph.nodes())
+# tracker.correlation_pairplots_for_community()
+
+community_members = [list(x) for x in analyse.modularity_communities]
+for num,com in enumerate(community_members):
+    tracker.correlation_pairplots(nodes_selection ='community_nodes_{}'.format(num),present_nodes = com)
+
 
 fig, ax = plt.subplots(nrows=1,ncols=1)
 probability = analyse.array('probability')
