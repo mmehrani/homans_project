@@ -18,8 +18,9 @@ T = 5000
 memory_size = 10
 initial_time = 0
 time_step = T
-sampling_time = 2000
-version = 'new_explore_func_WR_off_diff_num_of_tries'
+
+sampling_time = 1000
+version = 'acceptances_off_new_explore_correct'
 
 pd = {'win32':'\\', 'linux':'/'}
 if sys.platform.startswith('win32'):
@@ -37,18 +38,18 @@ with open(path+'Other_data.pkl','rb') as data_file:
     rejection_agent     = pickle.load(data_file)
     
 with open(path+'Agents.pkl','rb') as agent_file:
-    a_matrix = pickle.load(agent_file)
+    A = pickle.load(agent_file)
 
 with open(path + 'Tracker.pkl','rb') as tracker_file:
     tracker = pickle.load(tracker_file)
 """"""
-#tool = graph_tools_glossary.Graph_related_tools(1200,N,a_matrix)
+#tool = graph_tools_glossary.Graph_related_tools(1200,N,A)
 #tool.graph_construction('trans_number',num_transaction_tot,sample_time_trans = tracker.sample_time_trans)
 """ Plots""" 
-analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,a_matrix,path)
+analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,A,path)
 main_graph = analyse.graph_construction('trans_number',num_transaction_tot, sampling_time=sampling_time, sample_time_trans=tracker.sample_time_trans)
 
-for nsize in ['asset','money','approval']:
+for nsize in ['asset','money','approval','degree']:
     for ncolor in ['community','situation','worth_ratio']:
         for position in ['spring','kamada_kawai']:
             analyse.draw_graph_weighted_colored(position=position,nsize=nsize,ncolor=ncolor)
@@ -87,13 +88,12 @@ analyse.community_detection()
 analyse.topology_chars()
 analyse.rich_club(normalized=False)
 analyse.assortativity()
+analyse.property_variation()
 
-#if initial_time == T - time_step:
-if True:
-    size = 10
-    for rand_agent in np.random.choice(np.arange(N),size=size,replace=False):
-        agent = rand_agent
-        tracker.trans_time_visualizer(agent,'Transaction Time Tracker')
+size = 10
+for rand_agent in np.random.choice(np.arange(N),size=size,replace=False):
+    agent = rand_agent
+    tracker.trans_time_visualizer(agent,'Transaction Time Tracker')
 tracker.valuability()
 
 for prop in ['money','asset','approval']:

@@ -187,11 +187,12 @@ def transaction(index1,index2,t,init=False):
     if init:
         acceptance = 1 #used in initial neighboring
     else:
-        if index1 in agent2.active_neighbor:
-            p = agent2.active_neighbor[index1]
-            acceptance_util = np.random.choice([0,1],p=[1-p,p])
-        else:
-            acceptance_util = 1
+#        if index1 in agent2.active_neighbor:
+#            p = agent2.active_neighbor[index1]
+#            acceptance_util = np.random.choice([0,1],p=[1-p,p])
+#        else:
+#            acceptance_util = 1
+        acceptance_util = 1
     
         if agent2.approval > 0.001 and agent2.approval - ( np.round(amount*worth_ratio1 + agreement_point,3) ) > 0.001:
             acceptance_neg = 1 #not negative checking acceptance
@@ -206,8 +207,9 @@ def transaction(index1,index2,t,init=False):
             acceptance_worth = np.random.choice([0,1],p=[1-p,p])
         acceptance_worth = acceptance_worth * acceptance_neg
         
-        p = np.exp( -np.abs(agent1.asset - agent2.asset)/param )
-        acceptance_asset = np.random.choice([0,1],p=[1-p,p])
+#        p = np.exp( -np.abs(agent1.asset - agent2.asset)/param )
+#        acceptance_asset = np.random.choice([0,1],p=[1-p,p])
+        acceptance_asset = 1
         
         threshold = threshold_percentage[index2] * agent2.approval
         if threshold > (amount * worth_ratio1 + agreement_point):
@@ -585,9 +587,9 @@ T = 5000
 similarity = 0.05                   #how much this should be?
 memory_size = 10                    #contains the last memory_size number of transaction times
 transaction_percentage = 0.1        #percent of amount of money the first agent proposes from his asset 
-num_of_tries  = 20                   #in function explore()
-num_of_tries2 = 10                   #in function explore()
-num_of_tries3 = 5                   #in function explore()
+num_of_tries  = 3                   #in function explore()
+num_of_tries2 = 2                   #in function explore()
+num_of_tries3 = 1                   #in function explore()
 threshold_percentage =np.full(N,1)  #the maximum amount which the agent is willing to give
 normalization_factor = 1            #used in transaction(). what should be?
 prob0_magnify_factor = 1          #this is in probability() for changing value so that it can take advantage of arctan
@@ -596,12 +598,12 @@ prob2_magnify_factor = 1
 alpha = 1                           #in short-term effect of the frequency of transaction
 beta = 0.3                          #in long-term effect of the frequency of transaction
 param = 2                           #a normalizing factor in assigning the acceptance probability. It normalizes difference of money of both sides
-lamda = 1                           # how much one agent relies on his last worth_ratio and how much relies on current transaction's worth_ratio
-sampling_time = 2000
+lamda = 0                           # how much one agent relies on his last worth_ratio and how much relies on current transaction's worth_ratio
+sampling_time = 1000
 saving_time_step = T
 initial_for_trans_time = T - 1000
 trans_saving_interval = 1000
-version = 'new_explore_func_WR_off_diff_num_of_tries'
+version = 'acceptances_off_new_explore_correct'
 if sampling_time > T:
     sampling_time = T
 if saving_time_step < sampling_time:
