@@ -14,13 +14,13 @@ import graph_tools_glossary
 import sys
 
 N = 100
-T = 5000
+T = 2000
 memory_size = 10
 initial_time = 0
 time_step = T
 
 sampling_time = 1000
-version = 'acceptances_off_new_explore_correct'
+version = '98.12.21_test'
 
 pd = {'win32':'\\', 'linux':'/'}
 if sys.platform.startswith('win32'):
@@ -89,6 +89,7 @@ analyse.topology_chars()
 analyse.rich_club(normalized=False)
 analyse.assortativity()
 analyse.property_variation()
+analyse.intercommunity_links()
 
 size = 10
 for rand_agent in np.random.choice(np.arange(N),size=size,replace=False):

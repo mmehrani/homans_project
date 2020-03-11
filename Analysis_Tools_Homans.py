@@ -203,7 +203,7 @@ class properties_alteration(arrays_glossary):
         plt.plot([0,self.N],[mean_rel_worth,mean_rel_worth])
         plt.legend()
         plt.title("Relative Standard Deviation of Neighbors in Approval,Money,Asset,WR")
-        plt.savefig(self.path + 'SDR '+'mean approval={0:.3g} money={1:.3g} asset={2:.3g} WR={3:.3g}.png'.format(mean_rel_approval,mean_rel_asset,mean_rel_money,mean_rel_worth))
+        plt.savefig(self.path + 'SDR '+'mean approval={0:.3g} money={1:.3g} asset={2:.3g} WR={3:.3g}.png'.format(mean_rel_approval,mean_rel_money,mean_rel_asset,mean_rel_worth))
         plt.close()
         return
         
