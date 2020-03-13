@@ -16,7 +16,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from graph_tools_glossary import Graph_related_tools,Community_related_tools
 from agents_properties_tools import arrays_glossary
-
+from decimal import Decimal
 
 class properties_alteration(arrays_glossary):
     def property_evolution(self,property_id):
@@ -242,7 +242,13 @@ class hist_plot_tools():
         if explore:
             N = kwargs.get('N',100)
             # ax.set_ylim(0,1.05*N)
+            deg_value = np.polyfit(np.arange(self.T - 1000, self.T),np.log(array[-1000:]),1)
+            ax.plot( np.arange(self.T) ,np.exp( deg_value[1] + deg_value[0]*np.arange(self.T) ) ,
+                    color = 'k',ls = 'dashed',alpha = 0.3, label = '{:.2e} t + {:.2e}'.format(Decimal(deg_value[0]),Decimal(deg_value[1])))
             ax.set_yscale('log')
+            plt.legend()
+            
+            
         ax.set_title(title)
         fig.savefig(self.path+title)
         plt.close()
