@@ -226,14 +226,25 @@ class hist_plot_tools():
         return
     
     def plot_general(self,array,title='',**kwargs):
-        plt.figure()
-        plt.plot(array)
+        
+        plt.rc('font', family='serif')
+        plt.rc('xtick', labelsize='x-small')
+        plt.rc('ytick', labelsize='x-small')
+        
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
+        ax.plot(array)
+        
+        ax.set_xlabel('Time steps')
+        ax.set_ylabel('Number of explorations')
+        
         explore = kwargs.get('explore',False)
         if explore:
             N = kwargs.get('N',100)
-            plt.ylim(0,1.05*N)
-        plt.title(title)
-        plt.savefig(self.path+title)
+            # ax.set_ylim(0,1.05*N)
+            ax.set_yscale('log')
+        ax.set_title(title)
+        fig.savefig(self.path+title)
         plt.close()
         return
     
