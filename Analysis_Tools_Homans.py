@@ -142,6 +142,8 @@ class properties_alteration(arrays_glossary):
         nei_approval_var,nei_money_var,nei_asset_var,nei_worth_var = np.zeros(self.N),np.zeros(self.N),np.zeros(self.N),np.zeros(self.N)
         mean_approval,mean_money,mean_asset,mean_worth = np.zeros(self.N),np.zeros(self.N),np.zeros(self.N),np.zeros(self.N)
         
+        communities_parts = [list(x) for x in self.modularity_communities]
+        
         for agent in np.arange(self.N):
             nei_approval = [self.a_matrix[j].approval for j in self.a_matrix[agent].active_neighbor]
             nei_money = [self.a_matrix[j].money for j in self.a_matrix[agent].active_neighbor]
@@ -179,28 +181,45 @@ class properties_alteration(arrays_glossary):
         mean_rel_worth = np.mean(nei_worth_var/mean_worth)
         
         plt.figure()
-        plt.plot(nei_approval_var,label = 'approval')
-        plt.plot(nei_money_var,label = 'money')
-        plt.plot(nei_asset_var,label = 'asset')
-        plt.plot(nei_worth_var,label = 'worth ratio')
-        plt.plot([0,self.N],[mean_approval_var,mean_approval_var], ls = 'dashed')
-        plt.plot([0,self.N],[mean_money_var,mean_money_var], ls = 'dashed')
-        plt.plot([0,self.N],[mean_asset_var,mean_asset_var], ls = 'dashed')
-        plt.plot([0,self.N],[mean_worth_var,mean_worth_var], ls = 'dashed')
+        splitter = 0
+        for com in communities_parts:
+            plt.plot(range(splitter,splitter+len(com)),nei_approval_var[com])
+            plt.plot(range(splitter,splitter+len(com)),nei_money_var[com])
+            plt.plot(range(splitter,splitter+len(com)),nei_asset_var[com])
+            plt.plot(range(splitter,splitter+len(com)),nei_worth_var[com])
+            splitter += len(com)
+        
+        # plt.plot(nei_approval_var,label = 'approval')
+        # plt.plot(nei_money_var,label = 'money')
+        # plt.plot(nei_asset_var,label = 'asset')
+        # plt.plot(nei_worth_var,label = 'worth ratio')
+        
+        plt.plot([0,self.N],[mean_approval_var,mean_approval_var], ls = 'dashed',label = 'approval')
+        plt.plot([0,self.N],[mean_money_var,mean_money_var], ls = 'dashed',label = 'money')
+        plt.plot([0,self.N],[mean_asset_var,mean_asset_var], ls = 'dashed',label = 'asset')
+        plt.plot([0,self.N],[mean_worth_var,mean_worth_var], ls = 'dashed',label = 'worth ratio')
         plt.title("Standard Deviation of Agent's Neighbor Properties")
         plt.legend()
         plt.savefig(self.path + 'SD '+'mean approval={0:.3g} money={1:.3g} asset={2:.3g} WR={3:.3g}.png'.format(mean_approval_var,mean_asset_var,mean_money_var,mean_worth_var))
         plt.close()
         
         plt.figure()
-        plt.plot(nei_approval_var/mean_approval,label = 'approval')
-        plt.plot(nei_money_var/mean_money,label = 'money')
-        plt.plot(nei_asset_var/mean_asset,label = 'asset')
-        plt.plot(nei_worth_var/mean_worth,label = 'worth ratio')
-        plt.plot([0,self.N],[mean_rel_approval,mean_rel_approval], ls = 'dashed')
-        plt.plot([0,self.N],[mean_rel_money,mean_rel_money], ls = 'dashed')
-        plt.plot([0,self.N],[mean_rel_asset,mean_rel_asset], ls = 'dashed')
-        plt.plot([0,self.N],[mean_rel_worth,mean_rel_worth], ls = 'dashed')
+        splitter = 0
+        for com in communities_parts:
+            plt.plot(range(splitter,splitter+len(com)),nei_approval_var[com]/mean_approval)
+            plt.plot(range(splitter,splitter+len(com)),nei_money_var[com]/mean_money)
+            plt.plot(range(splitter,splitter+len(com)),nei_asset_var[com]/mean_asset)
+            plt.plot(range(splitter,splitter+len(com)),nei_worth_var[com]/mean_worth)
+            splitter += len(com)
+
+        # plt.plot(nei_approval_var/mean_approval,label = 'approval')
+        # plt.plot(nei_money_var/mean_money,label = 'money')
+        # plt.plot(nei_asset_var/mean_asset,label = 'asset')
+        # plt.plot(nei_worth_var/mean_worth,label = 'worth ratio')
+        plt.plot([0,self.N],[mean_rel_approval,mean_rel_approval], ls = 'dashed',label = 'approval')
+        plt.plot([0,self.N],[mean_rel_money,mean_rel_money], ls = 'dashed',label = 'money')
+        plt.plot([0,self.N],[mean_rel_asset,mean_rel_asset], ls = 'dashed',label = 'asset')
+        plt.plot([0,self.N],[mean_rel_worth,mean_rel_worth], ls = 'dashed',label = 'worth ratio')
         plt.legend()
         plt.title("Relative Standard Deviation of Neighbors Properties")
         plt.savefig(self.path + 'SDR '+'mean approval={0:.3g} money={1:.3g} asset={2:.3g} WR={3:.3g}.png'.format(mean_rel_approval,mean_rel_money,mean_rel_asset,mean_rel_worth))
