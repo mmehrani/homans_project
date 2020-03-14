@@ -206,10 +206,10 @@ class properties_alteration(arrays_glossary):
         plt.figure()
         splitter = 0
         for com in communities_parts:
-            plt.plot(range(splitter,splitter+len(com)),nei_approval_var[com]/mean_approval)
-            plt.plot(range(splitter,splitter+len(com)),nei_money_var[com]/mean_money)
-            plt.plot(range(splitter,splitter+len(com)),nei_asset_var[com]/mean_asset)
-            plt.plot(range(splitter,splitter+len(com)),nei_worth_var[com]/mean_worth)
+            plt.plot(range(splitter,splitter+len(com)),nei_approval_var[com]/mean_approval[com])
+            plt.plot(range(splitter,splitter+len(com)),nei_money_var[com]/mean_money[com])
+            plt.plot(range(splitter,splitter+len(com)),nei_asset_var[com]/mean_asset[com])
+            plt.plot(range(splitter,splitter+len(com)),nei_worth_var[com]/mean_worth[com])
             splitter += len(com)
 
         # plt.plot(nei_approval_var/mean_approval,label = 'approval')
