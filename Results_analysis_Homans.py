@@ -14,13 +14,8 @@ import graph_tools_glossary
 import sys
 
 N = 100
-T = 2000
-memory_size = 10
-initial_time = 0
-time_step = T
-
-sampling_time = 1000
-version = '98.12.21_test'
+T = 5000
+version = 'new_explore_func_WR_off_diff_num_of_tries'
 
 pd = {'win32':'\\', 'linux':'/'}
 if sys.platform.startswith('win32'):
@@ -29,7 +24,21 @@ elif sys.platform.startswith('linux'):
     plat = 'linux'
 current_path = os.getcwd()
 path = current_path +pd[plat]+'runned_files'+pd[plat]+'N%d_T%d'%(N,T)+pd[plat]+version+pd[plat]
-path += '%d_%d'%(0, initial_time + time_step)+pd[plat]
+
+with open(path + 'Initials.txt','r') as initf:
+    init_lines = initf.readlines()
+    for i,line in enumerate(init_lines):
+    #     if line == 'respectively: \n':
+    #         break
+        # if   i == 0: N = int(line[:-1])
+        # elif i == 1: T = int(line[:-1])
+        # elif i == 2: sampling_time = int(line[:-1])
+        # elif i == 3: saving_time_step = int(line[:-1])
+        # elif i == 4: verion = line[:-1]
+        if i == 2: sampling_time = int(line[:-1])
+memory_size = 10
+saving_time = T
+path += '0_%d'%(T)+pd[plat]
 
 """Open File"""
 with open(path+'Other_data.pkl','rb') as data_file:

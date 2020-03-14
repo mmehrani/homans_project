@@ -549,13 +549,33 @@ def make_directories(version):
         os.mkdir(path)
     except OSError:
         print ("Creation of the directory failed")
+        
+    with open(path + 'Initials.txt','w') as initf:
+        initf.write(str(N)+'\n')
+        initf.write(str(T)+'\n')
+        initf.write(str(sampling_time)+'\n')
+        initf.write(str(saving_time_step)+'\n')
+        initf.write(str(version)+'\n')
+        initf.write('respectively: \n')
+        initf.write('N, T, sampling time, saving time step, version \n\n')
+        
+        initf.write(str(initial_for_trans_time) + ': initial for trans time \n')
+        initf.write(str(trans_saving_interval) + ': trans time interval \n')
+        initf.write(str(similarity) + ': similarity \n')
+        initf.write(str(num_of_tries1) + ': num of tries 1 \n')
+        initf.write(str(num_of_tries2) + ': num of tries 2 \n')
+        initf.write(str(num_of_tries3) + ': num of tries 3 \n')
+        initf.write(str(prob0_magnify_factor) + ': probability 0 magnify factor \n')
+        initf.write(str(prob1_magnify_factor) + ': probability 1 magnify factor \n')
+        initf.write(str(prob2_magnify_factor) + ': probability 2 magnify factor \n')
+        initf.write(str(lamda) + ': lambda \n')
+        
     return path
 
 def save_it(version,t):
     global tracker
     current_path = os.getcwd()
     path = current_path+pd[plat]+'runned_files'+pd[plat]+'N%d_T%d'%(N,T)+pd[plat]+version+ pd[plat]+'0_%d'%(t)+pd[plat]
-    
     try:
         os.mkdir(path)
     except OSError:
@@ -583,11 +603,11 @@ def save_it(version,t):
 """Parameters"""#XXX
 
 N = 100
-T = 2000
+T = 5000
 similarity = 0.05                   #how much this should be?
 memory_size = 10                    #contains the last memory_size number of transaction times
 transaction_percentage = 0.1        #percent of amount of money the first agent proposes from his asset 
-num_of_tries  = 5                   #in function explore()
+num_of_tries1  = 5                   #in function explore()
 num_of_tries2 = 5                   #in function explore()
 num_of_tries3 = 1                   #in function explore()
 threshold_percentage =np.full(N,1)  #the maximum amount which the agent is willing to give
@@ -603,7 +623,7 @@ sampling_time = 1000
 saving_time_step = T
 initial_for_trans_time = T - 1000
 trans_saving_interval = 1000
-version = '98.12.21_test'
+version = 'new_explore_func_WR_off_diff_num_of_tries'
 if sampling_time > T:
     sampling_time = T
 if saving_time_step < sampling_time:
@@ -676,9 +696,6 @@ path = make_directories(version)
 find another agent through calculating probability
 explores for new agent (expands his memory)"""
 
-#trunc_point = 
-#t = 0
-#while slop > trunc_point: #instead of for...
 for t in np.arange(T)+1:#t goes from 1 to T
     """computations"""
     print(t)
@@ -696,10 +713,10 @@ for t in np.arange(T)+1:#t goes from 1 to T
             if rand==1:
                 
                 person_active_neighbor = np.array(list(person.active_neighbor.keys()))
-                if person_active_neighbor_size < num_of_tries:
+                if person_active_neighbor_size < num_of_tries1:
                     num_of_choice = person_active_neighbor_size
                 else:
-                    num_of_choice = num_of_tries
+                    num_of_choice = num_of_tries1
                 choice_arr = np.zeros(num_of_choice,dtype=int)
                 for k in np.arange(num_of_choice):
                     choice_arr[k] , chosen_index = person.second_agent(i,person_active_neighbor)
