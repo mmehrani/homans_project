@@ -53,10 +53,10 @@ class Agent():
         self.n_avg['money'] = self.n_avg['money'] / len(self.active_neighbor)
         self.n_avg['approval'] = self.n_avg['approval'] / len(self.active_neighbor)
 
-#        self.n_avg['money'] += self.money
-#        self.n_avg['approval'] += self.approval
-#        self.n_avg['money'] = self.n_avg['money'] / (len(self.active_neighbor)+1)
-#        self.n_avg['approval'] = self.n_avg['approval'] / (len(self.active_neighbor)+1)
+        # self.n_avg['money'] += self.money
+        # self.n_avg['approval'] += self.approval
+        # self.n_avg['money'] = self.n_avg['money'] / (len(self.active_neighbor)+1)
+        # self.n_avg['approval'] = self.n_avg['approval'] / (len(self.active_neighbor)+1)
         
         self.n_average = self.n_avg['approval'] / self.n_avg['money']
         return self.n_average
@@ -89,7 +89,7 @@ class Agent():
         p2_tracker.append(p2)
         
         probability = p0 * p1 * p2 #not normalized. normalization occurs in neighbor_concatenation()
-        return probability
+        return round(probability,8)
     
     def frequency_to_probability(self,neighbor,t):
         mask = (self.time[neighbor] > t-10) & (self.time[neighbor] != -1)
@@ -115,9 +115,11 @@ class Agent():
         else:
             self.sigma += probability_new_neighbor
             
-        self.active_neighbor[new_neighbor] = probability_new_neighbor
+        # self.active_neighbor[new_neighbor] = probability_new_neighbor
         for j in self.active_neighbor.keys():
             self.active_neighbor[j] /= self.sigma
+        
+        
         if np.size(np.array(list(self.active_neighbor.values()))[np.array(list(self.active_neighbor.values()))>1]) != 0:
             #normalize again
             summ = sum(self.active_neighbor.values())
@@ -187,19 +189,19 @@ def transaction(index1,index2,t,init=False):
     if init:
         acceptance = 1 #used in initial neighboring
     else:
-#        if index1 in agent2.active_neighbor:
-#            p = agent2.active_neighbor[index1]
-#            acceptance_util = np.random.choice([0,1],p=[1-p,p])
-#        else:
-#            acceptance_util = 1
-        acceptance_util = 1
+        if index1 in agent2.active_neighbor:
+            p = agent2.active_neighbor[index1]
+            acceptance_util = np.random.choice([0,1],p=[1-p,p])
+        else:
+            acceptance_util = 1
+        # acceptance_util = 1
     
         if agent2.approval > 0.001 and agent2.approval - ( np.round(amount*worth_ratio1 + agreement_point,3) ) > 0.001:
             acceptance_neg = 1 #not negative checking acceptance
         else: acceptance_neg = 0
         
-#        if worth_ratio2 >= worth_ratio1:
-        if True:
+        if worth_ratio2 >= worth_ratio1:
+        # if True:
             acceptance_worth = 1
         else:
 #            acceptance_worth = 0
@@ -207,9 +209,9 @@ def transaction(index1,index2,t,init=False):
             acceptance_worth = np.random.choice([0,1],p=[1-p,p])
         acceptance_worth = acceptance_worth * acceptance_neg
         
-#        p = np.exp( -np.abs(agent1.asset - agent2.asset)/param )
-#        acceptance_asset = np.random.choice([0,1],p=[1-p,p])
-        acceptance_asset = 1
+        p = np.exp( -np.abs(agent1.asset - agent2.asset)/param )
+        acceptance_asset = np.random.choice([0,1],p=[1-p,p])
+        # acceptance_asset = 1
         
         threshold = threshold_percentage[index2] * agent2.approval
         if threshold > (amount * worth_ratio1 + agreement_point):
@@ -583,7 +585,7 @@ def save_it(version,t):
 """Parameters"""#XXX
 
 N = 100
-T = 2000
+T = 5000
 similarity = 0.05                   #how much this should be?
 memory_size = 10                    #contains the last memory_size number of transaction times
 transaction_percentage = 0.1        #percent of amount of money the first agent proposes from his asset 
@@ -592,7 +594,7 @@ num_of_tries2 = 5                   #in function explore()
 num_of_tries3 = 1                   #in function explore()
 threshold_percentage =np.full(N,1)  #the maximum amount which the agent is willing to give
 normalization_factor = 1            #used in transaction(). what should be?
-prob0_magnify_factor = 1           #this is in probability() for changing value so that it can take advantage of arctan
+prob0_magnify_factor = 10           #this is in probability() for changing value so that it can take advantage of arctan
 prob1_magnify_factor = 2
 prob2_magnify_factor = 1
 alpha = 1                           #in short-term effect of the frequency of transaction
@@ -603,7 +605,7 @@ sampling_time = 1000
 saving_time_step = T
 initial_for_trans_time = T - 1000
 trans_saving_interval = 1000
-version = '98.12.21_test'
+version = 'p0_only_not_self_included_worth_ratio'
 if sampling_time > T:
     sampling_time = T
 if saving_time_step < sampling_time:

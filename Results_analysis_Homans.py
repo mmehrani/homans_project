@@ -14,13 +14,13 @@ import graph_tools_glossary
 import sys
 
 N = 100
-T = 2000
+T = 5000
 memory_size = 10
 initial_time = 0
 time_step = T
 
 sampling_time = 1000
-version = '98.12.21_test'
+version = 'p0_only_self_included_worth_ratio'
 
 pd = {'win32':'\\', 'linux':'/'}
 if sys.platform.startswith('win32'):
