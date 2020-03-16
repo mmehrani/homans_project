@@ -11,6 +11,8 @@ import Analysis_Tools_Homans
 import os
 import shutil
 import sys
+from decimal import *
+
 pd = {'win32':'\\', 'linux':'/'}
 if sys.platform.startswith('win32'):
     plat = 'win32'
@@ -34,7 +36,8 @@ class Agent():
         self.time = np.full((N,memory_size),-1)
         self.situation = situation
         self.active_neighbor = {} #dictianary; keys are active neighbor indexes; values are probabilities
-        self.sigma = 0 #sum of probabilities. used in normalization
+        self.active_neighbor_grade = {} #dictianary; keys are active neighbor indexes; values are their magnifency due to prob func
+        self.sigma = Decimal('0') #sum of probabilities. used in normalization
         self.feeling = np.zeros(N)
         self.worth_ratio = self.approval/self.money
         self.asset = self.money + self.approval / self.worth_ratio
@@ -89,7 +92,7 @@ class Agent():
         p2_tracker.append(p2)
         
         probability = p0 * p1 * p2 #not normalized. normalization occurs in neighbor_concatenation()
-        return probability
+        return Decimal(probability).quantize(Decimal('1e-5'),rounding = ROUND_DOWN) if probability < 10**8 else Decimal(10**8)
     
     def frequency_to_probability(self,neighbor,t):
         mask = (self.time[neighbor] > t-10) & (self.time[neighbor] != -1)
@@ -103,29 +106,37 @@ class Agent():
     
     def neighbor_concatenation(self,self_index,new_neighbor,t):
         sum_before = sum(list(self.active_neighbor.values()))
-        for j in self.active_neighbor.keys():
-            self.active_neighbor[j] *= self.sigma
         
         sigma_before = self.sigma            
-        probability_new_neighbor = self.probability(new_neighbor,t)
-        sum_middle = sum(list(self.active_neighbor.values()))
+        grade_new_neighbor = self.probability(new_neighbor,t)
 
-        if new_neighbor in self.active_neighbor:
-            self.sigma += probability_new_neighbor - self.active_neighbor[new_neighbor]
+        if new_neighbor in self.active_neighbor_grade:
+            self.sigma += grade_new_neighbor - self.active_neighbor_grade[new_neighbor]
         else:
-            self.sigma += probability_new_neighbor
+            self.sigma += grade_new_neighbor
             
-        self.active_neighbor[new_neighbor] = probability_new_neighbor
+        self.active_neighbor_grade[new_neighbor] = grade_new_neighbor
+        
+        sum_middle = sum(list(self.active_neighbor_grade.values()))
         for j in self.active_neighbor.keys():
-            self.active_neighbor[j] /= self.sigma
-        if np.size(np.array(list(self.active_neighbor.values()))[np.array(list(self.active_neighbor.values()))>1]) != 0:
-            #normalize again
-            summ = sum(self.active_neighbor.values())
-            for j in self.active_neighbor:
-                self.active_neighbor[j]/summ
+            if j!=new_neighbor:
+                self.active_neighbor[j] = self.active_neighbor_grade[j] / self.sigma
+                self.active_neighbor[j] = Decimal( str(self.active_neighbor[j]) ).quantize(Decimal('1e-5'),rounding = ROUND_DOWN)
+                
+        if new_neighbor in self.active_neighbor:
+            self.active_neighbor[new_neighbor] = 1 - ( sum(self.active_neighbor.values()) -  self.active_neighbor[new_neighbor])
+        else:
+            self.active_neighbor[new_neighbor] = 1 -  sum(self.active_neighbor.values()) 
+            
+        
+        # if np.size(np.array(list(self.active_neighbor.values()))[np.array(list(self.active_neighbor.values()))>1]) != 0:
+        #     #normalize again
+        #     summ = sum(self.active_neighbor.values())
+        #     for j in self.active_neighbor:
+        #         self.active_neighbor[j]/summ
 
         #error finding
-        if probability_new_neighbor < 0:
+        if self.active_neighbor[new_neighbor] < 0:
             raise NegativeProbability('self index:',self_index,'neighbor',new_neighbor)
         elif np.size(np.array(list(self.active_neighbor.values()))[np.array(list(self.active_neighbor.values()))>1]) != 0:
             print('\nerror')
@@ -399,7 +410,7 @@ def explore(index,t):
                 if nei in agent_active_neighbor:
                     neighbors_of_neighbors.remove(nei)
 #            print('after',neighbors_of_neighbors)
-
+            # print(list(agent.active_neighbor.values()))
             if len(neighbors_of_neighbors) != 0:
                 chosen_neighbor_index = np.random.choice(agent_active_neighbor,p=list(agent.active_neighbor.values())) #Bias neighbor
                 situation = A[chosen_neighbor_index].situation
