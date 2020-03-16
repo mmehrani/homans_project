@@ -36,7 +36,6 @@ class Agent():
         self.time = np.full((N,memory_size),-1)
         self.situation = situation
         self.active_neighbor = {} #dictianary; keys are active neighbor indexes; values are probabilities
-        self.active_neighbor_grade = {} #dictianary; keys are active neighbor indexes; values are their magnifency due to prob func
         self.sigma = Decimal('0') #sum of probabilities. used in normalization
         self.feeling = np.zeros(N)
         self.worth_ratio = self.approval/self.money
@@ -106,21 +105,24 @@ class Agent():
     
     def neighbor_concatenation(self,self_index,new_neighbor,t):
         sum_before = sum(list(self.active_neighbor.values()))
+        sigma_before = self.sigma
         
-        sigma_before = self.sigma            
+        for j in self.active_neighbor.keys():
+            self.active_neighbor[j] *= self.sigma
+            
         grade_new_neighbor = self.probability(new_neighbor,t)
 
-        if new_neighbor in self.active_neighbor_grade:
-            self.sigma += grade_new_neighbor - self.active_neighbor_grade[new_neighbor]
+        if new_neighbor in self.active_neighbor:
+            self.sigma += grade_new_neighbor - self.active_neighbor[new_neighbor]
         else:
             self.sigma += grade_new_neighbor
             
-        self.active_neighbor_grade[new_neighbor] = grade_new_neighbor
+        self.active_neighbor[new_neighbor] = grade_new_neighbor
         
-        sum_middle = sum(list(self.active_neighbor_grade.values()))
+        sum_middle = sum(list(self.active_neighbor.values()))
         for j in self.active_neighbor.keys():
             if j!=new_neighbor:
-                self.active_neighbor[j] = self.active_neighbor_grade[j] / self.sigma
+                self.active_neighbor[j] /= self.sigma
                 self.active_neighbor[j] = Decimal( str(self.active_neighbor[j]) ).quantize(Decimal('1e-5'),rounding = ROUND_DOWN)
                 
         if new_neighbor in self.active_neighbor:
@@ -623,7 +625,7 @@ num_of_tries2 = 5                   #in function explore()
 num_of_tries3 = 1                   #in function explore()
 threshold_percentage =np.full(N,1)  #the maximum amount which the agent is willing to give
 normalization_factor = 1            #used in transaction(). what should be?
-prob0_magnify_factor = 1           #this is in probability() for changing value so that it can take advantage of arctan
+prob0_magnify_factor = 10           #this is in probability() for changing value so that it can take advantage of arctan
 prob1_magnify_factor = 2
 prob2_magnify_factor = 1
 alpha = 1                           #in short-term effect of the frequency of transaction
