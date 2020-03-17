@@ -21,37 +21,33 @@ elif sys.platform.startswith('linux'):
 class Community_related_tools():
     
 #    def __init__(self):
-#        self.modularity_communities = None
+#        self.modularity_communitiesx = None
 #        self.best_parts = None
-    
-    def community_division(self):
-        """
-        it just returns the community division subsets.
-        """
-        return communityx.greedy_modularity_communities(self.G)
     
     def assign_communities(self):
         """
         assigned communities to be calculated just once for a graph in all analysis funcs.
         """
-#        self.modularity_communities = communityx.greedy_modularity_communities(self.G)
-#        community_members = [list(x) for x in self.modularity_communities]
-#        com_dict = {}
-#        for i,com in enumerate(community_members):
-#            for node in com:
-#                com_dict[node] = i
-#
-#        self.best_parts = com_dict
-        
-        self.modularity_communities = communityx.greedy_modularity_communities(self.G)
+        self.modularity_communitiesx = communityx.greedy_modularity_communities(self.G)
         self.best_parts = community.best_partition(self.G)
+        community_members = [list(x) for x in self.modularity_communitiesx]
+        com_dict = {}
+        for i,com in enumerate(community_members):
+            for node in com:
+                com_dict[node] = i
+        
+        com_list=[[] for c in list(set(self.best_parts.values()))]
+        for n,c in zip(self.best_parts.keys(),self.best_parts.values()):
+            com_list[c].append(n)
+        self.modularity_communities = com_list
+        self.best_parts_x = com_dict
         return
     
     def community_detection(self):
         """Community Detection"""
         community_dict = self.best_parts
 #        partition2 = self.partition
-        partition2 = self.modularity_communities
+        partition2 = self.modularity_communitiesx
         
         """Modularity"""
         modularity = community.modularity(community_dict,self.G)
@@ -86,7 +82,8 @@ class Community_related_tools():
     
     def communities_property_hist(self,property_id,boolean=True):
         """properties histogram in inter-communities"""
-        community_members = [list(x) for x in self.modularity_communities]
+        # community_members = [list(x) for x in self.modularity_communitiesx]
+        community_members = self.modularity_communities
         proprety_arr = self.array(property_id)
         communities_property_list = []
         community_no = []
@@ -128,8 +125,8 @@ class Community_related_tools():
                       'asset':tracker.agents_asset}
         survey_arr = survey_ref[property_id]
         
-        community_dict = self.community_division()
-        community_dict = [list(x) for x in community_dict]
+        # community_dict = [list(x) for x in self.modularity_communitiesx]
+        community_dict = self.modularity_communities
         
         communities_property_evolution_list = []
         communities_property_evolution_list_err = []
@@ -209,12 +206,6 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
         plt.figure()
         print("Size of G is:", self.G.number_of_nodes())
 #        edgewidth = [ d['weight'] for (u,v,d) in self.G.edges(data=True)]
-#        color = [ self.a_matrix[u].situation for u in self.G.nodes()]
-#        color = list(self.best_parts.values())
-#        size = [self.a_matrix[u].asset*15 for u in self.G.nodes()]
-#        size = [self.a_matrix[u].money*30 for u in self.G.nodes()]
-#        size = [ self.a_matrix[u].situation*150 for u in self.G.nodes()]
-#        size = [ self.a_matrix[u].worth_ratio*150 for u in self.G.nodes()]
         if nsize == 'asset':
             size = [self.a_matrix[u].asset*15 for u in self.G.nodes()]
         if nsize == 'money':
@@ -236,9 +227,8 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
         if position == 'kamada_kawai':
             pos = nx.kamada_kawai_layout(self.G)
         
-#        nx.draw(self.G, pos=pos, with_labels = True, node_size=100, font_size=8, width=np.array(edgewidth), node_color=s)
+#        nx.draw(self.G, pos=pos, with_labels = True, node_size=100, font_size=8, width=np.array(edgewidth), node_color=color)
         nx.draw(self.G, pos=pos, with_labels = True, node_size=size, font_size=8, node_color=color, width=0.1)
-#        nx.draw(self.G, pos=pos, with_labels = True, node_size=150, font_size=8, width=np.array(edgewidth))
         plt.savefig(self.path+'graph '+position+' fpoint=%d'%(self.friendship_num)+' s='+nsize+' c='+ncolor)
         plt.close()
         return
@@ -327,7 +317,8 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
             assort_file.write('assortativity according to '+attr+' is: '+'\n')
             assort_file.write(str(nx.attribute_assortativity_coefficient(self.G,attr))+'\n'+'\n')
         
-        community_members = [list(x) for x in self.modularity_communities]
+        # community_members = [list(x) for x in self.modularity_communitiesx]
+        community_members = self.modularity_communities
         for num,com in enumerate(community_members):
             assort_file.write('community #{}:'.format(num)+'\n')
             for attr in self.G.nodes(data=True)[i].keys():
@@ -448,7 +439,7 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
         dic = {'modul':[],'cover':[],'asph':[],'asph_r':[],'cc':[],'cc_r':[],'sigma':[],'omega':[],'rc':[],'cover_r':[],'modul_r':[],'nsize':[],'esize':[],'is_con':[]}
 
         local0,local1,local2,local3 = -1,-1,-1,-1
-        for i in np.arange(20)+1:
+        for i in np.arange(30)+1:
             print('i =',i)
             self.path = path + 'graph_related' + pd[plat]+'{0}, '.format(i)
             try:
@@ -466,7 +457,6 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
                 dic['nsize'][local0] = self.G.number_of_nodes()
                 dic['esize'][local0] = self.G.number_of_edges()
                 dic['is_con'][local0] = nx.is_connected(self.G)
-#                print(dic['is_con'])
             except: print('graph size')
             try:
                 self.hist('degree')
@@ -505,6 +495,9 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
                 for prop in ['money','asset','approval','worth_ratio','situation']:
                     self.communities_property_hist(prop,boolean=False)
             except: print('property hist')
+            try:
+                self.intercommunity_links()
+            except: print('edge distribution')
 
         self.path = path
         """Plot"""
@@ -523,7 +516,8 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
         return 
     
     def intercommunity_links(self):
-        community_members = [list(x) for x in self.modularity_communities]
+        # community_members = [list(x) for x in self.modularity_communitiesx]
+        community_members = self.modularity_communities
         length = len(community_members)
         edge_arr = np.zeros((length,length))
         for com_num1,comm1 in enumerate(community_members):
@@ -532,18 +526,21 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
                     for mem2 in comm2:
                         if self.G.has_edge(mem1,mem2):
                             edge_arr[com_num1,com_num2] += 1
-        
+        print(edge_arr)
         for com_num1,comm1 in enumerate(community_members):
             len1 = len(comm1)
+            print('len1',len1)
             for com_num2,comm2 in enumerate(community_members):
                 len2 = len(comm2)
+                print('len2',len2)
                 if com_num1 == com_num2:
-                    edge_arr[com_num1,com_num2] /= len1 * (len1-1) / 2
+                    print((len1 * (len1-1)))
+                    edge_arr[com_num1,com_num2] /= (len1 * (len1-1))
                 if com_num1 < com_num2:
-                    edge_arr[com_num1,com_num2] /= len1 * len2 / 2
+                    edge_arr[com_num1,com_num2] /= (len1 * len2)
                 if com_num1 > com_num2:
                     edge_arr[com_num1,com_num2] = edge_arr[com_num2,com_num1]
-        
+        print(edge_arr)
         fig, ax = plt.subplots(nrows=1,ncols=1)
         im = ax.imshow(edge_arr)
         cbar = ax.figure.colorbar(im, ax=ax)
@@ -556,7 +553,7 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
         title = 'Edge Distribution Inter and Intra Community'
         plt.title(title)
         plt.savefig(self.path + title)
-        plt.close()
+        # plt.close()
         return
     
     pass

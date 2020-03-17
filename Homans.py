@@ -55,10 +55,10 @@ class Agent():
         self.n_avg['money'] = self.n_avg['money'] / len(self.active_neighbor)
         self.n_avg['approval'] = self.n_avg['approval'] / len(self.active_neighbor)
 
-#        self.n_avg['money'] += self.money
-#        self.n_avg['approval'] += self.approval
-#        self.n_avg['money'] = self.n_avg['money'] / (len(self.active_neighbor)+1)
-#        self.n_avg['approval'] = self.n_avg['approval'] / (len(self.active_neighbor)+1)
+        # self.n_avg['money'] += self.money
+        # self.n_avg['approval'] += self.approval
+        # self.n_avg['money'] = self.n_avg['money'] / (len(self.active_neighbor)+1)
+        # self.n_avg['approval'] = self.n_avg['approval'] / (len(self.active_neighbor)+1)
         
         self.n_average = self.n_avg['approval'] / self.n_avg['money']
         return self.n_average
@@ -200,18 +200,18 @@ def transaction(index1,index2,t,init=False):
     if init:
         acceptance = 1 #used in initial neighboring
     else:
-#        if index1 in agent2.active_neighbor:
-#            p = agent2.active_neighbor[index1]
-#            acceptance_util = np.random.choice([0,1],p=[1-p,p])
-#        else:
-#            acceptance_util = 1
-        acceptance_util = 1
+        if index1 in agent2.active_neighbor:
+            p = agent2.active_neighbor[index1]
+            acceptance_util = np.random.choice([0,1],p=[1-p,p])
+        else:
+            acceptance_util = 1
+        # acceptance_util = 1
     
         if agent2.approval > 0.001 and agent2.approval - ( np.round(amount*worth_ratio1 + agreement_point,3) ) > 0.001:
             acceptance_neg = 1 #not negative checking acceptance
         else: acceptance_neg = 0
         
-#        if worth_ratio2 >= worth_ratio1:
+        # if worth_ratio2 >= worth_ratio1:
         if True:
             acceptance_worth = 1
         else:
@@ -220,9 +220,9 @@ def transaction(index1,index2,t,init=False):
             acceptance_worth = np.random.choice([0,1],p=[1-p,p])
         acceptance_worth = acceptance_worth * acceptance_neg
         
-#        p = np.exp( -np.abs(agent1.asset - agent2.asset)/param )
-#        acceptance_asset = np.random.choice([0,1],p=[1-p,p])
-        acceptance_asset = 1
+        p = np.exp( -np.abs(agent1.asset - agent2.asset)/param )
+        acceptance_asset = np.random.choice([0,1],p=[1-p,p])
+        # acceptance_asset = 1
         
         threshold = threshold_percentage[index2] * agent2.approval
         if threshold > (amount * worth_ratio1 + agreement_point):
@@ -420,7 +420,7 @@ def explore(index,t):
                 if len(neighbors_of_neighbors) >= num_of_tries2:
                     arri_choice = np.random.choice(neighbors_of_neighbors,size=num_of_tries2,replace=False)
                 else:
-                    arri_choice = neighbors_of_neighbors
+                    arri_choice = np.array(neighbors_of_neighbors)
                 
                 for other_index in arri_choice:
                     other_situation = A[other_index].situation
@@ -453,7 +453,13 @@ def explore(index,t):
                             break
 
                 #nobody is the right fit. He should loose his criteria OR find a random agent.
-                if other_index not in agent.active_neighbor:  #which means transaction has been accepted            
+                # if other_agent not in agent.active_neighbor:  #which means transaction has been accepted            
+                anyof = False
+                for i in arri_choice:
+                    if i in agent.active_neighbor:
+                        anyof = True
+                
+                if anyof:
                     mask[agent_active_neighbor] = False
                     if np.size(mask[mask==True]) >= num_of_tries3:
                         arri_choice = np.random.choice(np.arange(N)[mask],size=num_of_tries3,replace=False)
@@ -616,16 +622,16 @@ def save_it(version,t):
 """Parameters"""#XXX
 
 N = 100
-T = 5000
+T = 2000
 similarity = 0.05                   #how much this should be?
 memory_size = 10                    #contains the last memory_size number of transaction times
 transaction_percentage = 0.1        #percent of amount of money the first agent proposes from his asset 
-num_of_tries1  = 5                   #in function explore()
-num_of_tries2 = 5                   #in function explore()
-num_of_tries3 = 1                   #in function explore()
+num_of_tries1 = 20                   #in function explore()
+num_of_tries2 = 10                   #in function explore()
+num_of_tries3 = 5                   #in function explore()
 threshold_percentage =np.full(N,1)  #the maximum amount which the agent is willing to give
 normalization_factor = 1            #used in transaction(). what should be?
-prob0_magnify_factor = 10           #this is in probability() for changing value so that it can take advantage of arctan
+prob0_magnify_factor = 5            #this is in probability() for changing value so that it can take advantage of arctan
 prob1_magnify_factor = 2
 prob2_magnify_factor = 1
 alpha = 1                           #in short-term effect of the frequency of transaction
@@ -636,7 +642,7 @@ sampling_time = 1000
 saving_time_step = T
 initial_for_trans_time = T - 1000
 trans_saving_interval = 1000
-version = 'new_explore_func_WR_off_diff_num_of_tries'
+version = '98.12.26 WR not himself-samp tim 1000-community not communityx'
 if sampling_time > T:
     sampling_time = T
 if saving_time_step < sampling_time:
