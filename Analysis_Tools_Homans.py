@@ -583,6 +583,17 @@ class Tracker(properties_alteration,hist_plot_tools): #XXX
         plt.title(title)
         plt.savefig(self.path + title)
         plt.close()
+        
+        plt.figure(figsize=(16, 9))
+        total_rejection_at_moment = np.sum(self.rejection_time,axis = 1)
+        for i,v in enumerate(total_rejection_cases):
+            plt.plot(self.rejection_time[:,i]/total_rejection_at_moment,label = conditions_glossary_string[i] ,alpha = 0.5)
+        plt.legend()
+        plt.xlabel('(acceptance_worth , acceptance_thr , acceptance_asset , acceptance_util)')
+        title = 'rejection history versus time in relative'
+        plt.title(title)
+        plt.savefig(self.path + title)
+        plt.close()
         return
 
     def valuability(self):
