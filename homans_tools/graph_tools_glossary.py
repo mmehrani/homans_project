@@ -526,21 +526,16 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
                     for mem2 in comm2:
                         if self.G.has_edge(mem1,mem2):
                             edge_arr[com_num1,com_num2] += 1
-        print(edge_arr)
         for com_num1,comm1 in enumerate(community_members):
             len1 = len(comm1)
-            print('len1',len1)
             for com_num2,comm2 in enumerate(community_members):
                 len2 = len(comm2)
-                print('len2',len2)
                 if com_num1 == com_num2:
-                    print((len1 * (len1-1)))
                     edge_arr[com_num1,com_num2] /= (len1 * (len1-1))
                 if com_num1 < com_num2:
                     edge_arr[com_num1,com_num2] /= (len1 * len2)
                 if com_num1 > com_num2:
                     edge_arr[com_num1,com_num2] = edge_arr[com_num2,com_num1]
-        print(edge_arr)
         fig, ax = plt.subplots(nrows=1,ncols=1)
         im = ax.imshow(edge_arr)
         cbar = ax.figure.colorbar(im, ax=ax)
@@ -553,7 +548,7 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
         title = 'Edge Distribution Inter and Intra Community'
         plt.title(title)
         plt.savefig(self.path + title)
-        # plt.close()
+        plt.close()
         return
     
     pass

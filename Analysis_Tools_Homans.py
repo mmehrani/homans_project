@@ -255,10 +255,10 @@ class hist_plot_tools():
         ax.plot(array)
         
         ax.set_xlabel('Time steps')
-        ax.set_ylabel('Number of explorations')
         
         explore = kwargs.get('explore',False)
         if explore:
+            ax.set_ylabel('Number of Explorations')
             N = kwargs.get('N',100)
             # ax.set_ylim(0,1.05*N)
             deg_value = np.polyfit(np.arange(self.T - 1000, self.T),np.log(array[-1000:]),1)
@@ -266,9 +266,14 @@ class hist_plot_tools():
                     color = 'k',ls = 'dashed',alpha = 0.3, label = '{:.2e} t + {:.2e}'.format(Decimal(deg_value[0]),Decimal(deg_value[1])))
             ax.set_yscale('log')
             plt.legend()
+            ax.set_title(title)
             
-            
-        ax.set_title(title)
+        trans = kwargs.get('trans',False)
+        if trans:
+            ax.set_ylabel('Number of Transactions')
+            avg = np.average(array)
+            ax.set_title(title + ' average={:.2f}'.format(avg))
+        
         fig.savefig(self.path+title)
         plt.close()
         return

@@ -12,10 +12,11 @@ import os
 import matplotlib.animation as animation
 import graph_tools_glossary
 import sys
+import winsound
 
 N = 100
-T = 5000
-version = 'new_explore_func_WR_off_diff_num_of_tries'
+T = 10000
+version = '98.12.29 run 2'
 
 pd = {'win32':'\\', 'linux':'/'}
 if sys.platform.startswith('win32'):
@@ -28,13 +29,6 @@ path = current_path +pd[plat]+'runned_files'+pd[plat]+'N%d_T%d'%(N,T)+pd[plat]+v
 with open(path + 'Initials.txt','r') as initf:
     init_lines = initf.readlines()
     for i,line in enumerate(init_lines):
-    #     if line == 'respectively: \n':
-    #         break
-        # if   i == 0: N = int(line[:-1])
-        # elif i == 1: T = int(line[:-1])
-        # elif i == 2: sampling_time = int(line[:-1])
-        # elif i == 3: saving_time_step = int(line[:-1])
-        # elif i == 4: verion = line[:-1]
         if i == 2: sampling_time = int(line[:-1])
 memory_size = 10
 saving_time = T
@@ -51,9 +45,7 @@ with open(path+'Agents.pkl','rb') as agent_file:
 
 with open(path + 'Tracker.pkl','rb') as tracker_file:
     tracker = pickle.load(tracker_file)
-""""""
-#tool = graph_tools_glossary.Graph_related_tools(1200,N,A)
-#tool.graph_construction('trans_number',num_transaction_tot,sample_time_trans = tracker.sample_time_trans)
+
 """ Plots""" 
 analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,A,path)
 main_graph = analyse.graph_construction('trans_number',num_transaction_tot, sampling_time=sampling_time, sample_time_trans=tracker.sample_time_trans)
@@ -160,4 +152,4 @@ analyse.path = path
 tracker.rejection_history()
 
 plt.close('all')
-
+winsound.Beep(2000,500)
