@@ -52,13 +52,13 @@ class Agent():
         for j in self.active_neighbor.keys():
             self.n_avg['money'] += A[j].money
             self.n_avg['approval'] += A[j].approval
-        self.n_avg['money'] = self.n_avg['money'] / len(self.active_neighbor)
-        self.n_avg['approval'] = self.n_avg['approval'] / len(self.active_neighbor)
+        # self.n_avg['money'] = self.n_avg['money'] / len(self.active_neighbor)
+        # self.n_avg['approval'] = self.n_avg['approval'] / len(self.active_neighbor)
 
-        # self.n_avg['money'] += self.money
-        # self.n_avg['approval'] += self.approval
-        # self.n_avg['money'] = self.n_avg['money'] / (len(self.active_neighbor)+1)
-        # self.n_avg['approval'] = self.n_avg['approval'] / (len(self.active_neighbor)+1)
+        self.n_avg['money'] += self.money
+        self.n_avg['approval'] += self.approval
+        self.n_avg['money'] = self.n_avg['money'] / (len(self.active_neighbor)+1)
+        self.n_avg['approval'] = self.n_avg['approval'] / (len(self.active_neighbor)+1)
         
         self.n_average = self.n_avg['approval'] / self.n_avg['money']
         return self.n_average
@@ -130,13 +130,6 @@ class Agent():
         else:
             self.active_neighbor[new_neighbor] = 1 -  sum(self.active_neighbor.values()) 
             
-        
-        # if np.size(np.array(list(self.active_neighbor.values()))[np.array(list(self.active_neighbor.values()))>1]) != 0:
-        #     #normalize again
-        #     summ = sum(self.active_neighbor.values())
-        #     for j in self.active_neighbor:
-        #         self.active_neighbor[j]/summ
-
         #error finding
         if self.active_neighbor[new_neighbor] < 0:
             raise NegativeProbability('self index:',self_index,'neighbor',new_neighbor)
@@ -200,19 +193,19 @@ def transaction(index1,index2,t,init=False):
     if init:
         acceptance = 1 #used in initial neighboring
     else:
-        if index1 in agent2.active_neighbor:
-            p = agent2.active_neighbor[index1]
-            acceptance_util = np.random.choice([0,1],p=[1-p,p])
-        else:
-            acceptance_util = 1
-        # acceptance_util = 1
+        # if index1 in agent2.active_neighbor:
+        #     p = agent2.active_neighbor[index1]
+        #     acceptance_util = np.random.choice([0,1],p=[1-p,p])
+        # else:
+        #     acceptance_util = 1
+        acceptance_util = 1
     
         if agent2.approval > 0.001 and agent2.approval - ( np.round(amount*worth_ratio1 + agreement_point,3) ) > 0.001:
             acceptance_neg = 1 #not negative checking acceptance
         else: acceptance_neg = 0
         
-        # if worth_ratio2 >= worth_ratio1:
-        if True:
+        if worth_ratio2 >= worth_ratio1:
+        # if True:
             acceptance_worth = 1
         else:
 #            acceptance_worth = 0
@@ -298,86 +291,6 @@ def acceptance_manager(accept_list,agent,t):
     rejection_time[t-1,dic_value] += 1
     return
 
-## =============================================================================
-#def explore(index,t):
-#    '''choose another agent which is not in his memory
-#    uses proposition_2 (similar situation)
-#    before calling this function we have to check if the transaction was rewarding
-#    something have to be done in case there is no neighbors
-#    repetitious neighbors should be avoided'''
-#    
-#    agent = A[index]
-#    mask = np.ones(N,dtype=bool)
-#    mask[index] = False
-#    agent_active_neighbor = list(agent.active_neighbor.keys())
-#    self_similarity = agent.situation
-#    
-#    num_explore[t-1] += 1
-#    
-#    if len(agent_active_neighbor) != N-1:
-#        if len(agent_active_neighbor) != 0:
-#            chosen_neighbor_index = np.random.choice(agent_active_neighbor,p=list(agent.active_neighbor.values()))
-#            situation = A[chosen_neighbor_index].situation
-#            mask[agent_active_neighbor] = False
-#            if np.size(mask[mask==True]) >= num_of_tries:
-#                arri_choice = np.random.choice(np.arange(N)[mask],size=num_of_tries,replace=False)
-#            else:
-#                num_true_in_mask = np.size(mask[mask==True])
-#                arri_choice = np.random.choice(np.arange(N)[mask],size=num_true_in_mask,replace=False)
-#            
-#            for other_index in arri_choice:
-#                other_situation = A[other_index].situation
-##                p = np.exp(-np.abs(situation-other_situation)/similarity)
-##                acceptance = np.random.choice([0,1],p=[1-p,p])
-##                if acceptance == 1:
-#                if other_situation > (situation-similarity) and other_situation < (situation+similarity):
-#                    
-#                    other_agent = A[other_index]
-#                    if len(other_agent.active_neighbor) != 0:
-#                        
-#                        nearest_choice = 1 #maximum possible situation difference
-#                        for k in other_agent.active_neighbor.keys():
-#                            diff_abs = np.abs(A[k].situation - self_similarity)
-#                            if diff_abs < nearest_choice:
-#                                nearest_choice = diff_abs
-#                                nearest_choice_index = k
-#                        p = other_agent.active_neighbor[nearest_choice_index]
-#                        acceptance = np.random.choice([0,1],p=[1-p,p])
-#
-##                        acceptance = 1
-#                        if acceptance == 1:
-#                            transaction(index,other_index,t)
-#                    else:
-#                        transaction(index,other_index,t)
-#                            
-#                    if other_index in agent.active_neighbor:  #which means transaction has been accepted
-##                        similarity_tracker[index].append(other_situation)
-#                        break
-#        else:
-#            other_index = np.random.choice(np.arange(N)[mask])
-#            other_agent = A[other_index]
-#            other_situation = other_agent.situation
-#            if len(other_agent.active_neighbor) != 0:
-#
-#                nearest_choice = 1 #maximum possible situation difference
-#                for k in other_agent.active_neighbor.keys():
-#                    diff_abs = np.abs(A[k].situation - self_similarity)
-#                    if diff_abs < nearest_choice:
-#                        nearest_choice = diff_abs
-#                        nearest_choice_index = k
-#                p = other_agent.active_neighbor[nearest_choice_index]
-#                acceptance = np.random.choice([0,1],p=[1-p,p])
-#
-##                acceptance = 1
-#                if acceptance == 1:
-#                    transaction(index,other_index,t)
-#            else:
-#                transaction(index,other_index,t)
-#            
-##            if other_index in agent.active_neighbor:
-##                similarity_tracker[index].append(A[other_index].situation)
-#    return
-#
 # =============================================================================
 def explore(index,t):
     '''choose another agent which is not in his memory
@@ -454,10 +367,10 @@ def explore(index,t):
 
                 #nobody is the right fit. He should loose his criteria OR find a random agent.
                 # if other_agent not in agent.active_neighbor:  #which means transaction has been accepted            
-                anyof = False
+                anyof = True
                 for i in arri_choice:
                     if i in agent.active_neighbor:
-                        anyof = True
+                        anyof = False
                 
                 if anyof:
                     mask[agent_active_neighbor] = False
@@ -622,16 +535,16 @@ def save_it(version,t):
 """Parameters"""#XXX
 
 N = 100
-T = 2000
+T = 10000
 similarity = 0.05                   #how much this should be?
 memory_size = 10                    #contains the last memory_size number of transaction times
 transaction_percentage = 0.1        #percent of amount of money the first agent proposes from his asset 
-num_of_tries1 = 20                   #in function explore()
-num_of_tries2 = 10                   #in function explore()
-num_of_tries3 = 5                   #in function explore()
+num_of_tries1 = 10                   #in function explore()
+num_of_tries2 = 0                    #in function explore()
+num_of_tries3 = 20                   #in function explore()
 threshold_percentage =np.full(N,1)  #the maximum amount which the agent is willing to give
 normalization_factor = 1            #used in transaction(). what should be?
-prob0_magnify_factor = 5            #this is in probability() for changing value so that it can take advantage of arctan
+prob0_magnify_factor = 2            #this is in probability() for changing value so that it can take advantage of arctan
 prob1_magnify_factor = 2
 prob2_magnify_factor = 1
 alpha = 1                           #in short-term effect of the frequency of transaction
@@ -642,7 +555,7 @@ sampling_time = 1000
 saving_time_step = T
 initial_for_trans_time = T - 1000
 trans_saving_interval = 1000
-version = '98.12.26 WR not himself-samp tim 1000-community not communityx'
+version = '98.12.29 run 2'
 if sampling_time > T:
     sampling_time = T
 if saving_time_step < sampling_time:
@@ -797,7 +710,7 @@ tracker.get_path(path)
 #analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,A,path)
 #analyse.graph_construction('trans_number',num_transaction_tot,sample_time_trans = tracker.sample_time_trans)
 tracker.plot_general(explore_prob_array * N,title='Average Exploration Probability',explore=True,N=N)
-tracker.plot_general(num_transaction_tot,title='Number of Transaction')
+tracker.plot_general(num_transaction_tot,title='Number of Transaction',trans=True)
 
 plt.figure()
 plt.plot(p0_tracker[::2])
