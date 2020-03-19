@@ -535,7 +535,7 @@ def save_it(version,t):
 """Parameters"""#XXX
 
 N = 100
-T = 10000
+T = 5000
 similarity = 0.05                   #how much this should be?
 memory_size = 10                    #contains the last memory_size number of transaction times
 transaction_percentage = 0.1        #percent of amount of money the first agent proposes from his asset 

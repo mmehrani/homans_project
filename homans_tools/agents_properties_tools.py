@@ -93,4 +93,10 @@ class arrays_glossary():
             for i in np.arange(self.N):
                 ref[what_array][i] = self.a_matrix[i].approval
             return ref[what_array]
+        
+        if what_array == 'active_neighbor':
+            ref[what_array] = np.zeros(self.N)
+            for i in np.arange(self.N):
+                ref[what_array][i] = len(self.a_matrix[i].active_neighbor)
+            return ref[what_array]
     pass

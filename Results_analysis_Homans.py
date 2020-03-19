@@ -15,7 +15,7 @@ import sys
 import winsound
 
 N = 100
-T = 10000
+T = 5000
 version = '98.12.29 run 2'
 
 pd = {'win32':'\\', 'linux':'/'}
@@ -73,8 +73,8 @@ analyse.hist('degree')
 analyse.hist_log_log('degree')
 analyse.hist_log_log('neighbor',semilog=True)
 i=0
-array = np.zeros((7,N,N))
-for prop in ['money','approval','asset','utility','probability','neighbor','value']:
+array = np.zeros((8,N,N))
+for prop in ['money','approval','asset','active_neighbor','utility','probability','neighbor','value']:
     analyse.hist(prop)
     analyse.hist_log_log(prop)
     array[i] = analyse.array(prop)
@@ -92,6 +92,7 @@ analyse.rich_club(normalized=False)
 analyse.assortativity()
 analyse.property_variation()
 analyse.intercommunity_links()
+analyse.prob_nei_correlation()
 
 size = 10
 for rand_agent in np.random.choice(np.arange(N),size=size,replace=False):

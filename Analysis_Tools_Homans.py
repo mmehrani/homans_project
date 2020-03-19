@@ -225,6 +225,21 @@ class properties_alteration(arrays_glossary):
         plt.savefig(self.path + 'SDR '+'mean approval={0:.3g} money={1:.3g} asset={2:.3g} WR={3:.3g}.png'.format(mean_rel_approval,mean_rel_money,mean_rel_asset,mean_rel_worth))
         plt.close()
         return
+    
+    def prob_nei_correlation(self):
+        prob = self.array('probability')
+        neighbor = self.array('neighbor')
+        correlation = np.zeros(self.N)
+        for i in np.arange(self.N):
+            correlation[i] = np.corrcoef(prob[i],neighbor[i])[0,1]
+        plt.figure()
+        plt.ylim([-1.05,1.05])
+        plt.plot(sorted(correlation))
+        title = 'Correlation of Probability and Number of Transaction (Neighbor)'
+        plt.title(title)
+        plt.savefig(self.path + 'correlation of probability and neighbor')
+        plt.close()
+        return
         
     pass
 
