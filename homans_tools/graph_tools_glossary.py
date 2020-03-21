@@ -181,14 +181,13 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
                     if (self.a_matrix[i].neighbor[j] >= (trans_last_value + self.friendship_num) ):
                         G.add_edge(i,j)
                         
-        node_attr_dict = { i:{'situation':0,'money':0,'worth_ratio':0,'others_feeling':0} for i in G.nodes() }
+        node_attr_dict = { i:{'asset':0,'money':0,'approval':0,'situation':0,'worth_ratio':0} for i in G.nodes() }
         for i in G.nodes():
-            node_attr_dict[i]['situation'] = float(self.a_matrix[i].situation)
-            node_attr_dict[i]['money'] = float(self.a_matrix[i].money)
-            node_attr_dict[i]['worth_ratio'] = float(self.a_matrix[i].worth_ratio)
-            node_attr_dict[i]['approval'] = float(self.a_matrix[i].approval)
-            node_attr_dict[i]['others_feeling'] = float(self.array('others_feeling')[i])
-            node_attr_dict[i]['asset'] = float(self.a_matrix[i].asset)
+            node_attr_dict[i]['situation'] = int(self.a_matrix[i].situation * 20)
+            node_attr_dict[i]['money'] = int(self.a_matrix[i].money * 100)
+            node_attr_dict[i]['approval'] = int(self.a_matrix[i].approval * 100)
+            node_attr_dict[i]['asset'] = int(self.a_matrix[i].asset * 100)
+            node_attr_dict[i]['worth_ratio'] = int(self.a_matrix[i].worth_ratio * 100)
         
         nx.set_node_attributes(G,node_attr_dict)
         
@@ -307,27 +306,32 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
         plt.close()
         return rc_array
     
-    def assortativity(self):
+    def assortativity(self,boolean=True):
         title = 'Assortativity.txt'
         assort_file = open(self.path + title,'w')
         i = 0
         while i not in self.G.nodes():
             i += 1
-        for attr in self.G.nodes(data=True)[i].keys():
-            assort_file.write('assortativity according to '+attr+' is: '+'\n')
-            assort_file.write(str(nx.attribute_assortativity_coefficient(self.G,attr))+'\n'+'\n')
+        attributes = self.G.nodes(data=True)[i].keys()
+        assorted = np.zeros(len(attributes)) #it can be made bigger so that it includes communities
         
-        # community_members = [list(x) for x in self.modularity_communitiesx]
-        community_members = self.modularity_communities
-        for num,com in enumerate(community_members):
-            assort_file.write('community #{}:'.format(num)+'\n')
-            for attr in self.G.nodes(data=True)[i].keys():
-                assort_file.write('assortativity according to '+attr+' is: '+'\n')
-                assort_file.write(str(nx.attribute_assortativity_coefficient(self.G,attr,nodes = com))+'\n'+'\n')
+        for i,attr in enumerate(attributes):
+            assort_file.write('assortativity according to '+attr+' is: '+'\n')
+            assorted_attr = nx.numeric_assortativity_coefficient(self.G,attr)
+            assorted[i] = assorted_attr
+            assort_file.write(str(assorted_attr)+'\n\n')
+        
+        if boolean: #it does not computes in graph_related
+            # community_members = [list(x) for x in self.modularity_communitiesx]
+            community_members = self.modularity_communities
+            for num,com in enumerate(community_members):
+                assort_file.write('community #{}:'.format(num)+'\n')
+                for attr in self.G.nodes(data=True)[i].keys():
+                    assort_file.write('assortativity according to '+attr+' is: '+'\n')
+                    assort_file.write(str(nx.numeric_assortativity_coefficient(self.G,attr,nodes = com))+'\n'+'\n')
             
         assort_file.close()
-        return
-    # def assortativity_of
+        return assorted, attributes
     
     def friendship_point(self,num_transaction,sampling_time):
         """ When we consider someone as friend
@@ -359,7 +363,7 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
         i = 0
         while i not in nodes:
             i += 1
-        attributes = nodes_dict[i].keys()
+        attributes = list(nodes_dict[i].keys())
         length = len(attributes)
         
         if all_nodes == True:
@@ -436,10 +440,13 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
             os.mkdir(path +'graph_related')
         except:
             print('exists')
-        dic = {'modul':[],'cover':[],'asph':[],'asph_r':[],'cc':[],'cc_r':[],'sigma':[],'omega':[],'rc':[],'cover_r':[],'modul_r':[],'nsize':[],'esize':[],'is_con':[]}
+        dic = {'modul':[],'cover':[],'asph':[],'asph_r':[],'cc':[],
+               'cc_r':[],'sigma':[],'omega':[],'rc':[],'cover_r':[],
+               'modul_r':[],'nsize':[],'esize':[],'is_con':[],'assort':[]}
 
-        local0,local1,local2,local3 = -1,-1,-1,-1
-        for i in np.arange(30)+1:
+        local0,local1,local2,local3,local4 = -1,-1,-1,-1,-1
+        length = 30
+        for i in np.arange(length)+1:
             print('i =',i)
             self.path = path + 'graph_related' + pd[plat]+'{0}, '.format(i)
             try:
@@ -481,13 +488,15 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
                 dic['asph'][local2], dic['cc'][local2], dic['asph_r'][local2], dic['cc_r'][local2], dic['sigma'][local2], dic['omega'][local2] = self.topology_chars()
             except: print('topology chars')
             try:
-                self.assortativity()
+                local3 += 1
+                dic['assort'].append(0)
+                dic['assort'][local3],attr = self.assortativity(boolean = False)
             except: print('assortativity')
             try:
                 self.graph_correlations()
             except: print('correlations')
             try:
-                local3 += 1
+                local4 += 1
                 dic['rc'].append(0)
                 dic['rc'][local3] = self.rich_club()
             except: print('rich club')
@@ -499,6 +508,10 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
                 self.intercommunity_links()
             except: print('edge distribution')
 
+        assort = [[] for i in range(len(attr))]
+        for i in range(len(attr)):
+            for j in np.arange(length):
+                assort[i].append(dic['assort'][j][i])
         self.path = path
         """Plot"""
         self.plot_general(path,dic['modul'],second_array=dic['modul_r'],title='GR Modularity Vs Friendship Point')
@@ -513,7 +526,9 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
         second_array = list(np.array(dic['is_con'],dtype=int)*self.N)
         self.plot_general(path,dic['nsize'],second_array=second_array,title='GR Number of Nodes in Each Friendship Point')
         self.plot_general(path,dic['esize'],title='GR Number of Edges in Each Friendship Point')
-        return 
+        self.plot_general(path,assort,title='GR Assortativity Vs Friendship Point',indicator=False,label=list(attr))
+        
+        return dic
     
     def intercommunity_links(self):
         # community_members = [list(x) for x in self.modularity_communitiesx]
@@ -549,7 +564,7 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
         plt.title(title)
         plt.savefig(self.path + title)
         plt.close()
-        return
+        return 
     
     pass
 

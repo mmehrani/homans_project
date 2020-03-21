@@ -444,13 +444,19 @@ class Analysis(Graph_related_tools,properties_alteration): #XXX
         plt.close()
         return
 
-    def plot_general(self,path,array,title='',second_array=None,indicator=True):
+    def plot_general(self,path,array,title='',second_array=None,indicator=True,**kwargs):
         plt.figure()
         if indicator:
             plt.plot(array)
         else:
-            for i in np.arange(len(array)):
-                plt.plot(array[i])
+            label = kwargs.get('label',None)
+            if label != None:
+                for i in np.arange(len(array)):
+                    plt.plot(array[i],label=label[i])
+                plt.legend()
+            else: 
+                for i in np.arange(len(array)):
+                    plt.plot(array[i])
         if second_array != None:
             plt.plot(second_array)
         plt.title(title)

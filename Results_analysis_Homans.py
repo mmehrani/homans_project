@@ -13,10 +13,12 @@ import matplotlib.animation as animation
 import graph_tools_glossary
 import sys
 import winsound
+from datetime import datetime
+start_time = datetime.now()
 
 N = 100
 T = 5000
-version = '98.12.29 run 2'
+version = '99.01.02 run 1'
 
 pd = {'win32':'\\', 'linux':'/'}
 if sys.platform.startswith('win32'):
@@ -147,10 +149,11 @@ for prop in ['money','asset','approval','worth_ratio']:
     analyse.communities_property_hist(prop)
 #    analyse.communities_property_evolution(tracker,prop)
 
-analyse.graph_related_chars(num_transaction_tot,tracker,sampling_time)
+all_data_dict = analyse.graph_related_chars(num_transaction_tot,tracker,sampling_time)
 analyse.path = path
 
 tracker.rejection_history()
 
 plt.close('all')
+print (datetime.now() - start_time)
 winsound.Beep(2000,500)
