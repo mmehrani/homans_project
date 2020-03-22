@@ -98,7 +98,7 @@ class Agent():
         n1 = np.size(self.time[neighbor][mask])
         short_term = 1 - alpha * (n1/10)
         n2 = self.neighbor[neighbor]
-        long_term = 1 + beta * (n2 * len(self.active_neighbor) /t) 
+        long_term = 1 + beta * (n2 * len(self.active_neighbor) /(t*np.average(num_transaction_tot[:t-1]) ) ) 
         prob = short_term * long_term
         return prob
     
