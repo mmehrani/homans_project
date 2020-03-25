@@ -78,13 +78,14 @@ class Agent():
         value = self.value[neighbor,where]
 #        p0 = np.arctan(factor*value)*2/np.pi + 1 #ranges from 0 to 2: value=0 maps to p=1. that means p=1 is the defaul number.
 #        p0 = np.arctan(prob0_magnify_factor*value*10)*2/np.pi + 1 #ranges from 0 to 2: value=0 maps to p=1. that means p=1 is the defaul number.
-        p0 = np.exp(value * prob0_magnify_factor)
-#        p0 = value * prob0_magnify_factor 
+        # p0 = np.exp(value * prob0_magnify_factor)
+        # p0 = 1
+        p0 = value * prob0_magnify_factor 
 #        p0 = value * prob0_magnify_factor + 1
-        # p1 = self.frequency_to_probability(neighbor,t) * prob1_magnify_factor - (prob1_magnify_factor -1)
-        p1 = 1.0
-        # p2 = np.exp(self.feeling[neighbor]) * prob2_magnify_factor - (prob2_magnify_factor -1)
-        p2 = 1.0
+        p1 = self.frequency_to_probability(neighbor,t) * prob1_magnify_factor - (prob1_magnify_factor -1)
+        # p1 = 1.0
+        p2 = np.exp(self.feeling[neighbor]) * prob2_magnify_factor - (prob2_magnify_factor -1)
+        # p2 = 1.0
         
         p0_tracker.append(p0)
         p1_tracker.append(p1)
@@ -154,18 +155,22 @@ class Agent():
         """returns an agent in memory with maximum utility to intract with
         probability() is like value
         proposition 6"""
+        #propostion 6
+        # i = 0
+        # Max = 0
+        # for j in self_active_neighbor:
+        #     probability = self.active_neighbor[j]
+        #     other_probability = A[j].active_neighbor[self_index]
+        #     utility = probability * other_probability
+        #     if utility >= Max:
+        #         Max = utility
+        #         chosen_agent = j
+        #         chosen_agent_index = i
+        #     i += 1
+        # random choice
+        chosen_agent_index = np.random.choice(range(len(self_active_neighbor)))
+        chosen_agent = self_active_neighbor[chosen_agent_index]
         
-        i = 0
-        Max = 0
-        for j in self_active_neighbor:
-            probability = self.active_neighbor[j]
-            other_probability = A[j].active_neighbor[self_index]
-            utility = probability * other_probability
-            if utility >= Max:
-                Max = utility
-                chosen_agent = j
-                chosen_agent_index = i
-            i += 1
         return chosen_agent , chosen_agent_index
     
 # =============================================================================
@@ -204,8 +209,8 @@ def transaction(index1,index2,t,init=False):
             acceptance_neg = 1 #not negative checking acceptance
         else: acceptance_neg = 0
         
-        if worth_ratio2 >= worth_ratio1:
-        # if True:
+        # if worth_ratio2 >= worth_ratio1:
+        if True:
             acceptance_worth = 1
         else:
 #            acceptance_worth = 0
@@ -213,9 +218,9 @@ def transaction(index1,index2,t,init=False):
             acceptance_worth = np.random.choice([0,1],p=[1-p,p])
         acceptance_worth = acceptance_worth * acceptance_neg
         
-        p = np.exp( -np.abs(agent1.asset - agent2.asset)/param )
-        acceptance_asset = np.random.choice([0,1],p=[1-p,p])
-        # acceptance_asset = 1
+        # p = np.exp( -np.abs(agent1.asset - agent2.asset)/param )
+        # acceptance_asset = np.random.choice([0,1],p=[1-p,p])
+        acceptance_asset = 1
         
         threshold = threshold_percentage[index2] * agent2.approval
         if threshold > (amount * worth_ratio1 + agreement_point):
@@ -529,7 +534,7 @@ def save_it(version,t):
 
 N = 100
 T = 5000
-similarity = 0.05                   #how much this should be?
+similarity = 2                   #how much this should be?
 memory_size = 10                    #contains the last memory_size number of transaction times
 transaction_percentage = 0.1        #percent of amount of money the first agent proposes from his asset 
 num_of_tries1 = 20                  #in function explore()
@@ -545,10 +550,10 @@ beta = 3                          #in long-term effect of the frequency of trans
 param = 2                           #a normalizing factor in assigning the acceptance probability. It normalizes difference of money of both sides
 lamda = 0                           # how much one agent relies on his last worth_ratio and how much relies on current transaction's worth_ratio
 sampling_time = 1000
-saving_time_step = T
+saving_time_step = 5000
 initial_for_trans_time = T - 1000
 trans_saving_interval = 1000
-version = '99.01.02 run 1 like run 9 in T=2000'
+version = 'Homans_acc_secagent_situ_off_ps_on'
 if sampling_time > T:
     sampling_time = T
 if saving_time_step < sampling_time:

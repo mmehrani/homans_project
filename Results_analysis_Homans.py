@@ -18,7 +18,7 @@ start_time = datetime.now()
 
 N = 100
 T = 5000
-version = '99.01.02 run 1'
+version = 'Homans_acc_secagent_situ_off_ps_on'
 
 pd = {'win32':'\\', 'linux':'/'}
 if sys.platform.startswith('win32'):
