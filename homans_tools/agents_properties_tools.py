@@ -1,14 +1,26 @@
-# -*- coding: utf-8 -*-
 """
 Created on Tue Dec 17 16:10:32 2019
 
-@author: vaio
+@author: Mohsen Mehrani, Taha Enayat
 """
-import matplotlib.pyplot as plt
 import numpy as np
 
 class arrays_glossary():
     def array(self,what_array):
+        """
+        Extracts information from agent matrix and graph. It generates and 
+        returns desired arrays.
+
+        Parameters
+        ----------
+        what_array : string
+            what_array is a string indicating the desired array. It can have 
+            get value from the following:
+                'degree', 'neighbor', 'value', 'time', 'probability', 'utility',
+                'others_feeling', 'worth_ratio', 'situation', 'asset', 'money',
+                'approval', 'active_neighbor'
+
+        """
         ref = {}
         
         if what_array == 'degree':

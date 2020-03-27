@@ -1,7 +1,13 @@
 """
 Created on Thu Oct  3 12:04:52 2019
-
 @author: Taha Enayat, Mohsen Mehrani
+
+This file generates results created in Homans.py
+
+To run, first specify N, T, and version of the file you want to analyse (line 23-25),
+
+then run Homans.py for few seconds (let it run till numbers appear, then abort Homans.py) 
+so that Agent class is known and can analyse the data.
 """
 import matplotlib.pyplot as plt
 import numpy as np
@@ -16,9 +22,10 @@ import winsound
 from datetime import datetime
 start_time = datetime.now()
 
-N = 100
-T = 5000
-version = '99.01.02 run 1'
+#XXX
+N = 100 
+T = 2000
+version = '99.01.08_1 basic'
 
 pd = {'win32':'\\', 'linux':'/'}
 if sys.platform.startswith('win32'):
@@ -60,20 +67,15 @@ for nsize in ['asset','money','approval','degree']:
 analyse.graph_correlations(all_nodes = False)
 analyse.graph_correlations(all_nodes = True)
 
-
-#constructed_graph = analyse.G
-#dynamic_graph = tracker.make_dynamic_trans_time_graph(constructed_graph)
-#nx.write_gexf(dynamic_graph,path+'dynamic_trans_number_graph.gexf')
-
 tracker.get_path(path) #essential
 tracker.valuability()
-#tracker.plot_general(explore_prob_arr * N,title='Average Exploration Probability')#,explore=True)
 tracker.plot_general(num_transaction_tot,title='Number of Transaction')
 tracker.plot_general(explore_prob_arr * N,title='Average Exploration Probability',explore=True,N=N)
 
 analyse.hist('degree')
 analyse.hist_log_log('degree')
 analyse.hist_log_log('neighbor',semilog=True)
+
 i=0
 array = np.zeros((8,N,N))
 for prop in ['money','approval','asset','active_neighbor','utility','probability','neighbor','value']:
@@ -86,17 +88,18 @@ analyse.money_vs_situation(path+'money_vs_situation')
 analyse.transaction_vs_property('asset')
 analyse.transaction_vs_property('money')
 analyse.transaction_vs_property('approval')
-#analyse.degree_vs_attr()
 analyse.num_of_transactions()
 analyse.community_detection()
 analyse.topology_chars()
-analyse.rich_club(normalized=False)
 analyse.assortativity()
 analyse.property_variation()
 analyse.intercommunity_links()
 analyse.prob_nei_correlation()
+try:
+    analyse.rich_club(normalized=True)
+except: print('could not create rich club')
 
-size = 10
+size = 10 
 for rand_agent in np.random.choice(np.arange(N),size=size,replace=False):
     agent = rand_agent
     tracker.trans_time_visualizer(agent,'Transaction Time Tracker')
@@ -125,7 +128,6 @@ tracker.plot('correlation_situ',title="Correlation of Situation and Neighbor's S
 
 tracker.correlation_pairplots()
 tracker.correlation_pairplots(nodes_selection = 'graph_nodes', present_nodes = main_graph.nodes())
-# tracker.correlation_pairplots_for_community()
 
 community_members = [list(x) for x in analyse.modularity_communities]
 for num,com in enumerate(community_members):
@@ -146,7 +148,7 @@ plt.close()
 analyse.community_detection()
 
 for prop in ['money','asset','approval','worth_ratio']:
-    analyse.communities_property_hist(prop)
+    analyse.communities_property_dist(prop)
 #    analyse.communities_property_evolution(tracker,prop)
 
 all_data_dict = analyse.graph_related_chars(num_transaction_tot,tracker,sampling_time)
