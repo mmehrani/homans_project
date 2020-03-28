@@ -19,7 +19,11 @@ from agents_properties_tools import arrays_glossary
 from decimal import Decimal
 
 class properties_alteration(arrays_glossary):
+    
     def property_evolution(self,property_id):
+        """ 
+        Compares initial and finial amount of given property
+        """
         ref = {'money':self.agents_money,
                'approval':self.agents_approval,
                'asset':self.agents_asset}
@@ -44,9 +48,14 @@ class properties_alteration(arrays_glossary):
         
         fig1.savefig(self.path + 'P ' + property_id + ' growth vs situation')
         fig2.savefig(self.path + 'P ' + 'initial vs last'+property_id)
+        
         return
     
     def correlation_money_situation(self):
+        """
+        Calculates correlation of money and situation in a given time
+        (it is used to plot this correlation throughout time)
+        """
         money = np.zeros(self.N)
         situation = np.zeros(self.N)
         for i in np.arange(self.N):
@@ -55,9 +64,14 @@ class properties_alteration(arrays_glossary):
         money_avg = np.average(money)
         situation_avg = np.average(situation)
         correlation = np.sum( (money-money_avg)*(situation-situation_avg) ) / np.sqrt(np.sum( (money-money_avg)**2 ) * np.sum( (situation-situation_avg)**2 ) )
+        
         return correlation
     
     def correlation_situation_situation(self):
+        """ 
+        Calculates the correlation of situation of agents and their neighbors.
+        For dimensions to be equal, it replaces average sitaution of agent's neighbors.
+        """
         situation = np.zeros(self.N)
         situation_neighbor = np.zeros(self.N)
         for i in np.arange(self.N):
@@ -72,10 +86,13 @@ class properties_alteration(arrays_glossary):
         numerator = np.sum( (situation-avg_situation)*(situation_neighbor-avg_situation_n))
         denominator = np.sqrt(np.sum( (situation-avg_situation)**2 ) * np.sum( (situation_neighbor-avg_situation_n)**2 ) )
         correlation = numerator / denominator
+        
         return correlation
     
     def correlation_growth_situation(self,survey_property_id,base_property_id):
-        
+        """ 
+        Claculates the correlation of the growth of one property and another property.
+        """
         survey_ref = {'money':self.agents_money,
                       'approval':self.agents_approval,
                       'asset':self.agents_asset}
@@ -94,11 +111,12 @@ class properties_alteration(arrays_glossary):
         plt.plot(np.arange(self.T),corr)
         ax.set_title('correlation between '+survey_property_id+' growth'+' & '+base_property_id)
         fig.savefig(self.path + 'correlation between '+survey_property_id+' growth'+' & '+base_property_id)
+        
         return
     
     def correlation_pairplots(self,**kwargs):
         """
-        we need to know how do correlations among attributes changes over time.
+        We need to know how do correlations among attributes changes over time.
         """
         nodes_selection = kwargs.get('nodes_selection','all_nodes')
         if nodes_selection == 'all_nodes':
@@ -133,16 +151,23 @@ class properties_alteration(arrays_glossary):
                     axes[i,j].set_xlabel( attributes_name[j] )
                 axes[i,j].set_ylim([-1.05,1.05])
                     
-#        plt.ylim(-1.05,1.05)
         fig.savefig( os.path.join( self.path,foldername,'correlations pair plots versus time for '+status))
         plt.close()
         return
     
     def property_variation(self):
+        """ 
+        Creates a figure indicating standard deviation of properties,
+        and a figure indicating the normalized version of standard deviation (devided to average)
+        
+        Each color is a different community and the dashed line the avarage of 
+        the standard deviation of a property in the whole agents.
+        """
         nei_approval_var,nei_money_var,nei_asset_var,nei_worth_var = np.zeros(self.N),np.zeros(self.N),np.zeros(self.N),np.zeros(self.N)
         mean_approval,mean_money,mean_asset,mean_worth = np.zeros(self.N),np.zeros(self.N),np.zeros(self.N),np.zeros(self.N)
         
-        communities_parts = [list(x) for x in self.modularity_communities]
+        communities_parts = self.modularity_communities #XXX
+        # communities_parts = self.modularity_communitiesx
         
         for agent in np.arange(self.N):
             nei_approval = [self.a_matrix[j].approval for j in self.a_matrix[agent].active_neighbor]
@@ -189,11 +214,6 @@ class properties_alteration(arrays_glossary):
             plt.plot(range(splitter,splitter+len(com)),nei_worth_var[com])
             splitter += len(com)
         
-        # plt.plot(nei_approval_var,label = 'approval')
-        # plt.plot(nei_money_var,label = 'money')
-        # plt.plot(nei_asset_var,label = 'asset')
-        # plt.plot(nei_worth_var,label = 'worth ratio')
-        
         plt.plot([0,self.N],[mean_approval_var,mean_approval_var], ls = 'dashed',label = 'approval')
         plt.plot([0,self.N],[mean_money_var,mean_money_var], ls = 'dashed',label = 'money')
         plt.plot([0,self.N],[mean_asset_var,mean_asset_var], ls = 'dashed',label = 'asset')
@@ -212,10 +232,6 @@ class properties_alteration(arrays_glossary):
             plt.plot(range(splitter,splitter+len(com)),nei_worth_var[com]/mean_worth[com])
             splitter += len(com)
 
-        # plt.plot(nei_approval_var/mean_approval,label = 'approval')
-        # plt.plot(nei_money_var/mean_money,label = 'money')
-        # plt.plot(nei_asset_var/mean_asset,label = 'asset')
-        # plt.plot(nei_worth_var/mean_worth,label = 'worth ratio')
         plt.plot([0,self.N],[mean_rel_approval,mean_rel_approval], ls = 'dashed',label = 'approval')
         plt.plot([0,self.N],[mean_rel_money,mean_rel_money], ls = 'dashed',label = 'money')
         plt.plot([0,self.N],[mean_rel_asset,mean_rel_asset], ls = 'dashed',label = 'asset')
@@ -227,6 +243,10 @@ class properties_alteration(arrays_glossary):
         return
     
     def prob_nei_correlation(self):
+        """ 
+        Creates plot of correlation of probability of an agent and how many times that
+        agent transacts with his neighbors.
+        """        
         prob = self.array('probability')
         neighbor = self.array('neighbor')
         correlation = np.zeros(self.N)
@@ -244,6 +264,7 @@ class properties_alteration(arrays_glossary):
     pass
 
 class hist_plot_tools():
+    
     def plot(self,what_array,**kwargs):
         ref = {'self_value': self.self_value,
                'valuable_to_others': self.valuable_to_others,
@@ -289,7 +310,7 @@ class hist_plot_tools():
             avg = np.average(array)
             ax.set_title(title + ' average={:.2f}'.format(avg))
         
-        fig.savefig(self.path+title)
+        fig.savefig(self.path + title)
         plt.close()
         return
     
@@ -297,7 +318,7 @@ class hist_plot_tools():
         plt.figure()
         plt.hist(array)
         plt.title(title)
-        plt.savefig(self.path+title)
+        plt.savefig(self.path + title)
         plt.close()
         return
     
@@ -307,13 +328,16 @@ class hist_plot_tools():
         plt.yscale('log')
         bins=np.logspace(np.log10(np.amin(array)),np.log10(np.amax(array)),20)
         plt.hist(array,bins=bins)
-        plt.title(title+' Histogram log-log'+' N={} T={}'.format(self.N,self.T))
-        plt.savefig(self.path+title+' Histogram Log-Log')
+        plt.title(title + ' Histogram log-log' + ' N={} T={}'.format(self.N,self.T))
+        plt.savefig(self.path + title + ' Histogram Log-Log')
         plt.close()
         return
+    
     pass
 
+
 class Analysis(Graph_related_tools,properties_alteration): #XXX
+    
     def __init__(self,number_agent,total_time,size,a_matrix,path,*args,**kwargs):
         
         self.memory_size = size
@@ -334,7 +358,7 @@ class Analysis(Graph_related_tools,properties_alteration): #XXX
             plt.hist(array,bins='auto')
         title = 'Histrogram of ' + what_hist
         plt.title(title)
-        plt.savefig(self.path+title)
+        plt.savefig(self.path + title)
         plt.close()
         return
     
@@ -445,6 +469,9 @@ class Analysis(Graph_related_tools,properties_alteration): #XXX
         return
 
     def plot_general(self,path,array,title='',second_array=None,indicator=True,**kwargs):
+        """ 
+        Used in graph_related function
+        """
         plt.figure()
         if indicator:
             plt.plot(array)
@@ -473,12 +500,6 @@ class Tracker(properties_alteration,hist_plot_tools): #XXX
         self.T = total_time
         self.memory_size = size
         self.N = number_agent
-#        self.sampling_time = 2000
-#        if self.sampling_time > self.T:
-#            self.sampling_time = self.T
-#        self.boolean = boolean
-#        self.boolean, self.saving_time_step = kwargs.get('to_save_last_trans',[False,None])
-#        self.saving_time_step = kwargs.get('saving_time_step',self.saving_time_step)
         self.saving_time_step = saving_time_step
         self.trans_saving_time_interval = trans_saving_time_interval
         
@@ -486,19 +507,15 @@ class Tracker(properties_alteration,hist_plot_tools): #XXX
         self.self_value = np.zeros((self.T,self.N))
         self.valuable_to_others = np.zeros((self.T,self.N))
         self.worth_ratio = np.zeros((self.T-2,self.N))
-        
-#        if self.boolean:
         self.trans_time = np.zeros((self.trans_saving_time_interval,self.N,self.N))
-        
         self.sample_time_trans = np.zeros((self.N,self.N))
         self.correlation_mon = np.zeros(self.T)
         self.correlation_situ = np.zeros(self.T)
         self.agents_money  = np.zeros((self.T,self.N))
         self.agents_asset  = np.zeros((self.T,self.N))
         self.agents_approval  = np.zeros((self.T,self.N))
-        
         self.rejection_time = np.zeros((self.T,16))
-#        self.rejection_time = np.zeros((self.N,16))
+        return
         
     def update_A(self,a_matrix):
         self.a_matrix = a_matrix
@@ -516,27 +533,22 @@ class Tracker(properties_alteration,hist_plot_tools): #XXX
             self.valuable_to_others[t] = np.sum(self.array('value'),axis = 0)
         if get_list == 'worth_ratio':
             self.worth_ratio[t] = self.array('worth_ratio')
-            
         if get_list == 'money':
             self.agents_money[t] = self.array('money')
         if get_list == 'asset':
             self.agents_asset[t] = self.array('asset')
         if get_list == 'approval':
             self.agents_approval[t] = self.array('approval')
-        
         if get_list == 'sample_time_trans':
             for i in np.arange(self.N):
                 self.sample_time_trans[i,:] = np.copy(self.a_matrix[i].neighbor)
-                
         if get_list == 'trans_time':
             for i in np.arange(self.N):
                 self.trans_time[t,i,:] = np.copy(self.a_matrix[i].neighbor)
-                
         if get_list == 'correlation_mon':
             self.correlation_mon[t] = self.correlation_money_situation()
         if get_list == 'correlation_situ':
             self.correlation_situ[t] = self.correlation_situation_situation()
-            
         if get_list == 'rejection':
             self.rejection_time = np.copy(array)
         
@@ -625,10 +637,6 @@ class Tracker(properties_alteration,hist_plot_tools): #XXX
     def valuability(self):
         fig, ax = plt.subplots(nrows=1,ncols=1)
         asset = self.array('asset')
-#        asset_sort = np.sort(asset)
-#        x_label_list = np.array(['{0:.2f}'.format(asset_sort[int(self.N/5)*i]) for i in np.arange(5) ])
-#        x_label_list = np.concatenate(([0],x_label_list))
-#        ax.set_xticklabels(x_label_list)
         valuable_to_others_normalized = np.zeros((self.T,self.N))
         for i in np.arange(self.N):
             valuable_to_others_normalized[:,i] = self.valuable_to_others[:,i] / len(self.a_matrix[i].active_neighbor)
@@ -640,12 +648,3 @@ class Tracker(properties_alteration,hist_plot_tools): #XXX
         plt.savefig(self.path + title)
         plt.close()
         return
-    
-    
-
-
-
-    
-
-    
-    

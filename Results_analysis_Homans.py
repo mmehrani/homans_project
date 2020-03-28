@@ -8,6 +8,10 @@ To run, first specify N, T, and version of the file you want to analyse (line 23
 
 then run Homans.py for few seconds (let it run till numbers appear, then abort Homans.py) 
 so that Agent class is known and can analyse the data.
+
+Note that the project can run on Windows as well as Linux.
+It creates a folder named 'runned_files' in directory which the code is and 
+the data stores there.
 """
 import matplotlib.pyplot as plt
 import numpy as np

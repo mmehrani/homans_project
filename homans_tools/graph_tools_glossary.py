@@ -356,7 +356,6 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
             assort_file.write(str(assorted_attr)+'\n\n')
         
         if boolean:     #it does not computes in graph_related
-            
             community_members = self.modularity_communities #XXX
             # community_members = self.modularity_communitiesx
             
@@ -557,8 +556,8 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
                 local4 += 1
                 dic['rc'].append(0)
                 dic['rc_la'].append(0)
-                dic['rc'][local3] = self.rich_club()
-                dic['rc_la'][local3] = '{}'.format(i)
+                dic['rc'][local4] = self.rich_club()
+                dic['rc_la'][local4] = '{}'.format(i)
             except: print('rich club')
             try:
                 for prop in ['money','asset','approval','worth_ratio','situation']:

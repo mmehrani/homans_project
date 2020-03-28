@@ -64,27 +64,26 @@ class Agent():
         return self.n_average
 
     def probability(self,neighbor,t):
-        '''calculates probability for choosing each neighbor
+        '''
+        calculates probability for choosing each neighbor
         utility = value * acceptance_probability
         converts value to probability (normalized)
         uses proposition_3_and_4
-        should be a list with the same size as of neighbors with numbers 0< <1'''
+        should be a list with the same size as of neighbors with numbers 0< <1
+        '''
         
         if self.neighbor[neighbor] < memory_size:
             where = self.neighbor[neighbor]-1 #last value in memory
         else:
             where = memory_size-1
         
-        value = self.value[neighbor,where]
-#        p0 = np.arctan(factor*value)*2/np.pi + 1 #ranges from 0 to 2: value=0 maps to p=1. that means p=1 is the defaul number.
-#        p0 = np.arctan(prob0_magnify_factor*value*10)*2/np.pi + 1 #ranges from 0 to 2: value=0 maps to p=1. that means p=1 is the defaul number.
-        p0 = np.exp(value * prob0_magnify_factor)
-#        p0 = value * prob0_magnify_factor 
-#        p0 = value * prob0_magnify_factor + 1
-        # p1 = self.frequency_to_probability(neighbor,t) * prob1_magnify_factor - (prob1_magnify_factor -1)
-        p1 = 1.0
-        # p2 = np.exp(self.feeling[neighbor]) * prob2_magnify_factor - (prob2_magnify_factor -1)
-        p2 = 1.0
+        p0 = np.exp(self.value[neighbor,where] * prob0_magnify_factor)
+        p1 = self.frequency_to_probability(neighbor,t) * prob1_magnify_factor - (prob1_magnify_factor -1)
+        p2 = np.exp(self.feeling[neighbor]) * prob2_magnify_factor - (prob2_magnify_factor -1)
+
+        # p0 = 1.0
+        # p1 = 1.0
+        # p2 = 1.0
         
         p0_tracker.append(p0)
         p1_tracker.append(p1)
@@ -94,6 +93,7 @@ class Agent():
         return Decimal(probability).quantize(Decimal('1e-5'),rounding = ROUND_DOWN) if probability < 10**8 else Decimal(10**8)
     
     def frequency_to_probability(self,neighbor,t):
+        
         mask = (self.time[neighbor] > t-10) & (self.time[neighbor] != -1)
         n1 = np.size(self.time[neighbor][mask])
         short_term = 1 - alpha * (n1/10)
@@ -528,7 +528,9 @@ def save_it(version,t):
 """Parameters"""#XXX
 
 N = 100
-T = 5000
+T = 2000
+version = '99.01.08_1 basic'
+
 similarity = 0.05                   #how much this should be?
 memory_size = 10                    #contains the last memory_size number of transaction times
 transaction_percentage = 0.1        #percent of amount of money the first agent proposes from his asset 
@@ -537,7 +539,7 @@ num_of_tries2 = 20                  #in function explore()
 num_of_tries3 = 1                   #in function explore()
 threshold_percentage =np.full(N,1)  #the maximum amount which the agent is willing to give
 normalization_factor = 1            #used in transaction(). what should be?
-prob0_magnify_factor = 2            #this is in probability() for changing value so that it can take advantage of arctan
+prob0_magnify_factor = 0.5          #this is in probability() for changing value so that it can take advantage of arctan
 prob1_magnify_factor = 1
 prob2_magnify_factor = 1
 alpha = 1                           #in short-term effect of the frequency of transaction
@@ -548,7 +550,6 @@ sampling_time = 1000
 saving_time_step = T
 initial_for_trans_time = T - 1000
 trans_saving_interval = 1000
-version = '99.01.02 run 1 like run 9 in T=2000'
 if sampling_time > T:
     sampling_time = T
 if saving_time_step < sampling_time:
