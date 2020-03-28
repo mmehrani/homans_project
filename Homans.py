@@ -548,7 +548,7 @@ sampling_time = 1000
 saving_time_step = T
 initial_for_trans_time = T - 1000
 trans_saving_interval = 1000
-version = '99.01.02 run 1 like run 9 in T=2000'
+version = 'p2_p1_p0'
 if sampling_time > T:
     sampling_time = T
 if saving_time_step < sampling_time:
@@ -702,9 +702,6 @@ shutil.copyfile(os.getcwd()+'\\Analysis_Tools_Homans.py',path+'\\Analysis_Tools_
 shutil.copyfile(os.getcwd()+'\\Results_analysis_Homans.py',path+'\\Results_analysis_Homans.py')
 
 tracker.get_path(path)
-
-#analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,A,path)
-#analyse.graph_construction('trans_number',num_transaction_tot,sample_time_trans = tracker.sample_time_trans)
 tracker.plot_general(explore_prob_array * N,title='Average Exploration Probability',explore=True,N=N)
 tracker.plot_general(num_transaction_tot,title='Number of Transaction',trans=True)
 

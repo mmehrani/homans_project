@@ -14,11 +14,13 @@ import graph_tools_glossary
 import sys
 import winsound
 from datetime import datetime
+from homans_tools import csv_functions
+
 start_time = datetime.now()
 
 N = 100
 T = 5000
-version = '99.01.02 run 1'
+version = 'p2_p1_p0_num_of_tries_accept_util_off'
 
 pd = {'win32':'\\', 'linux':'/'}
 if sys.platform.startswith('win32'):
@@ -51,6 +53,7 @@ with open(path + 'Tracker.pkl','rb') as tracker_file:
 """ Plots""" 
 analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,A,path)
 main_graph = analyse.graph_construction('trans_number',num_transaction_tot, sampling_time=sampling_time, sample_time_trans=tracker.sample_time_trans)
+csv_functions.data_to_csv(analyse) # should be here after main graph and community detection construction
 
 for nsize in ['asset','money','approval','degree']:
     for ncolor in ['community','situation','worth_ratio']:
@@ -95,6 +98,7 @@ analyse.assortativity()
 analyse.property_variation()
 analyse.intercommunity_links()
 analyse.prob_nei_correlation()
+
 
 size = 10
 for rand_agent in np.random.choice(np.arange(N),size=size,replace=False):
@@ -151,6 +155,7 @@ for prop in ['money','asset','approval','worth_ratio']:
 
 all_data_dict = analyse.graph_related_chars(num_transaction_tot,tracker,sampling_time)
 analyse.path = path
+
 
 tracker.rejection_history()
 
