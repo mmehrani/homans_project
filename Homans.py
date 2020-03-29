@@ -528,8 +528,8 @@ def save_it(version,t):
 """Parameters"""#XXX
 
 N = 100
-T = 2000
-version = '99.01.08_1 basic'
+T = 5000
+version = '99.01.10 test_2'
 
 similarity = 0.05                   #how much this should be?
 memory_size = 10                    #contains the last memory_size number of transaction times
@@ -557,12 +557,14 @@ if saving_time_step < sampling_time:
 
 """Initial Condition"""
 
-situation_arr = np.random.random(N) #randomly distributed
+# situation_arr = np.random.random(N) #randomly distributed
+situation_arr = np.load('random_situation_array.npy')
 #money = np.full(N,5.5)
 #money = np.round(np.random.normal(loc=5.5,scale=1,size=N),decimals=3)
 #money = 1 + situation_arr * 2
 #money = np.zeros(N)
-money = np.round(np.random.rand(N) * 9 + 1 ,decimals=3)
+# money = np.round(np.random.rand(N) * 9 + 1 ,decimals=3)
+money = np.load('random_money_array_mean_5.5.npy')
 #money = np.round(situation_arr[:] * 9 + 1 ,decimals=3)
 approval = np.full(N,5.5)
 #approval = np.round(np.random.rand(N) * 9 + 1 ,decimals=3)
