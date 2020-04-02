@@ -12,6 +12,8 @@ import os
 import shutil
 import sys
 from decimal import *
+from tqdm import tqdm
+
 
 pd = {'win32':'\\', 'linux':'/'}
 if sys.platform.startswith('win32'):
@@ -528,8 +530,7 @@ def save_it(version,t):
 """Parameters"""#XXX
 
 N = 100
-T = 2000
-version = '99.01.08_1 basic'
+T = 1000
 
 similarity = 0.05                   #how much this should be?
 memory_size = 10                    #contains the last memory_size number of transaction times
@@ -625,9 +626,9 @@ path = make_directories(version)
 find another agent through calculating probability
 explores for new agent (expands his memory)"""
 
-for t in np.arange(T)+1:#t goes from 1 to T
+for t in tqdm(np.arange(T)+1):#t goes from 1 to T
     """computations"""
-    print(t)
+    # print(t)
     tau = (t-1)
     
     shuffled_agents=np.arange(N)
@@ -754,4 +755,7 @@ duration = 500  # millisecond
 freq = 2000  # Hz
 winsound.Beep(freq, duration)
 print (datetime.now() - start_time)
+
+"""parallel execution management"""
+
 
