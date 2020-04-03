@@ -548,8 +548,12 @@ param = 2                           #a normalizing factor in assigning the accep
 lamda = 0                           # how much one agent relies on his last worth_ratio and how much relies on current transaction's worth_ratio
 sampling_time = 1000
 saving_time_step = T
-initial_for_trans_time = T - 1000
+
 trans_saving_interval = 1000
+if trans_saving_interval > T:
+    trans_saving_interval = T
+initial_for_trans_time = T - trans_saving_interval
+
 if sampling_time > T:
     sampling_time = T
 if saving_time_step < sampling_time:
