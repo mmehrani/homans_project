@@ -514,27 +514,30 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
                 self.draw_graph_weighted_colored(position='kamada_kawai',nsize='money',ncolor='situation')
             except: break
             try:
+                temp0, temp1, temp2 = self.G.number_of_nodes(), self.G.number_of_edges(), nx.is_connected(self.G)
                 local0 += 1
                 dic['nsize'].append(0)
                 dic['esize'].append(0)
                 dic['is_con'].append(0)
-                dic['nsize'][local0] = self.G.number_of_nodes()
-                dic['esize'][local0] = self.G.number_of_edges()
-                dic['is_con'][local0] = nx.is_connected(self.G)
+                dic['nsize'][local0] = temp0
+                dic['esize'][local0] = temp1
+                dic['is_con'][local0] = temp2
             except: print('graph size')
             try:
                 self.hist('degree')
                 self.hist_log_log('degree')
             except: print('degree hist')
             try:
+                temp0, temp1, temp2, temp3 = self.community_detection()
                 local1 += 1
                 dic['modul'].append(0)
                 dic['cover'].append(0)
                 dic['modul_r'].append(0)
                 dic['cover_r'].append(0)
-                dic['modul'][local1], dic['cover'][local1],dic['modul_r'][local1], dic['cover_r'][local1] = self.community_detection()
+                dic['modul'][local1], dic['cover'][local1],dic['modul_r'][local1], dic['cover_r'][local1] = temp0, temp1, temp2, temp3
             except: print('community detection')
             try:
+                temp0, temp1, temp2, temp3, temp4, temp5 = self.topology_chars()
                 local2 += 1
                 dic['asph'].append(0)
                 dic['cc'].append(0)
@@ -542,21 +545,23 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
                 dic['cc_r'].append(0)
                 dic['sigma'].append(0)
                 dic['omega'].append(0)
-                dic['asph'][local2], dic['cc'][local2], dic['asph_r'][local2], dic['cc_r'][local2], dic['sigma'][local2], dic['omega'][local2] = self.topology_chars()
+                dic['asph'][local2], dic['cc'][local2], dic['asph_r'][local2], dic['cc_r'][local2], dic['sigma'][local2], dic['omega'][local2] = temp0, temp1, temp2, temp3, temp4, temp5
             except: print('topology chars')
             try:
+                temp0, attr = self.assortativity(boolean = False)
                 local3 += 1
                 dic['assort'].append(0)
-                dic['assort'][local3],attr = self.assortativity(boolean = False)
+                dic['assort'][local3] = temp0
             except: print('assortativity')
             try:
                 self.graph_correlations()
             except: print('correlations')
             try:
+                temp0 = self.rich_club()
                 local4 += 1
                 dic['rc'].append(0)
                 dic['rc_la'].append(0)
-                dic['rc'][local4] = self.rich_club()
+                dic['rc'][local4] = temp0
                 dic['rc_la'][local4] = '{}'.format(i)
             except: print('rich club')
             try:
@@ -593,6 +598,3 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
         return dic
     
     pass
-
-
-

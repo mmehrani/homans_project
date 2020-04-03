@@ -29,7 +29,7 @@ start_time = datetime.now()
 #XXX
 N = 100 
 T = 2000
-version = '99.01.08_1 basic'
+version = '99.01.15_3 long_term off'
 
 pd = {'win32':'\\', 'linux':'/'}
 if sys.platform.startswith('win32'):

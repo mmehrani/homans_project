@@ -37,11 +37,7 @@ class arrays_glossary():
             ref[what_array] = np.zeros((self.N,self.N))
             for i in np.arange(self.N):
                 for j in self.a_matrix[i].active_neighbor.keys():
-                    if self.a_matrix[i].neighbor[j] < self.memory_size:
-                        where = self.a_matrix[i].neighbor[j]-1 #last value in memory
-                    else:
-                        where = self.memory_size-1
-                    ref[what_array][i,j] = self.a_matrix[i].value[j, where ]
+                    ref[what_array][i,j] = self.a_matrix[i].value[j]
             return ref[what_array]
             
         if what_array == 'time':
