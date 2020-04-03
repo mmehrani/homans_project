@@ -530,7 +530,7 @@ def save_it(version,t):
 """Parameters"""#XXX
 
 N = 100
-T = 1000
+T = 500
 
 similarity = 0.05                   #how much this should be?
 memory_size = 10                    #contains the last memory_size number of transaction times
