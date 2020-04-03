@@ -14,15 +14,16 @@ number of cycles. each cycle has num_run_in_cycle in its body.
 """
 
 class Genre_execution():
-    def __init__(self,original_filename,number_of_total_runs,number_of_cpus, path = os.getcwd(), versions = []):
+    def __init__(self,original_filename,number_of_total_runs,number_of_cpus,total_time, path = os.getcwd(), versions = []):
         self.number_of_total_runs = number_of_total_runs
         self.number_of_cpus = number_of_cpus
         self.path = path
         
         if original_filename[-3:] == '.py': original_filename = original_filename[:-3]
         self.original_filename = original_filename
-        
         self.versions_names = versions
+        
+        self.total_time = total_time
         return
     
     def _delete_runned_files(self):
@@ -41,7 +42,9 @@ class Genre_execution():
                 f.seek(0) # rewind
                 version_name = 'Result {0}_{1}'.format(self.original_filename,i)
                 self.versions_names.append(version_name)
-                f.write("version = " + "'{}'".format(version_name)+ "\n" + old) # write the new line before
+                f.write("T = {}".format(self.total_time)+"\n"+
+                        "version = " + "'{}'".format(version_name)+
+                        "\n" + old) # write the new line before
                 f.close()
         self.files_names = files_names_list
         return 
@@ -56,7 +59,9 @@ class Genre_execution():
             with open(filename_plus_address + "({0}).py".format(i), "w") as f:
                 f.seek(0) # rewind
                 version_name = self.versions_names[i]
-                f.write("version = " + "'{}'".format(version_name)+ "\n" + old) # write the new line before
+                f.write("T = {}".format(self.total_time)+"\n"+
+                        "version = " + "'{}'".format(version_name)+
+                        "\n" + old) # write the new line before
                 f.close()
         
         self.files_names = files_names_list        
@@ -79,14 +84,19 @@ class Genre_execution():
         pool.map(self._prompt_os_to_run,self.files_names)
         pool.close()
         pool.join()
-        # self._delete_runned_files()
+        self._delete_runned_files()
         return
 
     pass
 
 if __name__ == '__main__':
     """Homans files"""
-    genres_name_list = ['Homans_1a.py','Homans_1b.py']
+    total_running_steps = 200
+    cpus_at_hand = 4
+    each_file_run_times = 10
+    genres_name_list = ['Homans_1_a.py','Homans_1_b.py','Homans_2_a.py','Homans_2_b.py',
+                        'Homans_3_a.py','Homans_3_b.py','Homans_3_c.py']
+    total_files = each_file_run_times * len(genres_name_list)
     genres_versions_names = []
     
     control_file = open('check_status.txt','w')
@@ -95,17 +105,19 @@ if __name__ == '__main__':
     genres_path = os.path.join(current_path,'genres_holder','Homans_genres')
    
     for i,genre in enumerate(tqdm.tqdm(genres_name_list)):
-        genre_homans_exec = Genre_execution(genre, 4, 2, path = genres_path)
+        genre_homans_exec = Genre_execution(genre, each_file_run_times , cpus_at_hand,
+                                            total_running_steps, path = genres_path)
         genre_homans_exec.initialize_running()
         genres_versions_names.extend(genre_homans_exec.versions_names)
         control_file.write('{} completed! \n'.format(genre))
     
         
     """"Analysis part"""
-    genres_path = os.path.join(current_path,'genres_holder','Results_analysis_genres')
-    # for genre_versions in tqdm.tqdm(genres_versions_names):
-    genre_results_exec = Genre_execution('Results_analysis_Homans.py', 8, 2, path = genres_path, versions = genres_versions_names)
-    genre_results_exec.initialize_running()
+    # genres_path = os.path.join(current_path,'genres_holder','Results_analysis_genres')
+    # # for genre_versions in tqdm.tqdm(genres_versions_names):
+    # genre_results_exec = Genre_execution('Results_analysis_Homans.py', total_files, cpus_at_hand,
+    #                                      path = genres_path, versions = genres_versions_names)
+    # genre_results_exec.initialize_running()
     # control_file.write('{} completed! \n'.format(genre))
 
         
