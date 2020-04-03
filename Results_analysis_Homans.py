@@ -26,10 +26,154 @@ import winsound
 from datetime import datetime
 start_time = datetime.now()
 
+class Agent():
+    def __init__(self,money,approval,situation):
+        self.money = money
+        self.approval = approval
+        self.neighbor = np.zeros(N,dtype=int) #number of interactions
+        self.value = np.full((N,memory_size),-1,dtype=float)
+        self.time = np.full((N,memory_size),-1)
+        self.situation = situation
+        self.active_neighbor = {} #dictianary; keys are active neighbor indexes; values are probabilities
+        self.sigma = Decimal('0') #sum of probabilities. used in normalization
+        self.feeling = np.zeros(N)
+        self.worth_ratio = self.approval/self.money
+        self.asset = self.money + self.approval / self.worth_ratio
+        return
+    
+    def asset_updater(self):
+        self.asset = self.money + self.approval / self.worth_ratio
+        return 
+    
+    def neighbor_average(self):
+        
+        self.n_avg = {'money':0, 'approval':0}
+        for j in self.active_neighbor.keys():
+            self.n_avg['money'] += A[j].money
+            self.n_avg['approval'] += A[j].approval
+        # self.n_avg['money'] = self.n_avg['money'] / len(self.active_neighbor)
+        # self.n_avg['approval'] = self.n_avg['approval'] / len(self.active_neighbor)
+
+        self.n_avg['money'] += self.money
+        self.n_avg['approval'] += self.approval
+        self.n_avg['money'] = self.n_avg['money'] / (len(self.active_neighbor)+1)
+        self.n_avg['approval'] = self.n_avg['approval'] / (len(self.active_neighbor)+1)
+        
+        self.n_average = self.n_avg['approval'] / self.n_avg['money']
+        return self.n_average
+
+    def probability(self,neighbor,t):
+        '''
+        calculates probability for choosing each neighbor
+        utility = value * acceptance_probability
+        converts value to probability (normalized)
+        uses proposition_3_and_4
+        should be a list with the same size as of neighbors with numbers 0< <1
+        '''
+        
+        if self.neighbor[neighbor] < memory_size:
+            where = self.neighbor[neighbor]-1 #last value in memory
+        else:
+            where = memory_size-1
+        
+        p0 = np.exp(self.value[neighbor,where] * prob0_magnify_factor)
+        p1 = self.frequency_to_probability(neighbor,t) * prob1_magnify_factor - (prob1_magnify_factor -1)
+        p2 = np.exp(self.feeling[neighbor]) * prob2_magnify_factor - (prob2_magnify_factor -1)
+
+        # p0 = 1.0
+        # p1 = 1.0
+        # p2 = 1.0
+        
+        p0_tracker.append(p0)
+        p1_tracker.append(p1)
+        p2_tracker.append(p2)
+        
+        probability = p0 * p1 * p2 #not normalized. normalization occurs in neighbor_concatenation()
+        return Decimal(probability).quantize(Decimal('1e-5'),rounding = ROUND_DOWN) if probability < 10**8 else Decimal(10**8)
+    
+    def frequency_to_probability(self,neighbor,t):
+        
+        mask = (self.time[neighbor] > t-10) & (self.time[neighbor] != -1)
+        n1 = np.size(self.time[neighbor][mask])
+        short_term = 1 - alpha * (n1/10)
+        n2 = self.neighbor[neighbor]
+        long_term = 1 + beta * (n2 * len(self.active_neighbor) /(t*np.average(num_transaction_tot[:t-1]) ) ) 
+        prob = short_term * long_term
+        return prob
+    
+    
+    def neighbor_concatenation(self,self_index,new_neighbor,t):
+        sum_before = sum(list(self.active_neighbor.values()))
+        sigma_before = self.sigma
+        
+        for j in self.active_neighbor.keys():
+            self.active_neighbor[j] *= self.sigma
+            
+        grade_new_neighbor = self.probability(new_neighbor,t)
+
+        if new_neighbor in self.active_neighbor:
+            self.sigma += grade_new_neighbor - self.active_neighbor[new_neighbor]
+        else:
+            self.sigma += grade_new_neighbor
+            
+        self.active_neighbor[new_neighbor] = grade_new_neighbor
+        
+        sum_middle = sum(list(self.active_neighbor.values()))
+        for j in self.active_neighbor.keys():
+            if j!=new_neighbor:
+                self.active_neighbor[j] /= self.sigma
+                self.active_neighbor[j] = Decimal( str(self.active_neighbor[j]) ).quantize(Decimal('1e-5'),rounding = ROUND_DOWN)
+                
+        if new_neighbor in self.active_neighbor:
+            self.active_neighbor[new_neighbor] = 1 - ( sum(self.active_neighbor.values()) -  self.active_neighbor[new_neighbor])
+        else:
+            self.active_neighbor[new_neighbor] = 1 -  sum(self.active_neighbor.values()) 
+            
+        #error finding
+        if self.active_neighbor[new_neighbor] < 0:
+            raise NegativeProbability('self index:',self_index,'neighbor',new_neighbor)
+        elif np.size(np.array(list(self.active_neighbor.values()))[np.array(list(self.active_neighbor.values()))>1]) != 0:
+            print('\nerror')
+            print('self index',self_index)
+            print('neighbor index',new_neighbor)
+            print('sum after',sum(list(self.active_neighbor.values())))
+            print('sum middle',sum_middle)
+            print('sum before',sum_before)
+            print('sigma before',sigma_before)
+            print('sigma after',self.sigma)
+            print('value',self.value[new_neighbor])
+            print('intered prob',probability_new_neighbor)
+            raise NegativeProbability('self index:',self_index,'neighbor',new_neighbor)
+        elif sum(list(self.active_neighbor.values())) > 1.01 or sum(list(self.active_neighbor.values())) < 0.99:
+            raise NegativeProbability('not one',sum(list(self.active_neighbor.values())))
+
+        return
+
+    def second_agent(self,self_index,self_active_neighbor):
+        """returns an agent in memory with maximum utility to intract with
+        probability() is like value
+        proposition 6"""
+        
+        i = 0
+        Max = 0
+        for j in self_active_neighbor:
+            probability = self.active_neighbor[j]
+            other_probability = A[j].active_neighbor[self_index]
+            utility = probability * other_probability
+            if utility >= Max:
+                Max = utility
+                chosen_agent = j
+                chosen_agent_index = i
+            i += 1
+        return chosen_agent , chosen_agent_index
+    
+# =============================================================================
+
 #XXX
 N = 100 
-T = 2000
-version = '99.01.08_1 basic'
+T = 500
+
+version = 'Result Homans_1a_0'
 
 pd = {'win32':'\\', 'linux':'/'}
 if sys.platform.startswith('win32'):
@@ -74,7 +218,7 @@ analyse.graph_correlations(all_nodes = True)
 tracker.get_path(path) #essential
 tracker.valuability()
 tracker.plot_general(num_transaction_tot,title='Number of Transaction')
-tracker.plot_general(explore_prob_arr * N,title='Average Exploration Probability',explore=True,N=N)
+# tracker.plot_general(explore_prob_arr * N,title='Average Exploration Probability',explore=True,N=N)
 
 analyse.hist('degree')
 analyse.hist_log_log('degree')
