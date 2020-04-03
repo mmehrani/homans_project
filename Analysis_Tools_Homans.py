@@ -297,7 +297,8 @@ class hist_plot_tools():
             ax.set_ylabel('Number of Explorations')
             N = kwargs.get('N',100)
             # ax.set_ylim(0,1.05*N)
-            deg_value = np.polyfit(np.arange(self.T - 1000, self.T),np.log(array[-1000:]),1)
+            deg_value = np.polyfit(np.arange(self.T - self.trans_saving_time_interval, self.T),
+                                   np.log(array[-self.trans_saving_time_interval:]),1)
             ax.plot( np.arange(self.T) ,np.exp( deg_value[1] + deg_value[0]*np.arange(self.T) ) ,
                     color = 'k',ls = 'dashed',alpha = 0.3, label = '{:.2e} t + {:.2e}'.format(Decimal(deg_value[0]),Decimal(deg_value[1])))
             ax.set_yscale('log')
