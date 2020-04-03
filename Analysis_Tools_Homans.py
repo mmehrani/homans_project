@@ -327,6 +327,8 @@ class hist_plot_tools():
         plt.figure()
         plt.xscale('log')
         plt.yscale('log')
+        array = np.array(array)
+        array = array[array > 0]
         bins=np.logspace(np.log10(np.amin(array)),np.log10(np.amax(array)),20)
         plt.hist(array,bins=bins)
         plt.title(title + ' Histogram log-log' + ' N={} T={}'.format(self.N,self.T))
@@ -338,7 +340,10 @@ class hist_plot_tools():
 
 
 class Analysis(Graph_related_tools,properties_alteration): #XXX
-    
+    """
+    Main class for analysis (mostly not time dependent ones)
+    It uses inheritance to communicate with other classes
+    """
     def __init__(self,number_agent,total_time,size,a_matrix,path,*args,**kwargs):
         
         self.memory_size = size
@@ -390,7 +395,6 @@ class Analysis(Graph_related_tools,properties_alteration): #XXX
         agents_self_value = np.sum(a_prob,axis = 0)
         a_asset = self.array('asset')
         stacked_array = np.transpose(np.stack((agents_self_value,a_asset)))
-        
         stacked_array_sorted = stacked_array[np.argsort(stacked_array[:,0])]
         
         dic=dict(zip(agents_self_value,np.arange(self.N)))
@@ -401,9 +405,7 @@ class Analysis(Graph_related_tools,properties_alteration): #XXX
         plt.figure()
         title = 'probability to be chosen by other agents'
         plt.title(title)
-        
         plt.scatter(np.arange(self.N),stacked_array_sorted[:,0],c = stacked_array_sorted[:,1] )
-        
         for x,y in zip(np.arange(self.N),stacked_array_sorted[:,0]):
             plt.text(x-0.1,y+0.2,str(label[x]),fontsize=8)
         plt.savefig(self.path+title)
@@ -580,22 +582,11 @@ class Tracker(properties_alteration,hist_plot_tools): #XXX
         """
         it will show each node transaction transcript.
         """
-#        sort_by = kwargs.get('sorting_feature','situation')
-        
         fig, ax = plt.subplots(nrows=1,ncols=1)
-        
-#        sort_arr = self.array(sort_by)
-##        sort_arr_sorted = np.sort(sort_arr)
-##        x_label_list = ['%.2f'%(sort_arr_sorted[i]) for i in range(self.N) ]
-##        ax.set_xticklabels(x_label_list)
-        
-#        im = ax.imshow(self.trans_time[:,agent_to_watch,np.argsort(sort_arr)].astype(float),aspect='auto')
         agent_trans_time = self.trans_time[:,agent_to_watch,:].astype(float)
         show_arr = np.zeros((self.trans_saving_time_interval-1,self.N))
         for t in np.arange(self.trans_saving_time_interval-1):
             show_arr[t] = agent_trans_time[t+1,:] - agent_trans_time[t,:]
-#        print('trans time',np.size(agent_trans_time[:,0]))
-#        print('show arr',np.size(show_arr[:,0]))
         im = ax.imshow(show_arr,aspect='auto')
 
         cbar = ax.figure.colorbar(im, ax=ax)
