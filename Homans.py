@@ -148,12 +148,11 @@ class Agent():
     def second_agent(self,self_index,self_active_neighbor):
         """
         Homans' proposition 6
-        
         Returns an agent in memory with maximum utility to intract with.
         Utility = Value * Acceptance Probability
-        
-        probability is like value.
         """
+        
+        """Proposition 6"""
         i = 0
         Max = 0
         for j in self_active_neighbor:
@@ -165,6 +164,11 @@ class Agent():
                 chosen_agent = j
                 chosen_agent_index = i
             i += 1
+        
+        """Random choice"""     #for when we need to turn off the effect
+        # chosen_agent_index = np.random.choice(range(len(self_active_neighbor)))
+        # chosen_agent = self_active_neighbor[chosen_agent_index]
+        
         return chosen_agent , chosen_agent_index
     
 # =============================================================================
