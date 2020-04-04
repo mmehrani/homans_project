@@ -295,8 +295,6 @@ class hist_plot_tools():
         explore = kwargs.get('explore',False)
         if explore:
             ax.set_ylabel('Number of Explorations')
-            N = kwargs.get('N',100)
-            # ax.set_ylim(0,1.05*N)
             deg_value = np.polyfit(np.arange(self.T - 1000, self.T),np.log(array[-1000:]),1)
             ax.plot( np.arange(self.T) ,np.exp( deg_value[1] + deg_value[0]*np.arange(self.T) ) ,
                     color = 'k',ls = 'dashed',alpha = 0.3, label = '{:.2e} t + {:.2e}'.format(Decimal(deg_value[0]),Decimal(deg_value[1])))
@@ -427,6 +425,9 @@ class Analysis(Graph_related_tools,properties_alteration): #XXX
         return
     
     def num_of_transactions(self):
+        """ 
+        Creates a figure in which neighbor array of each agent is shown
+        """
         plt.figure()
         for i in np.arange(self.N):
             plt.plot(self.a_matrix[i].neighbor,alpha=(1-i/self.N*2/3))
@@ -437,6 +438,10 @@ class Analysis(Graph_related_tools,properties_alteration): #XXX
         return 
     
     def money_vs_situation(self,path):
+        """ 
+        Creates a figure which horizontal axis is situation and vertical axis is money and
+        each point in the figure is one agent with corresponding money and situation
+        """
         plt.figure()
         plt.scatter(self.array('situation'),self.array('money'))
         title = 'Money Vs Situation'
@@ -446,6 +451,10 @@ class Analysis(Graph_related_tools,properties_alteration): #XXX
         return
     
     def transaction_vs_property(self,what_prop):
+        """ 
+        How many transactions happened in a specific property (like money)
+        => Histogram of transaction according to a property
+        """
         transaction = np.zeros(self.N)
         array = self.array(what_prop)
         for i in np.arange(self.N):
@@ -495,7 +504,9 @@ class Analysis(Graph_related_tools,properties_alteration): #XXX
 
     
 class Tracker(properties_alteration,hist_plot_tools): #XXX
-    
+    """ 
+    A class for analyse through time
+    """    
     def __init__(self,number_agent,total_time,size,a_matrix,trans_saving_time_interval,saving_time_step,boolean=False,*args,**kwargs):
         
         self.a_matrix = a_matrix
@@ -528,7 +539,9 @@ class Tracker(properties_alteration,hist_plot_tools): #XXX
         return
         
     def get_list(self,get_list,t,array=None):
-        
+        """ 
+        Get and update lists from Homans.py main
+        """
         if get_list == 'self_value':
             self.self_value[t] = np.sum(self.array('value'),axis = 1)
         if get_list == 'valuable_to_others':
@@ -574,12 +587,10 @@ class Tracker(properties_alteration,hist_plot_tools): #XXX
         time = np.where(self.trans_time[:,x,y] >= self.friendship_num)[0][0]
         return int(time)
     
-    def index_in_arr(array,value):
-        return np.where( array == value )[0][0]
-    
     def trans_time_visualizer(self,agent_to_watch,title,**kwargs):
         """
-        it will show each node transaction transcript.
+        it will show the trace of transactions of one agent through time
+        Horizontal axis is other agents, and vertica axis is time.
         """
         fig, ax = plt.subplots(nrows=1,ncols=1)
         agent_trans_time = self.trans_time[:,agent_to_watch,:].astype(float)
@@ -596,6 +607,9 @@ class Tracker(properties_alteration,hist_plot_tools): #XXX
         return
     
     def rejection_history(self):
+        """ 
+        Tracks rejections and acceptances in transaction function
+        """
         binary = [0,1]
         conditions_glossary = [(x,y,z,w) for x in binary for y in binary for z in binary for w in binary]
         conditions_glossary_dict = { cond:x for cond,x in zip(conditions_glossary,range(16))}
