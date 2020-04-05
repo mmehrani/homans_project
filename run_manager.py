@@ -93,9 +93,10 @@ if __name__ == '__main__':
     """Homans files"""
     total_running_steps = 200
     cpus_at_hand = 4
-    each_file_run_times = 10
-    genres_name_list = ['Homans_1_a.py','Homans_1_b.py','Homans_2_a.py','Homans_2_b.py',
-                        'Homans_3_a.py','Homans_3_b.py','Homans_3_c.py']
+    each_file_run_times = 5
+    # genres_name_list = ['Homans_1_a.py','Homans_1_b.py','Homans_2_a.py','Homans_2_b.py',
+    #                     'Homans_3_a.py','Homans_3_b.py','Homans_3_c.py']
+    genres_name_list = ['Homans_1_a.py']
     total_files = each_file_run_times * len(genres_name_list)
     genres_versions_names = []
     
@@ -113,11 +114,12 @@ if __name__ == '__main__':
     
         
     """"Analysis part"""
-    # genres_path = os.path.join(current_path,'genres_holder','Results_analysis_genres')
-    # # for genre_versions in tqdm.tqdm(genres_versions_names):
-    # genre_results_exec = Genre_execution('Results_analysis_Homans.py', total_files, cpus_at_hand,
-    #                                      path = genres_path, versions = genres_versions_names)
-    # genre_results_exec.initialize_running()
-    # control_file.write('{} completed! \n'.format(genre))
+    genres_path = os.path.join(current_path,'genres_holder','Results_analysis_genres')
+    # for genre_versions in tqdm.tqdm(genres_versions_names):
+    genre_results_exec = Genre_execution('Results_analysis_Homans.py', total_files, cpus_at_hand,
+                                          total_running_steps, path = genres_path,
+                                          versions = genres_versions_names)
+    genre_results_exec.initialize_running()
+    control_file.write('{} Results completed! \n'.format(genre))
 
         
