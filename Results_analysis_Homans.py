@@ -72,7 +72,6 @@ analyse.graph_correlations(all_nodes = False)
 analyse.graph_correlations(all_nodes = True)
 
 tracker.get_path(path) #essential
-tracker.valuability()
 tracker.plot_general(num_transaction_tot,title='Number of Transaction')
 tracker.plot_general(explore_prob_arr * N,title='Average Exploration Probability',explore=True,N=N)
 
