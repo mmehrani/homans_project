@@ -81,7 +81,8 @@ class Genre_execution():
             self._make_results_analysis_running_files()
             
         pool = Pool(processes = self.number_of_cpus)
-        pool.map(self._prompt_os_to_run,self.files_names)
+        for _ in tqdm.tqdm(pool.imap_unordered(self._prompt_os_to_run,self.files_names), total=len(self.files_names)):
+            pass
         pool.close()
         pool.join()
         self._delete_runned_files()
@@ -91,20 +92,18 @@ class Genre_execution():
 
 if __name__ == '__main__':
     """Homans files"""
-    total_running_steps = 200
+    total_running_steps = 5000
     cpus_at_hand = 4
-    each_file_run_times = 5
-    # genres_name_list = ['Homans_1_a.py','Homans_1_b.py','Homans_2_a.py','Homans_2_b.py',
-    #                     'Homans_3_a.py','Homans_3_b.py','Homans_3_c.py']
-    genres_name_list = ['Homans_1_a.py']
+    each_file_run_times = 10
+    genres_name_list = ['Homans_1_a.py','Homans_1_b.py','Homans_2_a.py','Homans_2_b.py',
+                        'Homans_3_a.py','Homans_3_b.py','Homans_3_c.py']
     total_files = each_file_run_times * len(genres_name_list)
     genres_versions_names = []
     
     control_file = open('check_status.txt','w')
     
     current_path = os.getcwd()
-    genres_path = os.path.join(current_path,'genres_holder','Homans_genres')
-   
+    genres_path = os.path.join(current_path,'genres_holder')
     for i,genre in enumerate(tqdm.tqdm(genres_name_list)):
         genre_homans_exec = Genre_execution(genre, each_file_run_times , cpus_at_hand,
                                             total_running_steps, path = genres_path)
@@ -114,12 +113,11 @@ if __name__ == '__main__':
     
         
     """"Analysis part"""
-    genres_path = os.path.join(current_path,'genres_holder','Results_analysis_genres')
-    # for genre_versions in tqdm.tqdm(genres_versions_names):
     genre_results_exec = Genre_execution('Results_analysis_Homans.py', total_files, cpus_at_hand,
                                           total_running_steps, path = genres_path,
                                           versions = genres_versions_names)
     genre_results_exec.initialize_running()
-    control_file.write('{} Results completed! \n'.format(genre))
+    control_file.write('all results generation completed! \n')
+    control_file.write('Program Jobs are Finished! \n')
 
         
