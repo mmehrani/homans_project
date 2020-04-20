@@ -22,12 +22,16 @@ import os
 import matplotlib.animation as animation
 import graph_tools_glossary
 import sys
-import winsound
+# import winsound
 from datetime import datetime
+from progress.bar import Bar
+
 start_time = datetime.now()
 
 #XXX
 N = 100
+# T = 5000
+# version = 'Result_Homans_1_b_2'
 
 class Agent():
     def __init__(self,money,approval,situation):
@@ -168,9 +172,12 @@ class Agent():
                 chosen_agent = j
                 chosen_agent_index = i
             i += 1
-        return chosen_agent , chosen_agent_index
-    
+        return chosen_agent , chosen_agent_index    
 # =============================================================================
+
+bar = Bar('Processing', max=14)
+
+
 pd = {'win32':'\\', 'linux':'/'}
 if sys.platform.startswith('win32'):
     plat = 'win32'
@@ -179,46 +186,52 @@ elif sys.platform.startswith('linux'):
 current_path = os.getcwd()
 path = current_path +pd[plat]+'runned_files'+pd[plat]+'N%d_T%d'%(N,T)+pd[plat]+version+pd[plat]
 
-with open(path + 'Initials.txt','r') as initf:
-    init_lines = initf.readlines()
-    for i,line in enumerate(init_lines):
-        if i == 2: sampling_time = int(line[:-1])
+# with open(path + 'Initials.txt','r') as initf:
+#     init_lines = initf.readlines()
+#     for i,line in enumerate(init_lines):
+#         if i == 2: sampling_time = int(line[:-1])
+sampling_time = 1000
 memory_size = 10
 saving_time = T
 path += '0_%d'%(T)+pd[plat]
-
+# path = os.path.join(current_path, 'runned_files', 'N%d_T%d'%(N,T),version,'0_%d'%(T))
 """Open File"""
-with open(path+'Other_data.pkl','rb') as data_file:
+with open(os.path.join(path,'Other_data.pkl'),'rb') as data_file:
     num_transaction_tot = pickle.load(data_file)
     explore_prob_arr    = pickle.load(data_file)
     rejection_agent     = pickle.load(data_file)
     
-with open(path+'Agents.pkl','rb') as agent_file:
+with open(os.path.join(path,'Agents.pkl'),'rb') as agent_file:
     A = pickle.load(agent_file)
 
-with open(path + 'Tracker.pkl','rb') as tracker_file:
+with open(os.path.join(path,'Tracker.pkl') ,'rb') as tracker_file:
     tracker = pickle.load(tracker_file)
 
 """ Plots""" 
 analyse = Analysis_Tools_Homans.Analysis(N,T,memory_size,A,path)
 main_graph = analyse.graph_construction('trans_number',num_transaction_tot, sampling_time=sampling_time, sample_time_trans=tracker.sample_time_trans)
 
-for nsize in ['asset','money','approval','degree']:
-    for ncolor in ['community','situation','worth_ratio']:
-        for position in ['spring','kamada_kawai']:
-            analyse.draw_graph_weighted_colored(position=position,nsize=nsize,ncolor=ncolor)
+# for nsize in ['asset','money','approval','degree']:
+#     for ncolor in ['community','situation','worth_ratio']:
+#         for position in ['spring','kamada_kawai']:
+#             analyse.draw_graph_weighted_colored(position=position,nsize=nsize,ncolor=ncolor)
 
+
+bar.next() #XXX
 analyse.graph_correlations(all_nodes = False)
 analyse.graph_correlations(all_nodes = True)
 
+bar.next() #XXX
 tracker.get_path(path) #essential
 tracker.plot_general(num_transaction_tot,title='Number of Transaction')
 tracker.plot_general(explore_prob_arr * N,title='Average Exploration Probability',explore=True,N=N)
 
+bar.next() #XXX
 analyse.hist('degree')
 analyse.hist_log_log('degree')
 analyse.hist_log_log('neighbor',semilog=True)
 
+bar.next() #XXX
 i=0
 array = np.zeros((8,N,N))
 for prop in ['money','approval','asset','active_neighbor','utility','probability','neighbor','value']:
@@ -227,6 +240,7 @@ for prop in ['money','approval','asset','active_neighbor','utility','probability
     array[i] = analyse.array(prop)
     i += 1
 
+bar.next() #XXX
 analyse.money_vs_situation(path+'money_vs_situation')
 analyse.transaction_vs_property('asset')
 analyse.transaction_vs_property('money')
@@ -242,6 +256,7 @@ try:
     analyse.rich_club(normalized=True)
 except: print('could not create rich club')
 
+bar.next() #XXX
 size = 10 
 for rand_agent in np.random.choice(np.arange(N),size=size,replace=False):
     agent = rand_agent
@@ -251,6 +266,7 @@ tracker.valuability()
 for prop in ['money','asset','approval']:
     tracker.property_evolution(prop)
 
+bar.next() #XXX
 tracker.correlation_growth_situation('money','situation')
 tracker.correlation_growth_situation('asset','situation')
 tracker.correlation_growth_situation('approval','situation')
@@ -260,6 +276,7 @@ tracker.correlation_growth_situation('asset','initial_asset')
 tracker.correlation_growth_situation('approval','initial_approval')
 plt.close('all')
 
+bar.next() #XXX
 tracker.plot('self_value',title='Self Value')
 tracker.plot('valuable_to_others',title='How Much Valuable to Others')
 tracker.plot('worth_ratio',title='Worth_ratio Evolution by Time',alpha=1)
@@ -269,14 +286,16 @@ tracker.plot('correlation_situ',title="Correlation of Situation and Neighbor's S
 # tracker.correlation_pairplots(all_nodes = True)
 # tracker.correlation_pairplots(present_nodes = main_graph.nodes())
 
+bar.next() #XXX
 tracker.correlation_pairplots()
 tracker.correlation_pairplots(nodes_selection = 'graph_nodes', present_nodes = main_graph.nodes())
 
+bar.next() #XXX
 community_members = [list(x) for x in analyse.modularity_communities]
 for num,com in enumerate(community_members):
     tracker.correlation_pairplots(nodes_selection ='community_nodes_{}'.format(num),present_nodes = com)
 
-
+bar.next() #XXX
 fig, ax = plt.subplots(nrows=1,ncols=1)
 probability = analyse.array('probability')
 im = ax.imshow(probability.astype(float),aspect='auto',animated=True)
@@ -290,15 +309,19 @@ plt.close()
 
 analyse.community_detection()
 
+bar.next() #XXX
 for prop in ['money','asset','approval','worth_ratio']:
     analyse.communities_property_dist(prop)
 #    analyse.communities_property_evolution(tracker,prop)
 
+bar.next() #XXX
 all_data_dict = analyse.graph_related_chars(num_transaction_tot,tracker,sampling_time)
 analyse.path = path
 
+bar.next() #XXX
 tracker.rejection_history()
 
 plt.close('all')
 print (datetime.now() - start_time)
-winsound.Beep(2000,500)
+bar.finish()
+# winsound.Beep(2000,500)
