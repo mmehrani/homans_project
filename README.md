@@ -1,2 +1,2 @@
 # homans_project
-we gonna make a society simulation based on Homans assumptions.
+we made a society simulation based on Homans assumptions to verify his claims. He claimed social groups will form by self-preferences.
