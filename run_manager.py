@@ -81,7 +81,7 @@ class Genre_execution():
             self._make_results_analysis_running_files()
             
         pool = Pool(processes = self.number_of_cpus)
-        for _ in tqdm.tqdm(pool.imap_unordered(self._prompt_os_to_run,self.files_names), total=len(self.files_names)):
+        for _ in tqdm.tqdm(pool.map(self._prompt_os_to_run,self.files_names), total=len(self.files_names)):
             pass
         pool.close()
         pool.join()
@@ -93,7 +93,7 @@ class Genre_execution():
 if __name__ == '__main__':
     """Homans files"""
     total_running_steps = 5000
-    cpus_at_hand = 4
+    cpus_at_hand = 5
     each_file_run_times = 10
     genres_name_list = ['Homans_1_a.py','Homans_1_b.py','Homans_2_a.py','Homans_2_b.py',
                         'Homans_3_a.py','Homans_3_b.py','Homans_3_c.py']
@@ -106,17 +106,25 @@ if __name__ == '__main__':
     genres_path = os.path.join(current_path,'genres_holder')
     for i,genre in enumerate(tqdm.tqdm(genres_name_list)):
         genre_homans_exec = Genre_execution(genre, each_file_run_times , cpus_at_hand,
-                                            total_running_steps, path = genres_path)
+                                            total_running_steps, versions = [], path = genres_path)
         genre_homans_exec.initialize_running()
         genres_versions_names.extend(genre_homans_exec.versions_names)
         control_file.write('{} completed! \n'.format(genre))
     
         
     """"Analysis part"""
-    genre_results_exec = Genre_execution('Results_analysis_Homans.py', total_files, cpus_at_hand,
+    genre_results_exec = Genre_execution('Results_analysis_Homans.py', len(genres_versions_names), cpus_at_hand,
                                           total_running_steps, path = genres_path,
                                           versions = genres_versions_names)
     genre_results_exec.initialize_running()
+    # for start in tqdm.tqdm( range(0,len(genres_versions_names),3) ):
+    #     end = (start + 3) if start < ( len(genres_versions_names) - 3 ) else len(genres_versions_names)
+    #     genre_results_exec = Genre_execution('Results_analysis_Homans.py', end - start, end - start,
+    #                                       total_running_steps, path = genres_path,
+    #                                       versions = genres_versions_names[start:end])
+    #     genre_results_exec.initialize_running()
+    #     control_file.write('{} completed! \n'.format(genres_versions_names[start:end]))
+        
     control_file.write('all results generation completed! \n')
     control_file.write('Program Jobs are Finished! \n')
 
