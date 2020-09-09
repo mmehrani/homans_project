@@ -89,7 +89,7 @@ class Agent():
         p2_tracker.append(p2)
         
         probability = p0 * p1 * p2      #not normalized. normalization occurs in neighbor_concatenation()
-        return Decimal(probability).quantize(Decimal('1e-5'),rounding = ROUND_DOWN) if probability < 10**8 else Decimal(10**8)
+        return Decimal(str(probability)).quantize(Decimal('1e-5'),rounding = ROUND_DOWN) if probability < 10**8 else Decimal('1e8')
     
     def frequency_to_probability(self,neighbor,t):
         """
@@ -100,7 +100,7 @@ class Agent():
         """
         mask = (self.time[neighbor] > t-10) & (self.time[neighbor] != -1)
         n1 = np.size(self.time[neighbor][mask])
-        short_term = 1 - alpha * (n1/10)
+        short_term = np.exp(- alpha * n1 / 10)
         
         # n2 = self.neighbor[neighbor]
         # long_term = 1 + beta * (n2 * len(self.active_neighbor) /(t*np.average(num_transaction_tot[:t-1]) ) ) 
@@ -503,6 +503,8 @@ def save_it(version,t):
 # =============================================================================
 """Distinctive parameters"""        #necessary for recalling for analysis
 N = 100                             #Number of agents
+# T = 50
+# version = 'test'
 
 """Parameters"""#XXX
 similarity = 0.05                   #difference allowed between model neighbor and new found agent. in explore()
@@ -516,7 +518,7 @@ normalization_factor = 1            #rejection rate of acceptance_worth; used in
 prob0_magnify_factor = 0.5          #magnifying factor of P0; in probability_factor()
 prob1_magnify_factor = 1            #magnifying factor of P1; in probability_factor(); use with caution
 prob2_magnify_factor = 1            #magnifying factor of P2; in probability_factor(); use with caution
-alpha = 1                           #in short-term effect of the frequency of transaction
+alpha = 2.0                           #in short-term effect of the frequency of transaction
 beta = 3                            #in long-term effect of the frequency of transaction
 param = 2                           #a normalizing factor in assigning the acceptance probability. It normalizes difference of money of both sides
 lamda = 0                           #how much one agent relies on his last worth_ratio and how much relies on current transaction's worth_ratio
