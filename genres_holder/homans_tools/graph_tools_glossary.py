@@ -59,7 +59,9 @@ class Community_related_tools():
         coverage = communityx.coverage(self.G,partitionx)
         
         """in the corresponding random graph"""
-        H = nx.gnm_random_graph(self.G.number_of_nodes(),self.G.number_of_edges())
+        # H = nx.gnm_random_graph(self.G.number_of_nodes(),self.G.number_of_edges())
+        H = nx.configuration_model([d for v, d in self.G.degree()]) 
+
         part = community.best_partition(H) #XXX
         part2 = communityx.greedy_modularity_communities(H)
         modularity_rand = community.modularity(part,H)
@@ -133,9 +135,13 @@ class Community_related_tools():
         plt.figure()
 #        plt.bar( property_mean, property_sum, width=property_var, alpha=0.5, color= cmap.to_rgba(np.arange(len(property_sum))) )
         plt.bar( property_mean, community_no, width=property_var, alpha=0.5, color= cmap.to_rgba(np.arange(len(property_sum))) )
-        plt.title('{} in community'.format(property_id))
+        plt.title('{} in communities'.format(property_id.capitalize()))
+        
+        plt.ylabel('Number of agents')
+        plt.xlabel('Overall {}'.format(property_id))
+        
         plt.savefig(self.path + 'C community overal {}'.format(property_id))
-        plt.close()
+        # plt.close()
         return
     
     def communities_property_evolution(self,tracker,property_id):
@@ -287,8 +293,10 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
         F = nx.configuration_model([d for v, d in self.G.degree()]) #for shortest path length
         Fcc = sorted(nx.connected_components(F), key=len, reverse=True)
         F0 = F.subgraph(Fcc[0])
+        
         cc = nx.average_clustering(self.G)
         cc_r = nx.average_clustering(H)
+        # cc_r = nx.average_clustering(F)
         asph = nx.average_shortest_path_length(G0)
         asph_r = nx.average_shortest_path_length(F0)
         sigma = (cc/cc_r) / (asph/asph_r)
@@ -508,10 +516,10 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
             self.path = path + 'graph_related' + pd[plat]+'{0}, '.format(i)
             try:
                 self.graph_construction('trans_number',num_transaction,boolean=False,fpoint=i,sampling_time=sampling_time,sample_time_trans=tracker.sample_time_trans)
-                self.draw_graph_weighted_colored(position='spring',)
-                self.draw_graph_weighted_colored(position='spring',nsize='money',ncolor='situation')
-                self.draw_graph_weighted_colored(position='kamada_kawai')
-                self.draw_graph_weighted_colored(position='kamada_kawai',nsize='money',ncolor='situation')
+                # self.draw_graph_weighted_colored(position='spring',)
+                # self.draw_graph_weighted_colored(position='spring',nsize='money',ncolor='situation')
+                # self.draw_graph_weighted_colored(position='kamada_kawai')
+                # self.draw_graph_weighted_colored(position='kamada_kawai',nsize='money',ncolor='situation')
             except: break
             try:
                 temp0, temp1, temp2 = self.G.number_of_nodes(), self.G.number_of_edges(), nx.is_connected(self.G)
@@ -524,8 +532,9 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
                 dic['is_con'][local0] = temp2
             except: print('graph size')
             try:
-                self.hist('degree')
-                self.hist_log_log('degree')
+                pass
+                # self.hist('degree')
+                # self.hist_log_log('degree')
             except: print('degree hist')
             try:
                 temp0, temp1, temp2, temp3 = self.community_detection()
@@ -565,17 +574,19 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
                 dic['rc_la'][local4] = '{}'.format(i)
             except: print('rich club')
             try:
-                for prop in ['money','asset','approval','worth_ratio','situation']:
-                    self.communities_property_dist(prop,boolean=False)
+                pass
+                # for prop in ['money','asset','approval','worth_ratio','situation']:
+                #     self.communities_property_dist(prop,boolean=False)
             except: print('property hist')
             try:
-                self.intercommunity_links()
+                # self.intercommunity_links()
+                pass
             except: print('edge distribution')
 
         if 'attr' in locals():
             assort = [[] for i in range(len(attr))]
             for i in range(len(attr)):
-                for j in np.arange(length):
+                for j in np.arange(local3):
                     assort[i].append(dic['assort'][j][i])
         self.path = path
         """Plot"""
@@ -594,7 +605,7 @@ class Graph_related_tools(arrays_glossary,Community_related_tools):
             self.plot_general(path,dic['rc'],indicator=False,label=dic['rc_la'],title='GR Rich Club Vs Friendship Point')
         if 'attr' in locals():
             self.plot_general(path,assort,indicator=False,label=list(attr),title='GR Assortativity Vs Friendship Point')
-        
+
         return dic
     
     pass
