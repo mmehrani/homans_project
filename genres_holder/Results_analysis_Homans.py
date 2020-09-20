@@ -30,8 +30,8 @@ start_time = datetime.now()
 
 #XXX
 N = 100
-# T = 5000
-# version = 'Result_Homans_1_b_2'
+T = 5000
+# version = 'Result_Homans_3_b_2'
 
 class Agent():
     def __init__(self,money,approval,situation):
@@ -177,6 +177,8 @@ class Agent():
 
 bar = Bar('Processing', max=14)
 
+version = 'Result_Homans_1_a_0'
+# T = 5000
 
 pd = {'win32':'\\', 'linux':'/'}
 if sys.platform.startswith('win32'):
@@ -218,93 +220,94 @@ main_graph = analyse.graph_construction('trans_number',num_transaction_tot, samp
 
 
 bar.next() #XXX
-analyse.graph_correlations(all_nodes = False)
-analyse.graph_correlations(all_nodes = True)
+# analyse.graph_correlations(all_nodes = False)
+# analyse.graph_correlations(all_nodes = True)
 
 bar.next() #XXX
 tracker.get_path(path) #essential
-tracker.plot_general(num_transaction_tot,title='Number of Transaction')
-tracker.plot_general(explore_prob_arr * N,title='Average Exploration Probability',explore=True,N=N)
+# tracker.plot_general(num_transaction_tot,title='Number of Transaction')
+# tracker.plot_general(explore_prob_arr * N,title='Average Exploration Probability',explore=True,N=N)
 
 bar.next() #XXX
-analyse.hist('degree')
-analyse.hist_log_log('degree')
-analyse.hist_log_log('neighbor',semilog=True)
+# analyse.hist('degree')
+# analyse.hist_log_log('degree')
+# analyse.hist_log_log('neighbor',semilog=True)
 
 bar.next() #XXX
-i=0
-array = np.zeros((8,N,N))
-for prop in ['money','approval','asset','active_neighbor','utility','probability','neighbor','value']:
-    analyse.hist(prop)
-    analyse.hist_log_log(prop)
-    array[i] = analyse.array(prop)
-    i += 1
+# i=0
+# array = np.zeros((8,N,N))
+# for prop in ['money','approval','asset','active_neighbor','utility','probability','neighbor','value']:
+#     analyse.hist(prop)
+#     analyse.hist_log_log(prop)
+#     array[i] = analyse.array(prop)
+#     i += 1
 
 bar.next() #XXX
-analyse.money_vs_situation(path+'money_vs_situation')
-analyse.transaction_vs_property('asset')
-analyse.transaction_vs_property('money')
-analyse.transaction_vs_property('approval')
-analyse.num_of_transactions()
-analyse.community_detection()
-analyse.topology_chars()
-analyse.assortativity()
-analyse.property_variation()
-analyse.intercommunity_links()
-analyse.prob_nei_correlation()
-try:
-    analyse.rich_club(normalized=True)
-except: print('could not create rich club')
+# analyse.money_vs_situation(path+'money_vs_situation')
+# analyse.transaction_vs_property('asset')
+# analyse.transaction_vs_property('money')
+# analyse.transaction_vs_property('approval')
+# analyse.transaction_vs_property('worth_ratio')
+# analyse.num_of_transactions()
+# analyse.community_detection()
+# analyse.topology_chars()
+# analyse.assortativity()
+# analyse.property_variation()
+# analyse.intercommunity_links()
+# analyse.prob_nei_correlation()
+# try:
+#     analyse.rich_club(normalized=True)
+# except: print('could not create rich club')
 
 bar.next() #XXX
-size = 10 
-for rand_agent in np.random.choice(np.arange(N),size=size,replace=False):
-    agent = rand_agent
-    tracker.trans_time_visualizer(agent,'Transaction Time Tracker')
-tracker.valuability()
+# size = 10 
+# for rand_agent in np.random.choice(np.arange(N),size=size,replace=False):
+#     agent = rand_agent
+#     tracker.trans_time_visualizer(agent,'Transaction Time Tracker')
+# tracker.valuability()
 
-for prop in ['money','asset','approval']:
-    tracker.property_evolution(prop)
+# for prop in ['money','asset','approval']:
+#     tracker.property_evolution(prop)
 
 bar.next() #XXX
-tracker.correlation_growth_situation('money','situation')
-tracker.correlation_growth_situation('asset','situation')
-tracker.correlation_growth_situation('approval','situation')
+# tracker.correlation_growth_situation('money','situation')
+# tracker.correlation_growth_situation('asset','situation')
+# tracker.correlation_growth_situation('approval','situation')
 
-tracker.correlation_growth_situation('money','initial_money')
-tracker.correlation_growth_situation('asset','initial_asset')
-tracker.correlation_growth_situation('approval','initial_approval')
+# tracker.correlation_growth_situation('money','initial_money')
+# tracker.correlation_growth_situation('asset','initial_asset')
+# tracker.correlation_growth_situation('approval','initial_approval')
 plt.close('all')
 
 bar.next() #XXX
-tracker.plot('self_value',title='Self Value')
-tracker.plot('valuable_to_others',title='How Much Valuable to Others')
-tracker.plot('worth_ratio',title='Worth_ratio Evolution by Time',alpha=1)
-tracker.plot('correlation_mon',title='Correlation of Money and Situation')
-tracker.plot('correlation_situ',title="Correlation of Situation and Neighbor's Situation")
+# tracker.plot('self_value',title='Self Value')
+# tracker.plot('valuable_to_others',title='How Much Valuable to Others')
+# tracker.plot('worth_ratio',title='Worth_ratio Evolution by Time',alpha=1)
+# tracker.plot('correlation_mon',title='Correlation of Money and Situation')
+# tracker.plot('correlation_situ',title="Correlation of Situation and Neighbor's Situation")
 
 # tracker.correlation_pairplots(all_nodes = True)
 # tracker.correlation_pairplots(present_nodes = main_graph.nodes())
 
 bar.next() #XXX
-tracker.correlation_pairplots()
-tracker.correlation_pairplots(nodes_selection = 'graph_nodes', present_nodes = main_graph.nodes())
+# tracker.correlation_pairplots()
+# tracker.correlation_pairplots(nodes_selection = 'graph_nodes', present_nodes = main_graph.nodes())
 
 bar.next() #XXX
-community_members = [list(x) for x in analyse.modularity_communities]
-for num,com in enumerate(community_members):
-    tracker.correlation_pairplots(nodes_selection ='community_nodes_{}'.format(num),present_nodes = com)
+# community_members = [list(x) for x in analyse.modularity_communities]
+# for num,com in enumerate(community_members):
+#     tracker.correlation_pairplots(nodes_selection ='community_nodes_{}'.format(num),present_nodes = com)
 
 bar.next() #XXX
-fig, ax = plt.subplots(nrows=1,ncols=1)
-probability = analyse.array('probability')
-im = ax.imshow(probability.astype(float),aspect='auto',animated=True)
-def animate(alpha):
-    probability[probability < alpha/N] = 0
-    im.set_array(probability)
-    return im,
-anim = animation.FuncAnimation(fig,animate,frames=20, interval=1000, blit=True)
-anim.save(path+'probability.gif', writer='imagemagick')
+# fig, ax = plt.subplots(nrows=1,ncols=1)
+# probability = analyse.array('probability')
+# im = ax.imshow(probability.astype(float),aspect='auto',animated=True)
+# def animate(alpha):
+#     probability[probability < alpha/N] = 0
+#     im.set_array(probability)
+#     return im,
+# anim = animation.FuncAnimation(fig,animate,frames=20, interval=1000, blit=True)
+# anim.save(path+'probability.gif', writer='imagemagick')
 plt.close()
 
 analyse.community_detection()
@@ -312,16 +315,16 @@ analyse.community_detection()
 bar.next() #XXX
 for prop in ['money','asset','approval','worth_ratio']:
     analyse.communities_property_dist(prop)
-#    analyse.communities_property_evolution(tracker,prop)
+#     analyse.communities_property_evolution(tracker,prop)
 
 bar.next() #XXX
-all_data_dict = analyse.graph_related_chars(num_transaction_tot,tracker,sampling_time)
-analyse.path = path
+# all_data_dict = analyse.graph_related_chars(num_transaction_tot,tracker,sampling_time)
+# analyse.path = path
 
 bar.next() #XXX
-tracker.rejection_history()
+# tracker.rejection_history()
 
-plt.close('all')
+# plt.close('all')
 print (datetime.now() - start_time)
 bar.finish()
 # winsound.Beep(2000,500)

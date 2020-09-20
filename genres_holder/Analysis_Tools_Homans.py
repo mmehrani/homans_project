@@ -9,7 +9,7 @@ if sys.platform.startswith('win32'):
     plat = 'win32'
 elif sys.platform.startswith('linux'):
     plat = 'linux'
-sys.path.insert(1, os.getcwd() + pd[plat]+'homans_tools')
+# sys.path.insert(1, os.getcwd() + pd[plat]+'homans_tools')
 
 import networkx as nx
 import numpy as np
@@ -595,18 +595,27 @@ class Tracker(properties_alteration,hist_plot_tools): #XXX
         it will show the trace of transactions of one agent through time
         Horizontal axis is other agents, and vertica axis is time.
         """
+        plt.rc('font', family='serif')
+        plt.rc('xtick', labelsize='x-small')
+        plt.rc('ytick', labelsize='x-small')
+        
         fig, ax = plt.subplots(nrows=1,ncols=1)
         agent_trans_time = self.trans_time[:,agent_to_watch,:].astype(float)
         show_arr = np.zeros((self.trans_saving_time_interval-1,self.N))
         for t in np.arange(self.trans_saving_time_interval-1):
             show_arr[t] = agent_trans_time[t+1,:] - agent_trans_time[t,:]
+        
         im = ax.imshow(show_arr,aspect='auto')
-
-        cbar = ax.figure.colorbar(im, ax=ax)
-        cbar.ax.set_ylabel('number of transactions', rotation=-90, va="bottom")
-        plt.title(title+', agent {0} with asset={1:.3g} & situation={2:.2f}'.format(agent_to_watch,self.a_matrix[agent_to_watch].asset,self.a_matrix[agent_to_watch].situation))
+        
+        ax.set_xlabel('Agents')
+        ax.set_ylabel('Time steps')
+        
+        # cbar = ax.figure.colorbar(im, ax=ax)
+        # cbar.ax.set_ylabel('number of transactions', rotation=-90, va="bottom")
+        # plt.title(title+', \n agent {0} with asset={1:.3g} and situation={2:.2f}'.format(agent_to_watch,self.a_matrix[agent_to_watch].asset,self.a_matrix[agent_to_watch].situation))
+        plt.title(title)
         plt.savefig(self.path + title + ' agent {0}'.format(agent_to_watch))
-        plt.close()
+        # plt.close()
         return
     
     def rejection_history(self):
