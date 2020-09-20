@@ -604,7 +604,7 @@ class Tracker(properties_alteration,hist_plot_tools): #XXX
         show_arr = np.zeros((self.trans_saving_time_interval-1,self.N))
         for t in np.arange(self.trans_saving_time_interval-1):
             show_arr[t] = agent_trans_time[t+1,:] - agent_trans_time[t,:]
-        
+
         im = ax.imshow(show_arr,aspect='auto')
         
         ax.set_xlabel('Agents')

@@ -28,11 +28,6 @@ from progress.bar import Bar
 
 start_time = datetime.now()
 
-#XXX
-N = 100
-T = 5000
-# version = 'Result_Homans_3_b_2'
-
 class Agent():
     def __init__(self,money,approval,situation):
         self.money = money
@@ -177,8 +172,10 @@ class Agent():
 
 bar = Bar('Processing', max=14)
 
-version = 'Result_Homans_1_a_0'
-# T = 5000
+T = 5000
+N = 100 
+version = '99.01.15_3 long_term off' #XXX
+
 
 pd = {'win32':'\\', 'linux':'/'}
 if sys.platform.startswith('win32'):
@@ -225,58 +222,54 @@ bar.next() #XXX
 
 bar.next() #XXX
 tracker.get_path(path) #essential
-# tracker.plot_general(num_transaction_tot,title='Number of Transaction')
-# tracker.plot_general(explore_prob_arr * N,title='Average Exploration Probability',explore=True,N=N)
 
-bar.next() #XXX
-# analyse.hist('degree')
-# analyse.hist_log_log('degree')
-# analyse.hist_log_log('neighbor',semilog=True)
+tracker.plot_general(num_transaction_tot,title='Number of Transaction')
+tracker.plot_general(explore_prob_arr * N,title='Average Exploration Probability',explore=True,N=N)
 
-bar.next() #XXX
-# i=0
-# array = np.zeros((8,N,N))
-# for prop in ['money','approval','asset','active_neighbor','utility','probability','neighbor','value']:
-#     analyse.hist(prop)
-#     analyse.hist_log_log(prop)
-#     array[i] = analyse.array(prop)
-#     i += 1
+analyse.hist('degree')
+analyse.hist_log_log('degree')
+analyse.hist_log_log('neighbor',semilog=True)
 
-bar.next() #XXX
-# analyse.money_vs_situation(path+'money_vs_situation')
-# analyse.transaction_vs_property('asset')
-# analyse.transaction_vs_property('money')
-# analyse.transaction_vs_property('approval')
-# analyse.transaction_vs_property('worth_ratio')
-# analyse.num_of_transactions()
-# analyse.community_detection()
-# analyse.topology_chars()
-# analyse.assortativity()
-# analyse.property_variation()
-# analyse.intercommunity_links()
-# analyse.prob_nei_correlation()
-# try:
-#     analyse.rich_club(normalized=True)
-# except: print('could not create rich club')
+i=0
+array = np.zeros((8,N,N))
+for prop in ['money','approval','asset','active_neighbor','utility','probability','neighbor','value']:
+    analyse.hist(prop)
+    analyse.hist_log_log(prop)
+    array[i] = analyse.array(prop)
+    i += 1
 
-bar.next() #XXX
-# size = 10 
-# for rand_agent in np.random.choice(np.arange(N),size=size,replace=False):
-#     agent = rand_agent
-#     tracker.trans_time_visualizer(agent,'Transaction Time Tracker')
-# tracker.valuability()
+analyse.money_vs_situation(path+'money_vs_situation')
+analyse.transaction_vs_property('asset')
+analyse.transaction_vs_property('money')
+analyse.transaction_vs_property('approval')
+analyse.num_of_transactions()
+analyse.community_detection()
+analyse.topology_chars()
+analyse.assortativity()
+analyse.property_variation()
+analyse.intercommunity_links()
+analyse.prob_nei_correlation()
+try:
+    analyse.rich_club(normalized=True)
+except: print('could not create rich club')
 
-# for prop in ['money','asset','approval']:
-#     tracker.property_evolution(prop)
+size = 10 
+for rand_agent in np.random.choice(np.arange(N),size=size,replace=False):
+    agent = rand_agent
+    tracker.trans_time_visualizer(agent,'Transaction Time Tracker')
+tracker.valuability()
 
-bar.next() #XXX
-# tracker.correlation_growth_situation('money','situation')
-# tracker.correlation_growth_situation('asset','situation')
-# tracker.correlation_growth_situation('approval','situation')
+for prop in ['money','asset','approval']:
+    tracker.property_evolution(prop)
 
-# tracker.correlation_growth_situation('money','initial_money')
-# tracker.correlation_growth_situation('asset','initial_asset')
-# tracker.correlation_growth_situation('approval','initial_approval')
+tracker.correlation_growth_situation('money','situation')
+tracker.correlation_growth_situation('asset','situation')
+tracker.correlation_growth_situation('approval','situation')
+
+tracker.correlation_growth_situation('money','initial_money')
+tracker.correlation_growth_situation('asset','initial_asset')
+tracker.correlation_growth_situation('approval','initial_approval')
+
 plt.close('all')
 
 bar.next() #XXX
