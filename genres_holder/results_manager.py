@@ -44,7 +44,7 @@ class Genre_execution():
                 old = f.read() # read everything in the file
             with open(filename_plus_address + "_{0}.py".format(i), "w") as f:
                 f.seek(0) # rewind
-                version_name = 'Result {0}_{1}'.format(self.original_filename,i)
+                version_name = 'Result_{0}_{1}'.format(self.original_filename,i)
                 self.versions_names.append(version_name)
                 f.write("T = {}".format(self.total_time)+"\n"+
                         "version = " + "'{}'".format(version_name)+
@@ -98,19 +98,19 @@ class Genre_execution():
 if __name__ == '__main__':
     """Homans files"""
     total_running_steps = 5000
-    cpus_at_hand = 1
+    cpus_at_hand = 4
     each_file_run_times = 10
     genres_name_list = ['Homans_1_a.py','Homans_1_b.py','Homans_2_a.py','Homans_2_b.py',
                         'Homans_3_a.py','Homans_3_b.py','Homans_3_c.py']
-    # genres_name_list = ['Homans_1_a.py','Homans_1_b.py']
+    # genres_name_list = ['Homans_1_a.py']
     total_files = each_file_run_times * len(genres_name_list)
     genres_versions_names = []
     
     control_file = open('check_status.txt','w')
     
-    current_path = os.getcwd()
+    # current_path = os.getcwd()
     # genres_path = os.path.join(current_path,'genres_holder')
-    genres_path = (current_path)
+    genres_path = os.getcwd()
     # genres_versions_names = os.listdir(genres_path)
     version_folder_directory = os.path.join(genres_path,'runned_files','N100_T{}'.format(total_running_steps))
     genres_versions_names = []
@@ -122,7 +122,7 @@ if __name__ == '__main__':
     genre_results_exec = Genre_execution('Results_analysis_Homans.py', len(genres_versions_names), cpus_at_hand,
                                           total_running_steps, path = genres_path,
                                           versions = genres_versions_names)
-    # genre_results_exec.initialize_running()
+    genre_results_exec.initialize_running()
         
     control_file.write('all results generation completed! \n')
     control_file.write('Program Jobs are Finished! \n')
