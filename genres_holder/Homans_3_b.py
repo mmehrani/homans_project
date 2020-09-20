@@ -8,15 +8,12 @@ Model's engine
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
-import winsound
+#import winsound
 import pickle
 import Analysis_Tools_Homans
 import os
-import shutil
 import sys
 from decimal import *
-
-
 """Platform Detection"""
 pd = {'win32':'\\', 'linux':'/'}
 if sys.platform.startswith('win32'):
@@ -91,7 +88,7 @@ class Agent():
         p2_tracker.append(p2)
         
         probability = p0 * p1 * p2      #not normalized. normalization occurs in neighbor_concatenation()
-        return Decimal(probability).quantize(Decimal('1e-5'),rounding = ROUND_DOWN) if probability < 10**8 else Decimal(10**8)
+        return Decimal(str(probability)).quantize(Decimal('1e-5'),rounding = ROUND_DOWN) if probability < 10**8 else Decimal('1e8')
     
     def frequency_to_probability(self,neighbor,t):
         """
@@ -102,7 +99,7 @@ class Agent():
         """
         mask = (self.time[neighbor] > t-10) & (self.time[neighbor] != -1)
         n1 = np.size(self.time[neighbor][mask])
-        short_term = 1 - alpha * (n1/10)
+        short_term = np.exp(- alpha * n1 / 10)
         
         # n2 = self.neighbor[neighbor]
         # long_term = 1 + beta * (n2 * len(self.active_neighbor) /(t*np.average(num_transaction_tot[:t-1]) ) ) 
@@ -150,10 +147,10 @@ class Agent():
     def second_agent(self,self_index,self_active_neighbor):
         """
         Homans' proposition 6
+        
         Returns an agent in memory with maximum utility to intract with.
         Utility = Value * Acceptance Probability
         """
-        
         """Proposition 6"""
         i = 0
         Max = 0
@@ -166,11 +163,11 @@ class Agent():
                 chosen_agent = j
                 chosen_agent_index = i
             i += 1
-        
-        """Random choice"""     #for when we need to turn off the effect
+            
+        """random choice"""
         # chosen_agent_index = np.random.choice(range(len(self_active_neighbor)))
         # chosen_agent = self_active_neighbor[chosen_agent_index]
-        
+
         return chosen_agent , chosen_agent_index
     
 # =============================================================================
@@ -219,8 +216,8 @@ def transaction(index1,index2,t):
         acceptance_neg = 1      #not negative checking acceptance
     else: acceptance_neg = 0
         
-    # if True:      #for turning off the effect of worth ratio acceptance
-    if worth_ratio2 >= worth_ratio1:
+    if True:      #for turning off the effect of worth ratio acceptance
+    # if worth_ratio2 >= worth_ratio1:
         acceptance_worth = 1
     else:
         p = np.exp( -(worth_ratio1 - worth_ratio2)/normalization_factor )
@@ -507,13 +504,10 @@ def save_it(version,t):
         pickle.dump(tracker,tracker_file,pickle.HIGHEST_PROTOCOL)
         
     return path
-# =============================================================================
 
+# =============================================================================
 """Distinctive parameters"""        #necessary for recalling for analysis
 N = 100                             #Number of agents
-T = 2000                            #Total time of simulation
-version = '99.01.15_3 long_term off'
-
 
 """Parameters"""#XXX
 similarity = 0.05                   #difference allowed between model neighbor and new found agent. in explore()
@@ -527,17 +521,14 @@ normalization_factor = 1            #rejection rate of acceptance_worth; used in
 prob0_magnify_factor = 0.5          #magnifying factor of P0; in probability_factor()
 prob1_magnify_factor = 1            #magnifying factor of P1; in probability_factor(); use with caution
 prob2_magnify_factor = 1            #magnifying factor of P2; in probability_factor(); use with caution
-alpha = 1                           #in short-term effect of the frequency of transaction
+alpha = 2.0                           #in short-term effect of the frequency of transaction
 beta = 3                            #in long-term effect of the frequency of transaction
 param = 2                           #a normalizing factor in assigning the acceptance probability. It normalizes difference of money of both sides
-lamda = 0                           # how much one agent relies on his last worth_ratio and how much relies on current transaction's worth_ratio
+lamda = 0                           #how much one agent relies on his last worth_ratio and how much relies on current transaction's worth_ratio
 sampling_time = 1000                #time interval used for making network: [T-sampling_time , T]
 saving_time_step = T                #for saving multiple files change it from T to your desired interval (better for T to be devidable to your number)
-
+initial_for_trans_time = T - 1000   #initial time for trans_time to start recording 
 trans_saving_interval = 1000        #the interval the trans_time will record
-if trans_saving_interval > T:
-    trans_saving_interval = T
-initial_for_trans_time = T - trans_saving_interval #initial time for trans_time to start recording 
 
 if sampling_time > T:
     sampling_time = T
@@ -592,7 +583,7 @@ explores for new agent (expand memory)
 """
 for t in np.arange(T)+1:#t goes from 1 to T
     """computations"""
-    # print(t)
+    print(t,'/',T)
     tau = (t-1)
     shuffled_agents=np.arange(N)
     np.random.shuffle(shuffled_agents)
@@ -655,11 +646,6 @@ for t in np.arange(T)+1:#t goes from 1 to T
 
 # =============================================================================
 
-"""Making copies"""
-shutil.copyfile(os.getcwd()+'\\Homans.py',path+'\\Homans.py')
-shutil.copyfile(os.getcwd()+'\\Analysis_Tools_Homans.py',path+'\\Analysis_Tools_Homans.py')
-shutil.copyfile(os.getcwd()+'\\Results_analysis_Homans.py',path+'\\Results_analysis_Homans.py')
-
 """Pre-Analysis and Measurements"""
 tracker.get_path(path)
 tracker.plot_general(explore_prob_array * N,title='Average Exploration Probability',explore=True,N=N)
@@ -705,6 +691,5 @@ with open(path + 'Explore_data.txt','w') as ex_file:
 """Time Evaluation"""
 duration = 500  # millisecond
 freq = 2000  # Hz
-winsound.Beep(freq, duration)
+#winsound.Beep(freq, duration)
 print (datetime.now() - start_time)
-
