@@ -100,10 +100,10 @@ if __name__ == '__main__':
     total_running_steps = 5000
     cpus_at_hand = 4
     each_file_run_times = 10
-    # genres_name_list = ['Homans_1_a.py','Homans_1_b.py','Homans_2_a.py','Homans_2_b.py',
-    #                     'Homans_3_a.py','Homans_3_b.py','Homans_3_c.py']
-    genres_name_list = ['Homans_1_a.py','Homans_1_b.py','Homans_1_b.py','Homans_2_a.py']
-    each_genre_run_num = [5,5,10,20]
+    genres_name_list = ['Homans_1_a.py','Homans_1_b.py','Homans_2_a.py','Homans_2_b.py',
+                        'Homans_3_a.py','Homans_3_b.py','Homans_3_c.py']
+    # genres_name_list = ['Homans_1_a.py','Homans_1_b.py','Homans_1_b.py','Homans_2_a.py']
+    each_genre_run_num = [10]*each_file_run_times
     # total_files = each_file_run_times * len(genres_name_list)
     total_files = sum(each_genre_run_num)
     genres_versions_names = []
